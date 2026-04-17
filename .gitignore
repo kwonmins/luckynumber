@@ -1,0 +1,20 @@
+# Local secrets
+local.properties
+*.jks
+*.keystore
+
+# Android / Gradle build output
+.gradle/
+.gradle-user-home/
+.kotlin/
+build/
+app/build/
+captures/
+
+# IDE files
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
