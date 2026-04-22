@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.unum.ui.components.MascotArt
 import com.example.unum.ui.components.MascotGuideCard
 import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.components.SectionTitle
@@ -33,7 +34,8 @@ fun DeveloperStoryScreen() {
             item { SectionTitle("개발자 이야기") }
             item {
                 MascotGuideCard(
-                    message = "수리는 한 개발자의 막막한 밤에서 태어났어요. 숫자 속에 숨어 있던 작은 길잡이를 함께 들여다볼게요."
+                    message = "수리는 한 개발자의 막막한 밤에서 태어났어요. 숫자 속에 숨어 있던 작은 길잡이를 함께 들여다볼게요.",
+                    imageRes = MascotArt.Story
                 )
             }
             item {

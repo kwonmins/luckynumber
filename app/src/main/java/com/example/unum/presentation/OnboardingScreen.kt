@@ -39,9 +39,9 @@ import com.example.unum.ui.theme.TextSecondary
 fun OnboardingScreen(onFinished: () -> Unit) {
     var page by remember { mutableIntStateOf(0) }
     val pages = listOf(
-        "안녕하세요, 저는 숫자로 당신의 운명을 봐주는 수리입니다.",
-        "양력 생년월일을 입력해주시면 숨은 숫자의 흐름을 읽어드릴게요.",
-        "기본 운명과 고민 상담도 함께 들려드리니 가볍고 재미있게 활용해주세요."
+        "안녕하세요. 저는 숫자로 당신의 흐름을 정리해주는 수리입니다.",
+        "생년월일을 입력하면 운명수와 시기별 숫자를 먼저 보여드려요.",
+        "고민이 있다면 AI 프리미엄 운세로 더 자세히 확인할 수 있어요."
     )
 
     MysticBackground(modifier = Modifier.fillMaxSize()) {
@@ -53,10 +53,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             Image(
                 painter = painterResource(R.drawable.suri_loading),
                 contentDescription = "수리",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp)
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp)),
+                modifier = Modifier.fillMaxWidth().height(220.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Fit
             )
             Spacer(Modifier.height(22.dp))
