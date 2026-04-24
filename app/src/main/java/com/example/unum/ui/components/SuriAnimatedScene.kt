@@ -1,11 +1,6 @@
 package com.example.unum.ui.components
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -64,6 +58,21 @@ private data class SuriSceneStep(
     val chip: String
 )
 
+private data class SuriFramePack(
+    val idle: List<Int>,
+    val speaking: List<Int> = idle
+)
+
+private data class SuriAnimationBundle(
+    val greeting: SuriFramePack,
+    val explain: SuriFramePack,
+    val focus: SuriFramePack,
+    val highlight: SuriFramePack,
+    val caution: SuriFramePack,
+    val comfort: SuriFramePack,
+    val closing: SuriFramePack
+)
+
 @Composable
 fun SuriAnimatedSceneCard(
     mode: PremiumMode,
@@ -71,17 +80,6 @@ fun SuriAnimatedSceneCard(
     modifier: Modifier = Modifier,
     speechScript: SuriSpeechScript? = null
 ) {
-    val floatTransition = rememberInfiniteTransition(label = "suri-scene")
-    val bobOffset by floatTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = -10f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1800),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "suri-bob"
-    )
-
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
         tonalColor = Surface2,
@@ -91,41 +89,24 @@ fun SuriAnimatedSceneCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(336.dp)
+                .height(324.dp)
                 .clip(RoundedCornerShape(8.dp))
-        ) {
-            Image(
-                painter = painterResource(R.drawable.suri_hanok_scene_cropped),
-                contentDescription = "수리 한옥 상담 배경",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                alignment = Alignment.TopCenter
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                Color(0xFFF7E7D2).copy(alpha = 0.32f),
-                                Color(0xFF8B5C38).copy(alpha = 0.18f),
-                                Color(0xFF322117).copy(alpha = 0.45f)
-                            )
-                        )
+                .background(
+                    Brush.verticalGradient(
+                        spriteStageColors(mode, topic)
                     )
-            )
-
+                )
+        ) {
             if (speechScript == null) {
                 IdleSceneCardContent(
                     mode = mode,
-                    topic = topic,
-                    bobOffset = bobOffset
+                    topic = topic
                 )
             } else {
                 SpokenSceneCardContent(
                     speechScript = speechScript,
                     mode = mode,
-                    bobOffset = bobOffset
+                    topic = topic
                 )
             }
         }
@@ -135,8 +116,7 @@ fun SuriAnimatedSceneCard(
 @Composable
 private fun IdleSceneCardContent(
     mode: PremiumMode,
-    topic: PremiumTopic,
-    bobOffset: Float
+    topic: PremiumTopic
 ) {
     val steps = remember(mode, topic) { sceneSteps(mode, topic) }
     var stepIndex by remember(mode, topic) { mutableIntStateOf(0) }
@@ -144,7 +124,7 @@ private fun IdleSceneCardContent(
 
     LaunchedEffect(steps) {
         while (true) {
-            delay(2600)
+            delay(3200)
             stepIndex = (stepIndex + 1) % steps.size
         }
     }
@@ -167,8 +147,7 @@ private fun IdleSceneCardContent(
         SceneMascot(
             frameRes = currentStep.frameRes,
             contentDescription = currentStep.title,
-            bobOffset = bobOffset,
-            frameDurationMillis = 980L
+            frameDurationMillis = 1200L
         )
 
         Text(
@@ -189,7 +168,7 @@ private fun IdleSceneCardContent(
 private fun SpokenSceneCardContent(
     speechScript: SuriSpeechScript,
     mode: PremiumMode,
-    bobOffset: Float
+    topic: PremiumTopic
 ) {
     val player = rememberSuriSpeechPlayer()
 
@@ -238,10 +217,9 @@ private fun SpokenSceneCardContent(
         )
 
         SceneMascot(
-            frameRes = speechSpriteFrames(activeSegment, player.isPlaying),
+            frameRes = speechSpriteFrames(mode, topic, activeSegment, player.isPlaying),
             contentDescription = activeSegment.title,
-            bobOffset = bobOffset,
-            frameDurationMillis = if (player.isPlaying) 340L else 920L
+            frameDurationMillis = if (player.isPlaying) 520L else 1280L
         )
 
         Column(
@@ -388,7 +366,6 @@ private fun SoftPill(
 private fun SceneMascot(
     frameRes: List<Int>,
     contentDescription: String,
-    bobOffset: Float,
     frameDurationMillis: Long
 ) {
     val frames = remember(frameRes) { frameRes.ifEmpty { listOf(R.drawable.suri_pose_01) } }
@@ -409,22 +386,16 @@ private fun SceneMascot(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(168.dp),
+            .height(176.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(110.dp)
+                .size(width = 182.dp, height = 26.dp)
                 .align(Alignment.BottomCenter)
+                .clip(RoundedCornerShape(999.dp))
                 .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            Color.Transparent,
-                            Color(0xFF3A281F).copy(alpha = 0.18f),
-                            Color(0xFF2A1C16).copy(alpha = 0.28f)
-                        )
-                    )
+                    Color(0xFF2A1C16).copy(alpha = 0.16f)
                 )
         )
         Crossfade(
@@ -435,8 +406,7 @@ private fun SceneMascot(
                 painter = painterResource(res),
                 contentDescription = contentDescription,
                 modifier = Modifier
-                    .height(188.dp)
-                    .offset(y = bobOffset.dp)
+                    .height(198.dp)
                     .alpha(0.98f),
                 contentScale = ContentScale.Fit
             )
@@ -444,27 +414,64 @@ private fun SceneMascot(
     }
 }
 
-private fun speechSpriteFrames(segment: SuriSpeechSegment, isPlaying: Boolean): List<Int> {
-    val idleFrames = when (segment.state) {
-        SuriSpeechSceneState.GREETING -> listOf(R.drawable.suri_pose_02, R.drawable.suri_expression_02)
-        SuriSpeechSceneState.EXPLAIN -> listOf(R.drawable.suri_pose_03, R.drawable.suri_expression_01)
-        SuriSpeechSceneState.FOCUS -> listOf(R.drawable.suri_pose_05, R.drawable.suri_expression_03)
-        SuriSpeechSceneState.HIGHLIGHT -> listOf(R.drawable.suri_pose_04, R.drawable.suri_pose_07)
-        SuriSpeechSceneState.CAUTION -> listOf(R.drawable.suri_expression_04, R.drawable.suri_expression_08)
-        SuriSpeechSceneState.COMFORT -> listOf(R.drawable.suri_expression_06, R.drawable.suri_expression_02)
-        SuriSpeechSceneState.CLOSING -> listOf(R.drawable.suri_pose_08, R.drawable.suri_expression_02)
+private fun spriteStageColors(mode: PremiumMode, topic: PremiumTopic): List<Color> {
+    if (mode == PremiumMode.COMPATIBILITY) {
+        return listOf(
+            Color(0xFFFFF8FB),
+            Color(0xFFFFEDF2),
+            Color(0xFFF8DCE4)
+        )
     }
 
-    if (!isPlaying) return idleFrames
+    return when (topic) {
+        PremiumTopic.ROMANCE -> listOf(
+            Color(0xFFFFF9FB),
+            Color(0xFFFFEEF4),
+            Color(0xFFFFE0EA)
+        )
+        PremiumTopic.CAREER -> listOf(
+            Color(0xFFFAFBFE),
+            Color(0xFFEEF3FB),
+            Color(0xFFDDE8F8)
+        )
+        PremiumTopic.MONEY -> listOf(
+            Color(0xFFFFFCF3),
+            Color(0xFFFFF3D9),
+            Color(0xFFFBE5B2)
+        )
+        PremiumTopic.SELF_ESTEEM -> listOf(
+            Color(0xFFF9FAFF),
+            Color(0xFFEFF1FF),
+            Color(0xFFE2E6FF)
+        )
+        PremiumTopic.RELATIONSHIP -> listOf(
+            Color(0xFFFFFAF6),
+            Color(0xFFF8EFE8),
+            Color(0xFFEFE2D8)
+        )
+    }
+}
 
-    return when (segment.state) {
-        SuriSpeechSceneState.GREETING -> listOf(R.drawable.suri_pose_02, R.drawable.suri_expression_02, R.drawable.suri_pose_03)
-        SuriSpeechSceneState.EXPLAIN -> listOf(R.drawable.suri_pose_03, R.drawable.suri_expression_02, R.drawable.suri_pose_03)
-        SuriSpeechSceneState.FOCUS -> listOf(R.drawable.suri_pose_05, R.drawable.suri_expression_03, R.drawable.suri_pose_05)
-        SuriSpeechSceneState.HIGHLIGHT -> listOf(R.drawable.suri_pose_04, R.drawable.suri_pose_07, R.drawable.suri_expression_02)
-        SuriSpeechSceneState.CAUTION -> listOf(R.drawable.suri_expression_04, R.drawable.suri_expression_05, R.drawable.suri_expression_08)
-        SuriSpeechSceneState.COMFORT -> listOf(R.drawable.suri_expression_06, R.drawable.suri_expression_02, R.drawable.suri_pose_08)
-        SuriSpeechSceneState.CLOSING -> listOf(R.drawable.suri_pose_08, R.drawable.suri_expression_02, R.drawable.suri_pose_02)
+private fun speechSpriteFrames(
+    mode: PremiumMode,
+    topic: PremiumTopic,
+    segment: SuriSpeechSegment,
+    isPlaying: Boolean
+): List<Int> {
+    val bundle = animationBundleFor(mode, topic)
+    val pack = bundle.forState(segment.state)
+    return if (isPlaying) pack.speaking else pack.idle
+}
+
+private fun animationBundleFor(mode: PremiumMode, topic: PremiumTopic): SuriAnimationBundle {
+    if (mode == PremiumMode.COMPATIBILITY) return romanceAnimationBundle()
+
+    return when (topic) {
+        PremiumTopic.ROMANCE -> romanceAnimationBundle()
+        PremiumTopic.CAREER -> writerAnimationBundle()
+        PremiumTopic.MONEY -> moneyAnimationBundle()
+        PremiumTopic.SELF_ESTEEM -> numbersAnimationBundle()
+        PremiumTopic.RELATIONSHIP -> consultAnimationBundle()
     }
 }
 
@@ -477,34 +484,36 @@ private fun sceneSteps(mode: PremiumMode, topic: PremiumTopic): List<SuriSceneSt
         PremiumTopic.RELATIONSHIP -> "인간관계의 결을 중심으로"
     }
 
+    val bundle = animationBundleFor(mode, topic)
+
     return if (mode == PremiumMode.COMPATIBILITY) {
         listOf(
             SuriSceneStep(
-                frameRes = listOf(R.drawable.suri_pose_02, R.drawable.suri_expression_02),
+                frameRes = bundle.greeting.idle,
                 title = "두 사람의 흐름을 읽어볼게요",
                 message = "남자와 여자 각자의 기본 기운을 먼저 보고, 그다음 둘 사이의 궁합수를 차분하게 읽어드릴게요.",
                 chip = "궁합 인사"
             ),
             SuriSceneStep(
-                frameRes = listOf(R.drawable.suri_pose_03, R.drawable.suri_expression_01),
+                frameRes = bundle.explain.idle,
                 title = "각자의 기운이 먼저입니다",
                 message = "서로가 다르다고 보기보다 어떤 기세가 관계 안에서 먼저 움직이는지 차근차근 짚어보는 방식이에요.",
                 chip = "기본 기운"
             ),
             SuriSceneStep(
-                frameRes = listOf(R.drawable.suri_pose_05, R.drawable.suri_expression_03),
+                frameRes = bundle.focus.idle,
                 title = "둘 사이의 결을 살펴봅니다",
                 message = "궁합수는 누가 맞고 틀리다가 아니라, 둘 사이에 어떤 공기가 형성되는지를 보여주는 단서예요.",
                 chip = "궁합수"
             ),
             SuriSceneStep(
-                frameRes = listOf(R.drawable.suri_expression_04, R.drawable.suri_expression_08),
+                frameRes = bundle.caution.idle,
                 title = "주의할 결도 함께 봅니다",
                 message = "잘 맞는 점만이 아니라 말의 온도, 기세, 생활 리듬이 어디에서 흔들리는지도 함께 정리해드릴게요.",
                 chip = "주의 흐름"
             ),
             SuriSceneStep(
-                frameRes = listOf(R.drawable.suri_pose_08, R.drawable.suri_expression_02),
+                frameRes = bundle.closing.idle,
                 title = "오래 가는 방향으로 정리합니다",
                 message = "두 사람이 더 편안해지려면 어떤 리듬이 필요한지, 무겁지 않게 현실적인 조언으로 마무리해드릴게요.",
                 chip = "마무리"
@@ -513,31 +522,31 @@ private fun sceneSteps(mode: PremiumMode, topic: PremiumTopic): List<SuriSceneSt
     } else {
         listOf(
             SuriSceneStep(
-                frameRes = listOf(R.drawable.suri_pose_02, R.drawable.suri_expression_02),
+                frameRes = bundle.greeting.idle,
                 title = "어서 오세요",
                 message = "지금 마음에 걸리는 고민을 편하게 적어주세요. 짧은 문장이어도 충분히 읽어낼 수 있어요.",
                 chip = "인사"
             ),
             SuriSceneStep(
-                frameRes = listOf(R.drawable.suri_pose_03, R.drawable.suri_expression_01),
+                frameRes = bundle.explain.idle,
                 title = "숫자의 흐름을 먼저 읽습니다",
                 message = "$topicLine 지금 어떤 리듬이 강한지부터 차분히 짚어볼게요.",
                 chip = "흐름 읽기"
             ),
             SuriSceneStep(
-                frameRes = listOf(R.drawable.suri_pose_05, R.drawable.suri_expression_03),
+                frameRes = bundle.focus.idle,
                 title = "보이지 않던 결을 짚어드릴게요",
                 message = "겉으로 드러난 고민뿐 아니라 안에서 반복되는 마음의 패턴도 함께 읽어보는 편이 좋습니다.",
                 chip = "핵심 포인트"
             ),
             SuriSceneStep(
-                frameRes = listOf(R.drawable.suri_pose_04, R.drawable.suri_pose_07),
+                frameRes = bundle.highlight.idle,
                 title = "정리된 결과로 보여드릴게요",
                 message = "흐름이 길어도 읽기 편하게 카드와 책 형식으로 나누어 다시 꺼내보기 좋게 정리해드릴게요.",
                 chip = "결과 정리"
             ),
             SuriSceneStep(
-                frameRes = listOf(R.drawable.suri_pose_08, R.drawable.suri_expression_06),
+                frameRes = bundle.comfort.idle,
                 title = "마무리는 가볍게 남길게요",
                 message = "겁을 주기보다 지금의 방향을 편안하게 붙잡을 수 있도록 현실적인 조언으로 정리해드릴게요.",
                 chip = "부드러운 조언"
@@ -545,3 +554,174 @@ private fun sceneSteps(mode: PremiumMode, topic: PremiumTopic): List<SuriSceneSt
         )
     }
 }
+
+private fun framePack(idle: List<Int>, speaking: List<Int> = idle): SuriFramePack {
+    return SuriFramePack(idle = idle, speaking = speaking)
+}
+
+private fun frames(vararg resIds: Int): List<Int> = resIds.toList()
+
+private fun SuriAnimationBundle.forState(state: SuriSpeechSceneState): SuriFramePack = when (state) {
+    SuriSpeechSceneState.GREETING -> greeting
+    SuriSpeechSceneState.EXPLAIN -> explain
+    SuriSpeechSceneState.FOCUS -> focus
+    SuriSpeechSceneState.HIGHLIGHT -> highlight
+    SuriSpeechSceneState.CAUTION -> caution
+    SuriSpeechSceneState.COMFORT -> comfort
+    SuriSpeechSceneState.CLOSING -> closing
+}
+
+private fun romanceAnimationBundle() = SuriAnimationBundle(
+    greeting = framePack(
+        idle = frames(R.drawable.suri_anim_romance_hero, R.drawable.suri_anim_romance_01),
+        speaking = frames(R.drawable.suri_anim_romance_02, R.drawable.suri_anim_romance_03)
+    ),
+    explain = framePack(
+        idle = frames(R.drawable.suri_anim_romance_01, R.drawable.suri_anim_romance_02),
+        speaking = frames(R.drawable.suri_anim_romance_02, R.drawable.suri_anim_romance_03, R.drawable.suri_anim_romance_04)
+    ),
+    focus = framePack(
+        idle = frames(R.drawable.suri_anim_romance_03, R.drawable.suri_anim_romance_04),
+        speaking = frames(R.drawable.suri_anim_romance_03, R.drawable.suri_anim_romance_04, R.drawable.suri_anim_romance_05)
+    ),
+    highlight = framePack(
+        idle = frames(R.drawable.suri_anim_romance_04, R.drawable.suri_anim_romance_05),
+        speaking = frames(R.drawable.suri_anim_romance_04, R.drawable.suri_anim_romance_05, R.drawable.suri_anim_romance_06)
+    ),
+    caution = framePack(
+        idle = frames(R.drawable.suri_anim_romance_05, R.drawable.suri_anim_romance_01),
+        speaking = frames(R.drawable.suri_anim_romance_05, R.drawable.suri_anim_romance_02)
+    ),
+    comfort = framePack(
+        idle = frames(R.drawable.suri_anim_romance_05, R.drawable.suri_anim_romance_06),
+        speaking = frames(R.drawable.suri_anim_romance_05, R.drawable.suri_anim_romance_06, R.drawable.suri_anim_romance_hero)
+    ),
+    closing = framePack(
+        idle = frames(R.drawable.suri_anim_romance_hero, R.drawable.suri_anim_romance_06),
+        speaking = frames(R.drawable.suri_anim_romance_06, R.drawable.suri_anim_romance_hero)
+    )
+)
+
+private fun consultAnimationBundle() = SuriAnimationBundle(
+    greeting = framePack(
+        idle = frames(R.drawable.suri_anim_consult_07, R.drawable.suri_anim_consult_01),
+        speaking = frames(R.drawable.suri_anim_consult_01, R.drawable.suri_anim_consult_02)
+    ),
+    explain = framePack(
+        idle = frames(R.drawable.suri_anim_consult_01, R.drawable.suri_anim_consult_02),
+        speaking = frames(R.drawable.suri_anim_consult_02, R.drawable.suri_anim_consult_03)
+    ),
+    focus = framePack(
+        idle = frames(R.drawable.suri_anim_consult_04, R.drawable.suri_anim_consult_05),
+        speaking = frames(R.drawable.suri_anim_consult_04, R.drawable.suri_anim_consult_05, R.drawable.suri_anim_consult_06)
+    ),
+    highlight = framePack(
+        idle = frames(R.drawable.suri_anim_consult_05, R.drawable.suri_anim_consult_06),
+        speaking = frames(R.drawable.suri_anim_consult_05, R.drawable.suri_anim_consult_06, R.drawable.suri_anim_consult_07)
+    ),
+    caution = framePack(
+        idle = frames(R.drawable.suri_anim_consult_03, R.drawable.suri_anim_consult_04),
+        speaking = frames(R.drawable.suri_anim_consult_03, R.drawable.suri_anim_consult_04)
+    ),
+    comfort = framePack(
+        idle = frames(R.drawable.suri_anim_consult_06, R.drawable.suri_anim_consult_07),
+        speaking = frames(R.drawable.suri_anim_consult_06, R.drawable.suri_anim_consult_07)
+    ),
+    closing = framePack(
+        idle = frames(R.drawable.suri_anim_consult_07, R.drawable.suri_anim_consult_06),
+        speaking = frames(R.drawable.suri_anim_consult_07, R.drawable.suri_anim_consult_06)
+    )
+)
+
+private fun numbersAnimationBundle() = SuriAnimationBundle(
+    greeting = framePack(
+        idle = frames(R.drawable.suri_anim_numbers_hero, R.drawable.suri_anim_numbers_01),
+        speaking = frames(R.drawable.suri_anim_numbers_01, R.drawable.suri_anim_numbers_06)
+    ),
+    explain = framePack(
+        idle = frames(R.drawable.suri_anim_numbers_01, R.drawable.suri_anim_numbers_02),
+        speaking = frames(R.drawable.suri_anim_numbers_02, R.drawable.suri_anim_numbers_03)
+    ),
+    focus = framePack(
+        idle = frames(R.drawable.suri_anim_numbers_03, R.drawable.suri_anim_numbers_04),
+        speaking = frames(R.drawable.suri_anim_numbers_03, R.drawable.suri_anim_numbers_04, R.drawable.suri_anim_numbers_06)
+    ),
+    highlight = framePack(
+        idle = frames(R.drawable.suri_anim_numbers_06, R.drawable.suri_anim_numbers_hero),
+        speaking = frames(R.drawable.suri_anim_numbers_06, R.drawable.suri_anim_numbers_02)
+    ),
+    caution = framePack(
+        idle = frames(R.drawable.suri_anim_numbers_05, R.drawable.suri_anim_numbers_07),
+        speaking = frames(R.drawable.suri_anim_numbers_05, R.drawable.suri_anim_numbers_07)
+    ),
+    comfort = framePack(
+        idle = frames(R.drawable.suri_anim_numbers_06, R.drawable.suri_anim_numbers_hero),
+        speaking = frames(R.drawable.suri_anim_numbers_06, R.drawable.suri_anim_numbers_hero)
+    ),
+    closing = framePack(
+        idle = frames(R.drawable.suri_anim_numbers_hero, R.drawable.suri_anim_numbers_06),
+        speaking = frames(R.drawable.suri_anim_numbers_06, R.drawable.suri_anim_numbers_hero)
+    )
+)
+
+private fun writerAnimationBundle() = SuriAnimationBundle(
+    greeting = framePack(
+        idle = frames(R.drawable.suri_anim_writer_hero, R.drawable.suri_anim_writer_01),
+        speaking = frames(R.drawable.suri_anim_writer_01, R.drawable.suri_anim_writer_07)
+    ),
+    explain = framePack(
+        idle = frames(R.drawable.suri_anim_writer_01, R.drawable.suri_anim_writer_02),
+        speaking = frames(R.drawable.suri_anim_writer_02, R.drawable.suri_anim_writer_03)
+    ),
+    focus = framePack(
+        idle = frames(R.drawable.suri_anim_writer_03, R.drawable.suri_anim_writer_04),
+        speaking = frames(R.drawable.suri_anim_writer_03, R.drawable.suri_anim_writer_04, R.drawable.suri_anim_writer_06)
+    ),
+    highlight = framePack(
+        idle = frames(R.drawable.suri_anim_writer_04, R.drawable.suri_anim_writer_06),
+        speaking = frames(R.drawable.suri_anim_writer_04, R.drawable.suri_anim_writer_06, R.drawable.suri_anim_writer_07)
+    ),
+    caution = framePack(
+        idle = frames(R.drawable.suri_anim_writer_05, R.drawable.suri_anim_writer_04),
+        speaking = frames(R.drawable.suri_anim_writer_05, R.drawable.suri_anim_writer_04)
+    ),
+    comfort = framePack(
+        idle = frames(R.drawable.suri_anim_writer_07, R.drawable.suri_anim_writer_hero),
+        speaking = frames(R.drawable.suri_anim_writer_07, R.drawable.suri_anim_writer_hero)
+    ),
+    closing = framePack(
+        idle = frames(R.drawable.suri_anim_writer_hero, R.drawable.suri_anim_writer_07),
+        speaking = frames(R.drawable.suri_anim_writer_07, R.drawable.suri_anim_writer_hero)
+    )
+)
+
+private fun moneyAnimationBundle() = SuriAnimationBundle(
+    greeting = framePack(
+        idle = frames(R.drawable.suri_anim_money_01, R.drawable.suri_anim_money_02),
+        speaking = frames(R.drawable.suri_anim_money_01, R.drawable.suri_anim_money_02)
+    ),
+    explain = framePack(
+        idle = frames(R.drawable.suri_anim_money_01, R.drawable.suri_anim_money_02),
+        speaking = frames(R.drawable.suri_anim_money_02, R.drawable.suri_anim_money_01)
+    ),
+    focus = framePack(
+        idle = frames(R.drawable.suri_anim_money_02, R.drawable.suri_anim_money_01),
+        speaking = frames(R.drawable.suri_anim_money_02, R.drawable.suri_anim_money_01)
+    ),
+    highlight = framePack(
+        idle = frames(R.drawable.suri_anim_money_01, R.drawable.suri_anim_money_02),
+        speaking = frames(R.drawable.suri_anim_money_01, R.drawable.suri_anim_money_02)
+    ),
+    caution = framePack(
+        idle = frames(R.drawable.suri_anim_money_01),
+        speaking = frames(R.drawable.suri_anim_money_01)
+    ),
+    comfort = framePack(
+        idle = frames(R.drawable.suri_anim_money_02),
+        speaking = frames(R.drawable.suri_anim_money_02)
+    ),
+    closing = framePack(
+        idle = frames(R.drawable.suri_anim_money_02, R.drawable.suri_anim_money_01),
+        speaking = frames(R.drawable.suri_anim_money_02, R.drawable.suri_anim_money_01)
+    )
+)
