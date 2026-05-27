@@ -263,7 +263,7 @@ class AppViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         isPremiumLoading = false,
-                        inputError = error.message ?: "AI 프리미엄 운세를 불러오지 못했습니다."
+                        inputError = error.message ?: "운세노트를 불러오지 못했습니다."
                     )
                 }
             }
@@ -325,7 +325,7 @@ class AppViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         isPremiumLoading = false,
-                        inputError = error.message ?: "AI 궁합을 불러오지 못했습니다."
+                        inputError = error.message ?: "궁합노트를 불러오지 못했습니다."
                     )
                 }
             }

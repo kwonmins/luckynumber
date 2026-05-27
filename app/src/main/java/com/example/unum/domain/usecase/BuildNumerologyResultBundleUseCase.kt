@@ -22,11 +22,11 @@ class BuildNumerologyResultBundleUseCase(
 
         val numbers = calculateNumerologyUseCase(calculationInput)
         val content = repository.getContent(numbers.code, userBirthInput.gender)
-        return NumerologyResultBundle(
+        return ConsultationTonePolisher.polishFreeResult(NumerologyResultBundle(
             input = calculationInput,
             numbers = numbers,
             content = content,
             displayInput = displaySolarInput
-        )
+        ))
     }
 }

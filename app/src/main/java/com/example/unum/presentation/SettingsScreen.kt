@@ -45,14 +45,14 @@ fun SettingsScreen(viewModel: AppViewModel) {
             item {
                 AppHeader(
                     title = "설정",
-                    subtitle = "읽기 환경과 알림, 문의 관련 항목을 여기서 정리할 수 있어요.",
+                    subtitle = "읽기 환경과 앱 정보를 정리합니다.",
                     eyebrow = "설정"
                 )
             }
             item {
                 SettingsSwitchRow(
                     title = "알림 받기",
-                    subtitle = "새로운 운세 흐름이나 읽기 리마인드를 알려드릴 수 있어요.",
+                    subtitle = "새로운 리포트 흐름이나 읽기 리마인드를 알려드릴 수 있어요.",
                     checked = uiState.notificationsEnabled,
                     onCheckedChange = viewModel::setNotificationsEnabled
                 )
@@ -69,13 +69,13 @@ fun SettingsScreen(viewModel: AppViewModel) {
             item {
                 SettingsRow(
                     title = "결제 복원",
-                    subtitle = "추후 결제 연동 시 이 위치에서 복원 흐름을 연결하기 좋게 준비해뒀어요."
+                    subtitle = "추후 결제 연동 시 이 위치에서 복원 흐름을 연결합니다."
                 )
             }
             item {
                 MascotGuideCard(
                     title = "개발자 이야기",
-                    message = "막막했던 공대생이 숫자와 사람의 흐름을 함께 읽는 방식에 매료되어 만든 앱이에요. 과한 예언보다 이해하기 쉬운 정리에 집중하고 있어요.",
+                    message = "숫자를 과한 예언이 아니라 성향과 선택을 정리하는 도구로 다루는 앱입니다.",
                     imageRes = MascotArt.Settings
                 )
             }
@@ -94,7 +94,7 @@ private fun FontScaleSelector(selected: ReaderFontScale, onSelected: (ReaderFont
     ) {
         androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("글자 크기", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
-            Text("운세책 읽기 화면에 바로 반영돼요.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+            Text("리포트 읽기 화면에 바로 반영돼요.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 ReaderFontScale.entries.forEach { scale ->
                     val isSelected = scale == selected

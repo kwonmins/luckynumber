@@ -1,6 +1,7 @@
 package com.example.unum.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,11 +38,9 @@ import com.example.unum.ui.components.MascotGuideCard
 import com.example.unum.ui.components.MascotLoadingCard
 import com.example.unum.ui.components.MiniNumerologySummary
 import com.example.unum.ui.components.MysticBackground
-import com.example.unum.ui.components.PremiumBadge
 import com.example.unum.ui.components.SectionCaption
 import com.example.unum.ui.components.SectionTitle
 import com.example.unum.ui.components.SecondaryButton
-import com.example.unum.ui.components.SuriAnimatedSceneCard
 import com.example.unum.ui.components.SurfaceCard
 import com.example.unum.ui.components.ToggleSegment
 import com.example.unum.ui.components.TopicChipGroup
@@ -53,6 +53,7 @@ import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
+import com.example.unum.ui.theme.Mint
 
 @Composable
 fun PremiumScreen(
@@ -69,8 +70,6 @@ fun PremiumScreen(
         PremiumMode.PERSONAL -> latestPersonalBook
         PremiumMode.COMPATIBILITY -> latestCompatibilityBook
     }
-    val speechScript = viewModel.buildCurrentPremiumSpeechScript()
-
     MysticBackground(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
@@ -81,13 +80,13 @@ fun PremiumScreen(
             item { Spacer(Modifier.height(18.dp)) }
             item {
                 AppHeader(
-                    title = if (uiState.premiumMode == PremiumMode.PERSONAL) "AI 프리미엄 운세" else "AI 궁합",
+                    title = if (uiState.premiumMode == PremiumMode.PERSONAL) "수리의 운세노트" else "수리의 궁합노트",
                     subtitle = if (uiState.premiumMode == PremiumMode.PERSONAL) {
-                        "무료 결과를 바탕으로 더 길고 정리된 해석을 받아볼 수 있어요."
+                        "무료 성향을 바탕으로 상황별 해석, 주의할 장면, 이번 달 행동을 책자처럼 정리해요."
                     } else {
-                        "남자와 여자 생년월일을 넣으면 각자의 기운과 둘 사이의 관계 흐름을 함께 읽어드려요."
+                        "두 사람의 성향이 실제 관계에서 어떻게 살아나고 부딪히는지 노트처럼 정리해요."
                     },
-                    eyebrow = "프리미엄"
+                    eyebrow = "프리미엄 운세노트"
                 )
             }
             item {
@@ -97,56 +96,24 @@ fun PremiumScreen(
                 )
             }
             item {
-                SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface2, contentPadding = 18) {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        PremiumBadge(if (uiState.premiumMode == PremiumMode.PERSONAL) "AI 프리미엄" else "AI 궁합")
-                        Text(
-                            if (uiState.premiumMode == PremiumMode.PERSONAL) "더 길고 자세한 해석" else "두 사람의 관계 흐름 정리",
-                            color = TextPrimary,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            if (uiState.premiumMode == PremiumMode.PERSONAL) {
-                                "월별 흐름, 조심할 포인트, 다시 읽기 좋은 장별 정리까지 함께 담아드려요."
-                            } else {
-                                "남자 기본 기운, 여자 기본 기운, 궁합수, 잘 맞는 점과 부딪히는 지점까지 읽기 좋게 정리해드려요."
-                            },
-                            color = TextSecondary,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
+                FortuneNoteIntroCard(isCompatibility = uiState.premiumMode == PremiumMode.COMPATIBILITY)
             }
-            item {
-                SuriAnimatedSceneCard(
-                    mode = uiState.premiumMode,
-                    topic = uiState.premiumTopic,
-                    modifier = Modifier.fillMaxWidth(),
-                    speechScript = speechScript
-                )
-            }
-
             if (uiState.premiumMode == PremiumMode.PERSONAL) {
                 if (bundle == null) {
                     item {
                         MascotGuideCard(
-                            title = "먼저 무료 결과를 확인해주세요",
-                            message = "개인 프리미엄 운세는 무료 결과를 바탕으로 더 깊게 이어집니다. 먼저 생년월일로 기본 흐름을 확인해보세요.",
+                            title = "먼저 무료 리포트가 필요합니다",
+                            message = "운세노트는 기본 숫자 리포트를 바탕으로 이어집니다. 입력 화면에서 무료 리포트를 먼저 생성하세요.",
                             imageRes = premiumTopicMascot(uiState.premiumTopic)
                         )
                     }
                 } else {
                     item {
-                        MascotGuideCard(
-                            title = "수리의 안내",
-                            message = "한 문장으로 적어도 괜찮아요. 고민의 결만 보여도 숫자의 흐름과 함께 정리해볼 수 있어요.",
-                            imageRes = premiumTopicMascot(uiState.premiumTopic)
-                        )
+                        SectionTitle("운세노트에 담을 고민")
                     }
                     item { MiniNumerologySummary(bundle.numbers.destiny, bundle.numbers.early, bundle.numbers.middle, bundle.numbers.late) }
-                    item { SectionTitle("고민 분야") }
                     item { TopicChipGroup(uiState.premiumTopic, viewModel::selectPremiumTopic) }
-                    item { SectionCaption("예: 올해 연애를 시작할 수 있을까요, 이직을 준비해도 괜찮을까요") }
+                    item { SectionCaption("연애, 일, 돈, 관계처럼 실제로 궁금한 장면을 짧게 적어주세요.") }
                     item {
                         PremiumTextField(
                             value = uiState.premiumConcern,
@@ -166,19 +133,19 @@ fun PremiumScreen(
                     item {
                         if (uiState.isPremiumLoading) {
                             MascotLoadingCard(
-                                "수리가 고민과 숫자의 흐름을 함께 정리하고 있어요",
+                                "수리가 고민과 숫자 흐름을 운세노트로 정리하고 있어요",
                                 imageRes = premiumTopicMascot(uiState.premiumTopic)
                             )
                         } else {
-                            GradientButton("광고 보고 AI 프리미엄 운세 확인하기", onRequestPersonalConsultation, Modifier.fillMaxWidth())
+                            GradientButton("운세노트 만들기", onRequestPersonalConsultation, Modifier.fillMaxWidth())
                         }
                     }
                 }
             } else {
                 item {
                     MascotGuideCard(
-                        title = "궁합 읽는 방식",
-                        message = "남자와 여자의 운명수를 먼저 읽고, 그다음 둘 사이에 생기는 궁합수를 따로 읽어드려요.",
+                        title = "궁합 분석 방식",
+                        message = "남자와 여자의 숫자를 따로 읽고, 둘 사이에 생기는 관계 숫자를 다시 분석합니다.",
                         imageRes = com.example.unum.ui.components.MascotArt.Premium
                     )
                 }
@@ -209,7 +176,7 @@ fun PremiumScreen(
                     )
                 }
                 item { SectionTitle("추가로 궁금한 점") }
-                item { SectionCaption("선택 입력이에요. 예: 연애로 이어질 수 있을까요, 결혼까지 보아도 괜찮을까요") }
+                item { SectionCaption("선택 입력이에요. 연락, 결혼, 생활 리듬처럼 보고 싶은 장면을 적어주세요.") }
                 item {
                     PremiumTextField(
                         value = uiState.compatibilityConcern,
@@ -228,12 +195,12 @@ fun PremiumScreen(
                 }
                 item {
                     if (uiState.isPremiumLoading) {
-                        MascotLoadingCard(
-                            "수리가 두 사람의 기운과 관계 흐름을 함께 정리하고 있어요",
+                            MascotLoadingCard(
+                            "수리가 두 사람의 성향과 관계 흐름을 노트로 정리하고 있어요",
                             imageRes = com.example.unum.ui.components.MascotArt.Premium
                         )
                     } else {
-                        GradientButton("광고 보고 AI 궁합 확인하기", onRequestCompatibilityConsultation, Modifier.fillMaxWidth())
+                        GradientButton("궁합노트 만들기", onRequestCompatibilityConsultation, Modifier.fillMaxWidth())
                     }
                 }
                 item {
@@ -242,7 +209,7 @@ fun PremiumScreen(
             }
 
             previewBook?.let { book ->
-                item { SectionTitle(if (uiState.premiumMode == PremiumMode.PERSONAL) "방금 생성된 프리미엄 운세" else "방금 생성된 궁합") }
+                item { SectionTitle(if (uiState.premiumMode == PremiumMode.PERSONAL) "최근 운세노트" else "최근 궁합노트") }
                 item {
                     FortuneBookCover(
                         book = book,
@@ -251,11 +218,75 @@ fun PremiumScreen(
                     )
                 }
                 item {
-                    SecondaryButton("자세히 읽기", onClick = { onOpenBook(book) }, modifier = Modifier.fillMaxWidth())
+                    SecondaryButton(if (book.bookType == FortuneBookType.COMPATIBILITY) "궁합노트 펼치기" else "노트 펼치기", onClick = { onOpenBook(book) }, modifier = Modifier.fillMaxWidth())
                 }
             }
             item { Spacer(Modifier.height(90.dp)) }
         }
+    }
+}
+
+@Composable
+private fun FortuneNoteIntroCard(isCompatibility: Boolean) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface, borderColor = Accent.copy(alpha = 0.18f), contentPadding = 18) {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Accent.copy(alpha = 0.10f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("수", color = Accent, style = MaterialTheme.typography.labelLarge)
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp), modifier = Modifier.weight(1f)) {
+                    Text(if (isCompatibility) "궁합노트에 담을 질문" else "운세노트에 담을 고민", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        if (isCompatibility) {
+                            "연락, 서운함, 생활 리듬처럼 실제 관계 장면으로 풀어냅니다."
+                        } else {
+                            "무료 결과에서 끝나지 않고, 고민별 케이스와 방치 시 손해까지 짚습니다."
+                        },
+                        color = TextSecondary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                QuickTopic("연애", Rose, Modifier.weight(1f))
+                QuickTopic("일", Accent, Modifier.weight(1f))
+                QuickTopic("돈", Mint, Modifier.weight(1f))
+                QuickTopic("관계", Accent, Modifier.weight(1f))
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Surface2)
+                    .border(1.dp, Border, RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Text("노트 문장 예시", color = Accent, style = MaterialTheme.typography.labelMedium)
+                    Text("그냥 넘기면 좋은 흐름도 피곤한 관계나 버티는 생활로 바뀔 수 있습니다.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickTopic(text: String, color: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(color.copy(alpha = 0.08f))
+            .border(1.dp, color.copy(alpha = 0.16f), RoundedCornerShape(999.dp))
+            .padding(vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text, color = color, style = MaterialTheme.typography.bodySmall)
     }
 }
 

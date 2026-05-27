@@ -18,11 +18,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.Bookmarks
+import androidx.compose.material.icons.rounded.EditCalendar
 import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Insights
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -67,11 +67,7 @@ import com.example.unum.ui.theme.TextSecondary
 @Composable
 fun MysticBackground(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Box(
-        modifier = modifier.background(
-            Brush.verticalGradient(
-                colors = listOf(Background, BackgroundAlt, Background)
-            )
-        )
+        modifier = modifier.background(Background)
     ) {
         content()
     }
@@ -89,7 +85,7 @@ fun SurfaceCard(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(tonalColor)
-            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+            .border(1.dp, borderColor.copy(alpha = 0.88f), RoundedCornerShape(8.dp))
             .padding(contentPadding.dp)
     ) {
         content()
@@ -101,14 +97,15 @@ fun AppHeader(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    eyebrow: String = "수리 운세"
+    eyebrow: String = "수리노트"
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(999.dp))
-                .background(Surface2)
-                .padding(horizontal = 12.dp, vertical = 7.dp),
+                .background(Accent.copy(alpha = 0.08f))
+                .border(1.dp, Accent.copy(alpha = 0.12f), RoundedCornerShape(999.dp))
+                .padding(horizontal = 11.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(7.dp)
         ) {
@@ -117,7 +114,7 @@ fun AppHeader(
                     .size(7.dp)
                     .background(Accent, CircleShape)
             )
-            Text(eyebrow, color = TextSecondary, style = MaterialTheme.typography.labelMedium)
+            Text(eyebrow, color = Accent, style = MaterialTheme.typography.labelMedium)
         }
         Text(title, style = MaterialTheme.typography.displayLarge, color = TextPrimary)
         Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
@@ -129,25 +126,26 @@ fun MascotGuideCard(
     message: String,
     modifier: Modifier = Modifier,
     @DrawableRes imageRes: Int = R.drawable.mascot_icon,
-    title: String = "수리의 안내"
+    title: String = "안내"
 ) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = 14,
-        tonalColor = Surface2,
-        borderColor = BorderStrong
+        contentPadding = 16,
+        tonalColor = Surface,
+        borderColor = Border
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(imageRes),
-                contentDescription = title,
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+            Box(
                 modifier = Modifier
-                    .size(54.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(title, color = Gold, style = MaterialTheme.typography.labelLarge)
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Accent.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Rounded.Insights, contentDescription = null, tint = Accent, modifier = Modifier.size(18.dp))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(title, color = TextPrimary, style = MaterialTheme.typography.labelLarge)
                 Text(message, color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
             }
         }
@@ -163,35 +161,23 @@ fun MascotLoadingCard(
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
         contentPadding = 16,
-        tonalColor = Surface2,
-        borderColor = BorderStrong
+        tonalColor = Surface,
+        borderColor = Border
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(imageRes),
-                contentDescription = "수리",
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Surface)
-                    .padding(4.dp),
-                contentScale = ContentScale.Crop
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(message, color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
+            androidx.compose.material3.LinearProgressIndicator(
+                color = Accent,
+                trackColor = Surface3,
+                modifier = Modifier.fillMaxWidth()
             )
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(message, color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
-                androidx.compose.material3.LinearProgressIndicator(
-                    color = Accent,
-                    trackColor = Surface3,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
         }
     }
 }
 
 @Composable
 fun ToggleSegment(selected: CalendarType, onSelected: (CalendarType) -> Unit, modifier: Modifier = Modifier) {
-    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 6, tonalColor = Surface2) {
+    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 4, tonalColor = Surface2, borderColor = Border) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TogglePill("양력", selected == CalendarType.SOLAR, Modifier.weight(1f)) { onSelected(CalendarType.SOLAR) }
             TogglePill("음력", selected == CalendarType.LUNAR, Modifier.weight(1f)) { onSelected(CalendarType.LUNAR) }
@@ -209,8 +195,8 @@ private fun RowScope.TogglePill(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(if (selected) Accent.copy(alpha = 0.18f) else Surface)
-            .border(1.dp, if (selected) Accent.copy(alpha = 0.55f) else Border, RoundedCornerShape(8.dp))
+            .background(if (selected) Surface else Surface2)
+            .border(1.dp, if (selected) Accent else Border, RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center
@@ -266,15 +252,15 @@ private fun DateField(
 
 @Composable
 fun GenderSelector(selected: GenderOption, onSelected: (GenderOption) -> Unit, modifier: Modifier = Modifier) {
-    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 6, tonalColor = Surface2) {
+    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 4, tonalColor = Surface2, borderColor = Border) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             GenderOption.entries.forEach { option ->
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(if (selected == option) Mint.copy(alpha = 0.16f) else Surface)
-                        .border(1.dp, if (selected == option) Mint.copy(alpha = 0.50f) else Border, RoundedCornerShape(8.dp))
+                        .background(if (selected == option) Surface else Surface2)
+                        .border(1.dp, if (selected == option) Accent else Border, RoundedCornerShape(8.dp))
                         .clickable { onSelected(option) }
                         .padding(vertical = 12.dp),
                     contentAlignment = Alignment.Center
@@ -291,13 +277,7 @@ fun GradientButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(
-                if (enabled) {
-                    Brush.horizontalGradient(listOf(Accent, Blue))
-                } else {
-                    Brush.horizontalGradient(listOf(Accent.copy(alpha = 0.35f), Blue.copy(alpha = 0.35f)))
-                }
-            )
+            .background(if (enabled) Accent else Accent.copy(alpha = 0.32f))
             .clickable(
                 enabled = enabled,
                 interactionSource = remember { MutableInteractionSource() },
@@ -330,10 +310,10 @@ data class BottomNavItem(val route: String, val label: String, val icon: ImageVe
 
 val bottomNavItems = listOf(
     BottomNavItem("home", "홈", Icons.Rounded.Home),
-    BottomNavItem("fortune", "무료 결과", Icons.Rounded.AutoAwesome),
-    BottomNavItem("premium", "AI 상담", Icons.Rounded.AutoStories),
-    BottomNavItem("library", "보관함", Icons.Rounded.Bookmarks),
-    BottomNavItem("settings", "설정", Icons.Rounded.Settings)
+    BottomNavItem("input", "입력", Icons.Rounded.EditCalendar),
+    BottomNavItem("fortune", "결과", Icons.Rounded.Insights),
+    BottomNavItem("premium", "상담", Icons.Rounded.AutoStories),
+    BottomNavItem("library", "기록", Icons.Rounded.Bookmarks)
 )
 
 @Composable
@@ -367,7 +347,7 @@ fun BottomNavBar(currentRoute: String, onNavigate: (String) -> Unit, modifier: M
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = TextPrimary,
                     selectedTextColor = TextPrimary,
-                    indicatorColor = Accent.copy(alpha = 0.18f),
+                    indicatorColor = Accent.copy(alpha = 0.10f),
                     unselectedIconColor = TextMuted,
                     unselectedTextColor = TextMuted
                 )
@@ -393,7 +373,7 @@ fun KeywordPills(items: List<String>, modifier: Modifier = Modifier) {
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(999.dp))
-                    .background(Surface2)
+                    .background(Accent.copy(alpha = 0.06f))
                     .border(1.dp, Border, RoundedCornerShape(999.dp))
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -411,8 +391,8 @@ fun NumberPill(label: String, value: String, accent: Color = Accent, modifier: M
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(accent.copy(alpha = 0.12f))
-            .border(1.dp, accent.copy(alpha = 0.30f), RoundedCornerShape(8.dp))
+            .background(Surface)
+            .border(1.dp, accent.copy(alpha = 0.24f), RoundedCornerShape(8.dp))
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -426,11 +406,11 @@ fun PremiumBadge(text: String, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(999.dp))
-            .background(Gold.copy(alpha = 0.14f))
-            .border(1.dp, Gold.copy(alpha = 0.32f), RoundedCornerShape(999.dp))
+            .background(Accent.copy(alpha = 0.08f))
+            .border(1.dp, Accent.copy(alpha = 0.14f), RoundedCornerShape(999.dp))
             .padding(horizontal = 11.dp, vertical = 6.dp)
     ) {
-        Text(text, color = Gold, style = MaterialTheme.typography.labelMedium)
+        Text(text, color = Accent, style = MaterialTheme.typography.labelMedium)
     }
 }
 
@@ -444,8 +424,8 @@ fun SettingsRow(
 ) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
-        tonalColor = Surface2,
-        borderColor = BorderStrong,
+        tonalColor = Surface,
+        borderColor = Border,
         contentPadding = 16
     ) {
         Row(

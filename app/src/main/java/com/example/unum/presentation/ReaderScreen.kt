@@ -32,7 +32,7 @@ fun ReaderScreen(viewModel: AppViewModel, bookId: String?) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    "열 수 있는 운세책이 아직 없어요. AI 프리미엄 운세를 먼저 확인해주세요.",
+                    "열 수 있는 운세노트가 아직 없어요. 프리미엄 운세노트를 먼저 만들어주세요.",
                     color = TextSecondary,
                     style = MaterialTheme.typography.bodyLarge
                 )
@@ -49,11 +49,11 @@ fun ReaderScreen(viewModel: AppViewModel, bookId: String?) {
                 AppHeader(
                     title = book.coverTitle,
                     subtitle = if (book.bookType == com.example.unum.data.model.FortuneBookType.COMPATIBILITY) {
-                        "가로로 넘기며 두 사람의 기운과 궁합 흐름을 읽어보세요. 긴 문장은 페이지 안에서 천천히 스크롤할 수 있어요."
+                        "가로로 넘기며 두 사람의 성향과 궁합 흐름을 노트처럼 읽어보세요. 긴 문장은 페이지 안에서 천천히 스크롤할 수 있어요."
                     } else {
-                        "가로로 넘기며 읽고, 긴 문장은 페이지 안에서 천천히 스크롤해보세요."
+                        "섹션별로 넘기며 읽는 수리의 운세노트입니다. 긴 문장은 페이지 안에서 천천히 스크롤해보세요."
                     },
-                    eyebrow = "읽기"
+                    eyebrow = "수리의 운세노트"
                 )
                 FortuneBookReader(
                     book = book,

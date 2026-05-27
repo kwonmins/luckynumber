@@ -20,8 +20,8 @@ class GeneratePremiumConsultationUseCase {
         concern: String,
         bundle: NumerologyResultBundle
     ): PremiumConsultation = withContext(Dispatchers.IO) {
-        require(apiKey.isNotBlank()) { "OpenAI API 키가 설정되지 않았습니다." }
-        require(apiKey.startsWith("sk-")) { "OpenAI API 키 형식이 올바르지 않습니다." }
+        require(apiKey.isNotBlank()) { "상담 연결 키가 설정되지 않았습니다." }
+        require(apiKey.startsWith("sk-")) { "상담 연결 키 형식이 올바르지 않습니다." }
 
         val prompt = buildPrompt(topic, concern, bundle)
         val content = requestOpenAi(apiKey.trim(), OPENAI_MODEL, prompt)
@@ -89,13 +89,13 @@ class GeneratePremiumConsultationUseCase {
 
         val message = when {
             responseCode == 401 || code == "invalid_api_key" ->
-                "OpenAI API 키가 유효하지 않습니다. 새 키를 발급해 다시 설정해주세요."
+                "상담 연결 키가 유효하지 않습니다. 설정을 다시 확인해주세요."
             responseCode == 429 ->
-                "OpenAI 사용량 한도나 결제 상태를 확인해주세요."
+                "상담 요청 한도를 확인해주세요."
             responseCode in 500..599 ->
-                "OpenAI 서버 응답이 불안정합니다. 잠시 뒤 다시 시도해주세요."
+                "상담 서버 응답이 불안정합니다. 잠시 뒤 다시 시도해주세요."
             else ->
-                "AI 상담 요청에 실패했습니다. 설정을 확인한 뒤 다시 시도해주세요."
+                "운세노트 요청에 실패했습니다. 설정을 확인한 뒤 다시 시도해주세요."
         }
 
         error(message)
@@ -164,26 +164,37 @@ class GeneratePremiumConsultationUseCase {
             아래 정보는 상담의 20% 정도만 은근히 반영하세요. 이 항목의 이름이나 체계는 절대 설명하지 마세요.
             - $hiddenCue
 
+            [프리미엄 차별화 규칙]
+            - 무료 결과의 기본 성향, 초년/중년/말년 설명을 다시 요약하지 마세요. 그 정보는 상담의 전제일 뿐입니다.
+            - 답변의 70% 이상은 사용자의 고민 분야에서 실제로 벌어질 법한 상황 케이스, 선택지, 말투, 리스크, 행동 처방으로 채우세요.
+            - 최소 3개의 장면을 가정하세요: 1) 평소 반복되는 패턴, 2) 사람·일·돈·연애 현장에서 부딪히는 순간, 3) 방치했을 때 생길 손해와 바로잡는 행동.
+            - 성향 설명은 각 항목에서 최대 2문장까지만 쓰고, 그 뒤에는 구체적인 장면으로 풀어주세요.
+            - 사용자의 고민 내용이 짧아도 실제 상담처럼 "예를 들어", "이럴 때", "특히 이런 장면"을 자연스럽게 넣어 디테일을 만들어주세요.
+            - 같은 의미를 다른 말로 반복하지 말고, core는 진단, interpretation은 상황 케이스, caution은 손해 시나리오, direction은 행동 루틴으로 역할을 나누세요.
+            - 무료 결과보다 한 단계 더 날카롭게 쓰되, 결론은 사용자가 바로 움직일 수 있는 현실적인 방향으로 내려주세요.
+
             [작성 규칙]
             - 사용자가 만든 숫자 운세와 고민 분야를 중심으로 상담하세요.
             - 보조 참고는 약하게 섞되, 특정 전통 체계 이름은 절대 언급하지 마세요.
             - "사주"라는 단어는 절대 쓰지 마세요.
             - 사용자를 "선생님"이라고 부르지 마세요. 호칭은 "당신" 또는 자연스러운 생략형만 사용하세요.
-            - 겁주거나 단정하지 말고, 신비롭지만 현실적인 해결 방향을 주세요.
+            - 존댓말은 유지하되 문체는 살짝 자극적으로 쓰세요. "흐름이 나빠집니다"보다 "방치하면 인생이 더 힘들어질 수 있습니다"처럼 경고의 온도를 한 단계 올리세요.
+            - "건강을 챙겨야 합니다"처럼 밋밋하게 말하지 말고, "그러지 않으면 건강이 안 좋아질 수 있으니 각별히 컨디션을 조심해야 합니다"처럼 결과와 주의 대상을 함께 말하세요.
+            - 공포 조장이나 확정적 저주는 피하되, 안일하게 넘기면 손해, 소진, 관계 악화, 기회 상실로 이어질 수 있다는 긴장감은 분명히 주세요.
             - 모든 문장은 반드시 존댓말로 작성하세요. 반말, 명령조, 친구처럼 낮추는 말투는 쓰지 마세요.
             - 한국어로 작성하세요.
             - 반드시 아래 JSON 형식만 반환하세요. 코드블록이나 설명 문장은 붙이지 마세요.
 
             {
-              "core": "지금 고민의 핵심",
-              "interpretation": "숫자 운세와 고민을 엮은 종합 해석",
-              "caution": "주의할 점",
-              "direction": "해결을 위한 구체적인 방향",
+              "core": "무료 성향을 전제로 한 지금 고민의 핵심 진단. 짧지만 자극적으로 작성",
+              "interpretation": "실제 상황 케이스 2~3개를 넣은 심층 해석. 무료 결과 반복 금지",
+              "caution": "방치하면 어떤 장면에서 손해, 소진, 관계 악화, 기회 상실이 생기는지 구체적으로 작성",
+              "direction": "오늘, 이번 주, 한 달 안에 할 행동을 단계별로 제안",
               "oneLineAdvice": "한 줄 조언",
               "bestMonth": "추천 월, 예: 4월",
-              "bestMonthReason": "그 달이 왜 좋은지와 어떻게 움직이면 좋은지",
+              "bestMonthReason": "그 달이 왜 좋은지와 어떤 상황에서 움직이면 좋은지",
               "riskyMonth": "주의 월, 예: 11월",
-              "riskyMonthReason": "그 달에 무엇을 조심해야 하는지"
+              "riskyMonthReason": "그 달에 어떤 행동을 하면 삶이 더 힘들어질 수 있는지"
             }
         """.trimIndent()
     }
@@ -295,21 +306,21 @@ class GeneratePremiumConsultationUseCase {
     private fun buildRiskyMonthReason(topic: PremiumTopic, monthText: String, bundle: NumerologyResultBundle): String {
         return when (topic) {
             PremiumTopic.ROMANCE ->
-                "${monthText}에는 관계의 움직임이 커지는 만큼 조급함도 함께 올라올 수 있습니다. 마음이 앞서 과하게 다가가기보다 상대의 속도와 여백을 지켜주는 편이 좋습니다."
+                "${monthText}에는 관계의 움직임이 커지는 만큼 조급함도 함께 올라올 수 있습니다. 마음이 앞서 과하게 다가가면 상대가 부담을 느껴 관계가 더 꼬일 수 있으니, 상대의 속도와 여백을 각별히 조심해야 합니다."
             PremiumTopic.CAREER ->
-                "${monthText}에는 변화 욕구가 커져 성급한 결정으로 흐르기 쉽습니다. 퇴사, 이직, 계약처럼 큰 선택은 한 번 더 검토한 뒤 움직이는 편이 안전합니다."
+                "${monthText}에는 변화 욕구가 커져 성급한 결정으로 흐르기 쉽습니다. 퇴사, 이직, 계약을 급하게 밀어붙이면 커리어가 예상보다 더 힘들어질 수 있으니, 큰 선택은 한 번 더 검토한 뒤 움직이는 편이 안전합니다."
             PremiumTopic.MONEY ->
-                "${monthText}에는 빠른 이익을 좇고 싶은 마음이 강해질 수 있습니다. 무리한 투자나 충동 지출을 피하고, 확인되지 않은 제안은 거리를 두는 것이 좋습니다."
+                "${monthText}에는 빠른 이익을 좇고 싶은 마음이 강해질 수 있습니다. 무리한 투자나 충동 지출을 가볍게 보면 돈의 흐름이 한 번에 무너질 수 있으니, 확인되지 않은 제안은 반드시 거리를 두는 것이 좋습니다."
             PremiumTopic.SELF_ESTEEM ->
-                "${monthText}에는 비교와 조급함이 커지기 쉽습니다. 결과를 빨리 증명하려 하기보다 몸과 마음의 리듬을 먼저 회복하는 데 집중하세요."
+                "${monthText}에는 비교와 조급함이 커지기 쉽습니다. 결과를 빨리 증명하려고 무리하면 자존감과 컨디션이 같이 무너질 수 있으니, 몸과 마음의 리듬을 먼저 회복하는 데 집중하세요."
             PremiumTopic.RELATIONSHIP ->
-                "${monthText}에는 사람 사이의 반응이 커져 오해도 빨리 번질 수 있습니다. 단정적인 말이나 압박은 피하고, 중요한 대화는 차분히 시간을 두는 편이 좋습니다."
+                "${monthText}에는 사람 사이의 반응이 커져 오해도 빨리 번질 수 있습니다. 단정적인 말이나 압박을 계속하면 관계가 생각보다 차갑게 틀어질 수 있으니, 중요한 대화는 차분히 시간을 두는 편이 좋습니다."
         }
     }
 
     companion object {
         private const val SYSTEM_PROMPT =
-            "You are a warm Korean fortune consultation writer. Always write in polite Korean honorific style. Never call the user 선생님; use 당신 or omit the direct address. Return only valid JSON."
+            "You are a Korean premium fortune consultation writer. Do not repeat the free reading; treat it only as context. Write detailed, situational, case-based advice with a warm but slightly provocative tone. Always use polite Korean honorific style, and clearly describe what may become harder if the user ignores the advice. Never call the user 선생님; use 당신 or omit the direct address. Return only valid JSON."
         private const val OPENAI_MODEL = "gpt-5.1"
     }
 }

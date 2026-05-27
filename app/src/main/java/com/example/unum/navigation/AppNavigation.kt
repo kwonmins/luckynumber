@@ -65,7 +65,6 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                 BottomNavBar(
                     currentRoute = when {
                         currentRoute.startsWith("reader/") -> AppRoute.Library.route
-                        currentRoute == AppRoute.Input.route -> AppRoute.Home.route
                         else -> currentRoute
                     },
                     onNavigate = { route ->
@@ -90,6 +89,7 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                     onOpenInput = { navController.navigate(AppRoute.Input.route) },
                     onOpenResult = { navController.navigate(AppRoute.Fortune.route) },
                     onOpenPremium = { navController.navigate(AppRoute.Premium.route) },
+                    onOpenLibrary = { navController.navigate(AppRoute.Library.route) },
                     onOpenBook = { book -> navController.navigateToBook(viewModel, book) }
                 )
             }

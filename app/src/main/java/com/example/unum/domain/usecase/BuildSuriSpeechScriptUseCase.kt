@@ -85,7 +85,7 @@ class BuildSuriSpeechScriptUseCase {
 
         return SuriSpeechScript(
             scriptId = "personal-result-${book?.bookId ?: bundle.numbers.code}-${topic.name}",
-            title = book?.coverTitle ?: "AI 프리미엄 운세",
+            title = book?.coverTitle ?: "수리의 운세노트",
             subtitle = "책은 정리형으로 남기고, 목소리는 조금 더 부드럽게 들려드릴게요.",
             segments = listOf(
                 segment(
@@ -156,7 +156,7 @@ class BuildSuriSpeechScriptUseCase {
 
         return SuriSpeechScript(
             scriptId = "compatibility-preview-${concern.hashCode()}",
-            title = "AI 궁합 미리 듣기",
+            title = "궁합노트 미리 듣기",
             subtitle = "두 사람의 기운을 한 겹씩 풀어드릴게요.",
             segments = listOf(
                 segment(
@@ -195,7 +195,7 @@ class BuildSuriSpeechScriptUseCase {
 
         return SuriSpeechScript(
             scriptId = "compatibility-result-${book?.bookId ?: concern.hashCode()}",
-            title = book?.coverTitle ?: "AI 궁합",
+            title = book?.coverTitle ?: "수리의 궁합노트",
             subtitle = "정리는 책에 남기고, 말은 더 부드럽게 풀어드릴게요.",
             segments = listOf(
                 segment(

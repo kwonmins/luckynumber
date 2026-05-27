@@ -97,8 +97,8 @@ enum class PremiumTopic(val label: String) {
 }
 
 enum class PremiumMode(val label: String) {
-    PERSONAL("개인 운세"),
-    COMPATIBILITY("궁합")
+    PERSONAL("운세노트"),
+    COMPATIBILITY("궁합노트")
 }
 
 data class PartnerBirthFormState(
@@ -143,8 +143,8 @@ data class CompatibilityConsultation(
 )
 
 enum class FortuneBookType(val label: String) {
-    PERSONAL("개인 운세"),
-    COMPATIBILITY("궁합")
+    PERSONAL("운세노트"),
+    COMPATIBILITY("궁합노트")
 }
 
 data class FortuneBook(

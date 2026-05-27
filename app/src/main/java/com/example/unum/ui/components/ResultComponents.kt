@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -15,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -25,6 +27,7 @@ import com.example.unum.ui.theme.Border
 import com.example.unum.ui.theme.Gold
 import com.example.unum.ui.theme.Mint
 import com.example.unum.ui.theme.Rose
+import com.example.unum.ui.theme.Surface
 import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.Surface3
 import com.example.unum.ui.theme.TextMuted
@@ -35,27 +38,38 @@ import com.example.unum.ui.theme.TextSecondary
 fun DestinyCard(number: Int, profile: DestinyProfile, code: String, modifier: Modifier = Modifier) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = 22,
-        tonalColor = Surface2
+        contentPadding = 20,
+        tonalColor = Surface
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("운명수", color = TextMuted, style = MaterialTheme.typography.bodySmall)
-                    Text(number.toString(), color = TextPrimary, style = MaterialTheme.typography.displayLarge)
-                    Text(profile.title, color = Accent, style = MaterialTheme.typography.titleMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(76.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Accent.copy(alpha = 0.10f))
+                            .border(1.dp, Accent.copy(alpha = 0.18f), RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(number.toString(), color = Accent, style = MaterialTheme.typography.displayLarge)
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text("내 숫자 리포트", color = TextMuted, style = MaterialTheme.typography.bodySmall)
+                        Text("${profile.title}형", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
+                        Text("code $code", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                    }
                 }
-                PremiumBadge("code $code")
             }
             KeywordPills(profile.coreKeywords)
             Text(profile.destinyText, color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
             SummaryBanner(
                 summaryText = profile.oneLineAdvice,
-                oneLineAdvice = "무료 결과는 핵심만 먼저 보여드리고, 자세한 흐름은 AI 상담에서 이어서 볼 수 있어요."
+                oneLineAdvice = "더 구체적인 고민은 수리의 운세노트에서 이어서 정리할 수 있어요."
             )
         }
     }
@@ -74,11 +88,11 @@ fun LifeStageCards(early: Int, middle: Int, late: Int, modifier: Modifier = Modi
 fun FlowGraphCard(early: Int, middle: Int, late: Int, modifier: Modifier = Modifier) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
-        tonalColor = Surface2,
+        tonalColor = Surface,
         contentPadding = 18
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("한눈에 보는 흐름", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+            Text("흐름 스냅샷", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
             StageProgressRow("초년", early, Blue)
             StageProgressRow("중년", middle, Accent)
             StageProgressRow("말년", late, Mint)
@@ -105,10 +119,7 @@ private fun StageProgressRow(label: String, value: Int, color: Color) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth((value.coerceIn(0, 9) + 1) / 10f)
-                    .background(
-                        Brush.horizontalGradient(listOf(color.copy(alpha = 0.60f), color)),
-                        RoundedCornerShape(999.dp)
-                    )
+                    .background(color, RoundedCornerShape(999.dp))
                     .padding(vertical = 5.dp)
             )
         }
@@ -125,7 +136,7 @@ fun InterpretationCard(
 ) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
-        tonalColor = Surface2,
+        tonalColor = Surface,
         contentPadding = 18
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -166,15 +177,15 @@ fun SummaryBanner(summaryText: String, oneLineAdvice: String, modifier: Modifier
 fun PremiumUpgradeCard(onClick: () -> Unit, modifier: Modifier = Modifier) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
-        tonalColor = Surface2,
+        tonalColor = Surface,
         borderColor = Accent.copy(alpha = 0.35f),
         contentPadding = 18
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            PremiumBadge("AI 프리미엄")
-            Text("지금 고민까지 반영한 자세한 해석을 확인해보세요.", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
-            Text("월별 흐름, 조심할 포인트, 다시 읽기 좋은 요약까지 함께 정리해드려요.", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
-            GradientButton("AI 프리미엄 운세 확인하기", onClick, Modifier.fillMaxWidth())
+            PremiumBadge("운세노트")
+            Text("지금 고민까지 담아 책자처럼 읽기", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+            Text("연애, 일, 돈, 관계처럼 실제 고민을 넣으면 상황별 해석과 주의할 장면을 노트로 정리합니다.", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+            GradientButton("운세노트 열기", onClick, Modifier.fillMaxWidth())
         }
     }
 }
@@ -183,7 +194,7 @@ fun PremiumUpgradeCard(onClick: () -> Unit, modifier: Modifier = Modifier) {
 fun TodaySummaryCard(title: String, body: String, modifier: Modifier = Modifier) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
-        tonalColor = Surface2,
+        tonalColor = Surface,
         contentPadding = 18
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {

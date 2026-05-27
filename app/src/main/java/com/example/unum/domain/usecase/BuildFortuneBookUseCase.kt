@@ -18,6 +18,7 @@ class BuildFortuneBookUseCase {
     ): FortuneBook {
         val now = System.currentTimeMillis()
         val topicLabel = topic.label
+        val createdYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
         return FortuneBook(
             bookId = "${bundle.numbers.code}-$now",
             code = bundle.numbers.code,
@@ -28,7 +29,7 @@ class BuildFortuneBookUseCase {
             concernTopic = topicLabel,
             concernText = concern,
             coverTitle = buildCoverTitle(topicLabel, bundle.numbers.destiny),
-            coverSubtitle = "양력 ${NumerologyCalculator.formatDate(bundle.displayInput.year, bundle.displayInput.month, bundle.displayInput.day)} · 코드 ${bundle.numbers.code}",
+            coverSubtitle = "운명수 ${bundle.numbers.destiny} · ${bundle.content.destinyProfile.title} · $createdYear",
             summary = consultation.core,
             bookType = FortuneBookType.PERSONAL,
             bestMonth = consultation.bestMonth,
@@ -97,9 +98,12 @@ class BuildFortuneBookUseCase {
     ): List<FortuneBookChapter> {
         return listOf(
             FortuneBookChapter(
-                title = "지금의 흐름",
-                lead = "지금 마음을 가장 크게 흔드는 흐름부터 차분히 정리해봅니다.",
-                body = listOf(consultation.core, bundle.content.lifeRecord.summaryText),
+                title = "지금의 핵심",
+                lead = "무료 리포트의 기본 성향은 배경으로 두고, 지금 고민에서 실제로 걸리는 지점부터 봅니다.",
+                body = listOf(
+                    consultation.core,
+                    "이 장에서는 성향을 다시 설명하기보다, 지금 고민이 생활 속에서 어떤 압박으로 나타나는지 먼저 짚습니다."
+                ),
                 highlightQuote = consultation.oneLineAdvice,
                 actionTip = listOf(
                     "오늘 가장 크게 마음에 남는 고민을 한 문장으로 적어보세요.",
@@ -107,43 +111,52 @@ class BuildFortuneBookUseCase {
                 )
             ),
             FortuneBookChapter(
-                title = "타고난 성향",
-                lead = "기본 성향과 이번 고민에서 자주 드러나는 반응을 함께 읽습니다.",
-                body = listOf(bundle.content.destinyProfile.destinyText, consultation.interpretation),
-                highlightQuote = "${bundle.content.destinyProfile.title}의 흐름은 기준을 잃지 않을 때 더 선명하게 살아납니다.",
+                title = "상황별 해석",
+                lead = "이번 상담은 기본 성향을 반복하지 않고, 실제 장면에서 어떻게 튀어나오는지 봅니다.",
+                body = listOf(
+                    consultation.interpretation,
+                    "${bundle.content.destinyProfile.title}의 흐름은 장점이지만, 상황을 잘못 만나면 같은 장점이 부담으로 바뀔 수 있습니다."
+                ),
+                highlightQuote = "성향은 설명으로 끝나는 게 아니라, 반복되는 장면에서 가장 분명하게 드러납니다.",
                 actionTip = listOf(
                     "반복해서 나오는 감정 반응이 무엇인지 먼저 적어보세요.",
                     "무리해서 바꾸려 하기보다 강점이 살아나는 환경을 더 자주 선택해보세요."
                 )
             ),
             FortuneBookChapter(
-                title = "관계와 감정",
-                lead = "가까운 사람과의 거리감, 기대, 감정의 흐름을 살펴봅니다.",
+                title = "주의할 장면",
+                lead = "가까운 사람과의 대화, 기대, 거리감에서 생기는 실제 피로를 살펴봅니다.",
                 body = listOf(
-                    bundle.content.lifeRecord.earlyText,
-                    "이번 $topicLabel 고민에서는 관계의 속도보다 감정의 온도를 먼저 살피는 태도가 중요합니다."
+                    "이번 $topicLabel 고민에서는 말투, 답장 속도, 부탁과 거절 같은 작은 장면이 생각보다 크게 작동합니다.",
+                    "여기서 내 감정을 계속 눌러두거나 반대로 너무 빨리 밀어붙이면, 문제는 해결되지 않고 더 피곤한 방식으로 반복될 수 있습니다."
                 ),
-                highlightQuote = "관계는 답을 서두를수록 흐려지고, 마음의 리듬을 지킬수록 선명해집니다.",
+                highlightQuote = "관계는 작은 불편함을 대충 넘길수록 나중에 더 큰 피로로 돌아올 수 있습니다.",
                 actionTip = listOf(
                     "상대의 반응만 읽지 말고 내 감정의 기준도 함께 적어보세요.",
                     "불편한 신호를 느꼈다면 속도를 늦추고 다시 확인해보세요."
                 )
             ),
             FortuneBookChapter(
-                title = "일과 현실",
-                lead = "현실 선택과 실행력, 돈과 일의 균형을 보는 장입니다.",
-                body = listOf(bundle.content.lifeRecord.middleText, consultation.direction),
-                highlightQuote = "좋은 흐름은 큰 결심보다 꾸준히 이어지는 선택에서 완성됩니다.",
+                title = "이번 달 행동",
+                lead = "오늘, 이번 주, 한 달 안에 실제로 바꿔야 할 행동을 정리합니다.",
+                body = listOf(
+                    consultation.direction,
+                    "현실 행동을 미루면 고민은 줄어드는 게 아니라 더 복잡한 형태로 돌아올 수 있습니다."
+                ),
+                highlightQuote = "좋은 흐름은 큰 결심보다 바로 바꿀 수 있는 행동에서 살아납니다.",
                 actionTip = listOf(
                     "지금 가장 현실적인 우선순위 한 가지를 먼저 정해보세요.",
                     "지출, 일정, 관계 중 가장 흔들리는 축을 하나만 골라 정리해보세요."
                 )
             ),
             FortuneBookChapter(
-                title = "후반의 기준",
-                lead = "지나친 걱정을 덜고 더 오래 남길 기준을 세우는 장입니다.",
-                body = listOf(bundle.content.lifeRecord.lateText, consultation.caution),
-                highlightQuote = "조심할 점을 미리 아는 것은 겁을 주기보다 중심을 지키기 위한 준비에 가깝습니다.",
+                title = "월별 흐름",
+                lead = "그냥 넘겼을 때 삶이 더 힘들어질 수 있는 지점을 분명히 짚습니다.",
+                body = listOf(
+                    consultation.caution,
+                    "이 경고는 겁을 주기 위한 말이 아니라, 지금부터 피해야 할 장면을 알아두기 위한 기준입니다."
+                ),
+                highlightQuote = "조심할 점을 미리 아는 것은 중심을 지키기 위한 현실적인 준비입니다.",
                 actionTip = listOf(
                     "결정이 흔들릴 때는 감정, 현실, 관계를 따로 나눠서 보세요.",
                     "지금 지켜야 할 기준 하나를 짧게 정리해두세요."
@@ -151,8 +164,11 @@ class BuildFortuneBookUseCase {
             ),
             FortuneBookChapter(
                 title = "다시 읽는 정리",
-                lead = "이 운세를 다시 열어볼 때 가장 먼저 확인하면 좋은 포인트입니다.",
-                body = listOf(bundle.content.lifeRecord.lifeText, consultation.oneLineAdvice),
+                lead = "이 리포트를 다시 열어볼 때 가장 먼저 확인하면 좋은 포인트입니다.",
+                body = listOf(
+                    consultation.oneLineAdvice,
+                    "한 달 뒤 이 문장을 다시 읽었을 때 같은 고민이 반복되고 있다면, 생각이 아니라 행동 루틴을 바꿔야 할 때입니다."
+                ),
                 highlightQuote = consultation.oneLineAdvice,
                 actionTip = listOf(
                     "한 달 뒤 다시 읽으며 실제로 달라진 점을 체크해보세요.",
@@ -184,8 +200,11 @@ class BuildFortuneBookUseCase {
         return listOf(
             FortuneBookChapter(
                 title = "남자의 기본 기운",
-                lead = "남자 쪽 운명수가 관계 안에서 어떻게 작동하는지 먼저 읽습니다.",
-                body = listOf(consultation.maleEnergy, maleBundle.content.destinyProfile.destinyText),
+                lead = "남자 쪽 성향이 실제 관계 장면에서 어떻게 튀어나오는지 먼저 읽습니다.",
+                body = listOf(
+                    consultation.maleEnergy,
+                    "무료 성향은 배경으로만 두고, 여기서는 연락, 약속, 말투 같은 구체적인 장면에서의 반응을 중심으로 봅니다."
+                ),
                 highlightQuote = extractHighlight(consultation.maleEnergy),
                 actionTip = listOf(
                     "남자 쪽은 주도하려는 순간과 물러나는 순간의 차이를 먼저 살펴보세요.",
@@ -194,8 +213,11 @@ class BuildFortuneBookUseCase {
             ),
             FortuneBookChapter(
                 title = "여자의 기본 기운",
-                lead = "여자 쪽 운명수가 관계 안에서 어떤 온도를 만드는지 살펴봅니다.",
-                body = listOf(consultation.femaleEnergy, femaleBundle.content.destinyProfile.destinyText),
+                lead = "여자 쪽 성향이 관계 안에서 어떤 온도와 반응을 만드는지 살펴봅니다.",
+                body = listOf(
+                    consultation.femaleEnergy,
+                    "기본 운세를 다시 설명하기보다, 서운함이 쌓이는 순간과 마음이 닫히는 장면을 중심으로 읽습니다."
+                ),
                 highlightQuote = extractHighlight(consultation.femaleEnergy),
                 actionTip = listOf(
                     "여자 쪽은 배려와 자기 기준이 어디서 엇갈리는지 먼저 보세요.",
@@ -205,7 +227,10 @@ class BuildFortuneBookUseCase {
             FortuneBookChapter(
                 title = "둘의 궁합수",
                 lead = "궁합수 ${relationshipNumber}가 두 사람 사이에서 어떤 기류를 만드는지 읽습니다.",
-                body = listOf(consultation.relationshipFlow, relationshipMeaning),
+                body = listOf(
+                    consultation.relationshipFlow,
+                    "$relationshipMeaning 이 흐름은 실제로는 연락 속도, 만나는 빈도, 서로의 생활 리듬을 맞추는 방식에서 가장 먼저 드러납니다."
+                ),
                 highlightQuote = extractHighlight(consultation.relationshipFlow),
                 actionTip = listOf(
                     "둘의 관계가 빠르게 깊어지는지, 천천히 다져지는지 먼저 합의해보세요.",
@@ -257,12 +282,12 @@ class BuildFortuneBookUseCase {
 
     private fun buildCoverTitle(topicLabel: String, destiny: Int): String {
         return when (topicLabel) {
-            PremiumTopic.ROMANCE.label -> "연애의 흐름을 읽는 한 권"
-            PremiumTopic.CAREER.label -> "일과 방향을 정리하는 한 권"
-            PremiumTopic.MONEY.label -> "돈의 흐름을 차분히 보는 한 권"
-            PremiumTopic.SELF_ESTEEM.label -> "나를 다시 붙잡는 한 권"
-            PremiumTopic.RELATIONSHIP.label -> "관계의 결을 살피는 한 권"
-            else -> "운명수 ${destiny}를 정리한 한 권"
+            PremiumTopic.ROMANCE.label -> "연애 운세노트"
+            PremiumTopic.CAREER.label -> "일과 방향 노트"
+            PremiumTopic.MONEY.label -> "돈의 흐름 노트"
+            PremiumTopic.SELF_ESTEEM.label -> "자기 기준 노트"
+            PremiumTopic.RELATIONSHIP.label -> "관계 패턴 노트"
+            else -> "운명수 ${destiny} 노트"
         }
     }
 

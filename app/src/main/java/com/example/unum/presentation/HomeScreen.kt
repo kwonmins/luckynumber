@@ -1,36 +1,44 @@
 package com.example.unum.presentation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.data.model.FortuneBook
-import com.example.unum.ui.components.AppHeader
-import com.example.unum.ui.components.FortuneBookCover
-import com.example.unum.ui.components.GradientButton
-import com.example.unum.ui.components.MascotArt
-import com.example.unum.ui.components.MascotGuideCard
 import com.example.unum.ui.components.MysticBackground
-import com.example.unum.ui.components.PremiumBadge
 import com.example.unum.ui.components.RecentBooksRow
 import com.example.unum.ui.components.SectionCaption
 import com.example.unum.ui.components.SectionTitle
-import com.example.unum.ui.components.SecondaryButton
 import com.example.unum.ui.components.SurfaceCard
-import com.example.unum.ui.components.TodaySummaryCard
 import com.example.unum.ui.theme.Accent
-import com.example.unum.ui.theme.Gold
+import com.example.unum.ui.theme.Blue
+import com.example.unum.ui.theme.Border
+import com.example.unum.ui.theme.Mint
+import com.example.unum.ui.theme.Rose
+import com.example.unum.ui.theme.Surface
 import com.example.unum.ui.theme.Surface2
+import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
 
@@ -40,6 +48,7 @@ fun HomeScreen(
     onOpenInput: () -> Unit,
     onOpenResult: () -> Unit,
     onOpenPremium: () -> Unit,
+    onOpenLibrary: () -> Unit,
     onOpenBook: (FortuneBook) -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -51,72 +60,96 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            item { Spacer(Modifier.height(18.dp)) }
+            item { Spacer(Modifier.height(16.dp)) }
             item {
-                AppHeader(
-                    title = "숫자로 오늘의 흐름을 정리해볼까요",
-                    subtitle = "생년월일을 입력하면 무료 결과를 먼저 보고, 더 궁금한 고민은 AI 상담으로 이어볼 수 있어요.",
-                    eyebrow = "홈"
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("오늘의 운세노트", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
+                        Text("내 숫자로 조용히 열어보는 오늘의 기록", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(Surface)
+                            .border(1.dp, Border, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("수", color = Accent, style = MaterialTheme.typography.labelLarge)
+                    }
+                }
             }
             item {
-                SurfaceCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    tonalColor = Surface2,
-                    contentPadding = 20
-                ) {
+                SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Color(0xFFFFFCF5), borderColor = Border, contentPadding = 18) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        PremiumBadge("빠른 시작")
-                        Text("내 운명수 확인하기", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
-                        Text(
-                            "복잡한 설명보다 먼저 이해되는 무료 결과를 보여드릴게요.",
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text("최근 노트", color = TextMuted, style = MaterialTheme.typography.bodySmall)
+                                Text(
+                                    latestBundle?.let { "나의 성향 리포트" } ?: "아직 열린 노트가 없어요",
+                                    color = TextPrimary,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    latestBundle?.let { "운명수 ${it.numbers.destiny} · 정리율 60%" } ?: "생년월일 입력으로 시작하세요",
+                                    color = TextSecondary,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .size(62.dp)
+                                    .clip(CircleShape)
+                                    .background(Accent.copy(alpha = 0.10f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(latestBundle?.numbers?.destiny?.toString() ?: "+", color = Accent, style = MaterialTheme.typography.displayMedium)
+                            }
+                        }
+                        latestBundle?.let {
+                            Text(it.content.lifeRecord.oneLineAdvice, color = TextSecondary, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                NoteProgressBar(progress = 0.60f, modifier = Modifier.weight(1f))
+                                Text("리포트 보기", color = Accent, style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(start = 10.dp))
+                            }
+                        } ?: Text(
+                            "무료 리포트를 먼저 열면 운세노트가 이어집니다.",
                             color = TextSecondary,
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        GradientButton("생년월일 입력하기", onOpenInput, Modifier.fillMaxWidth())
-                        if (latestBundle != null) {
-                            SecondaryButton("방금 본 무료 결과 이어보기", onOpenResult, Modifier.fillMaxWidth())
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                            HomeNoteButton("무료\n리포트", Accent, onOpenInput, Modifier.weight(1f))
+                            HomeNoteButton("운세\n노트", Blue, onOpenPremium, Modifier.weight(1f))
+                            HomeNoteButton("보관함", Mint, onOpenLibrary, Modifier.weight(1f))
                         }
                     }
                 }
             }
             item {
-                TodaySummaryCard(
-                    title = if (latestBundle == null) "오늘의 안내" else "최근 확인한 무료 결과",
-                    body = if (latestBundle == null) {
-                        "지금은 아직 결과가 없어요. 생년월일을 입력하면 운명수와 초년, 중년, 말년 흐름을 바로 보여드릴게요."
-                    } else {
-                        "운명수 ${latestBundle.numbers.destiny} · 코드 ${latestBundle.numbers.code}\n${latestBundle.content.lifeRecord.summaryText}"
-                    }
-                )
-            }
-            item {
-                MascotGuideCard(
-                    message = "무료 결과만으로도 흐름을 이해할 수 있게 정리하고, 더 자세한 내용은 부담 없이 AI 상담으로 이어지게 만들었어요.",
-                    imageRes = MascotArt.Home
-                )
-            }
-            item {
-                SectionTitle("AI 프리미엄 추천")
-            }
-            item {
-                SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface2, contentPadding = 18) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("지금 고민을 더 자세히 보고 싶다면", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
-                        Text("월별 흐름, 조심할 포인트, 다시 읽기 좋은 정리까지 한 번에 확인할 수 있어요.", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
-                        GradientButton("AI 프리미엄 운세 확인하기", onOpenPremium, Modifier.fillMaxWidth())
-                    }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    QuickMenuCard("입력", "무료", Accent, onOpenInput, Modifier.weight(1f))
+                    QuickMenuCard("결과", "요약", Blue, onOpenResult, Modifier.weight(1f))
+                    QuickMenuCard("상담", "노트", Mint, onOpenPremium, Modifier.weight(1f))
+                    QuickMenuCard("기록", "보관", Rose, onOpenLibrary, Modifier.weight(1f))
                 }
             }
             if (recentBooks.isNotEmpty()) {
-                item {
-                    SectionTitle("최근 본 운세책")
-                }
-                item {
-                    SectionCaption("최근에 열어본 책부터 다시 이어볼 수 있어요.")
-                }
+                item { SectionTitle("보관된 노트") }
+                item { SectionCaption("저장된 운세노트를 다시 열어볼 수 있습니다.") }
                 item {
                     RecentBooksRow(
                         books = recentBooks,
@@ -126,20 +159,84 @@ fun HomeScreen(
                         }
                     )
                 }
-            }
-            if (uiState.savedBooks.isNotEmpty()) {
-                item { SectionTitle("보관함 미리보기") }
-                item {
-                    FortuneBookCover(
-                        book = uiState.savedBooks.first(),
-                        compact = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 4.dp)
-                    )
-                }
+            } else {
+                item { SectionTitle("보관된 노트") }
+                item { SectionCaption("운세노트를 만들면 작은 책자 표지로 이곳에 쌓입니다.") }
             }
             item { Spacer(Modifier.height(90.dp)) }
         }
+    }
+}
+
+@Composable
+private fun NoteProgressBar(progress: Float, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .height(8.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .background(Surface2)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(progress.coerceIn(0f, 1f))
+                .height(8.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(Accent)
+        )
+    }
+}
+
+@Composable
+private fun HomeNoteButton(
+    text: String,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(Surface2)
+            .border(1.dp, Border, RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 11.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(7.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(color.copy(alpha = 0.12f))
+                .border(1.dp, color.copy(alpha = 0.22f), RoundedCornerShape(6.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(Modifier.size(7.dp).background(color, CircleShape))
+        }
+        Text(text, color = TextPrimary, style = MaterialTheme.typography.bodySmall, maxLines = 2)
+    }
+}
+
+@Composable
+private fun QuickMenuCard(
+    title: String,
+    caption: String,
+    color: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(Surface)
+            .border(1.dp, Border, RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(Modifier.size(9.dp).background(color, CircleShape))
+        Text(title, color = TextPrimary, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+        Text(caption, color = TextMuted, style = MaterialTheme.typography.bodySmall, maxLines = 1)
     }
 }

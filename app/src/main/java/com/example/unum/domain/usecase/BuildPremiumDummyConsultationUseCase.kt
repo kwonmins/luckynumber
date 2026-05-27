@@ -9,43 +9,81 @@ class BuildPremiumDummyConsultationUseCase {
         val concernText = concern.ifBlank { "지금 마음속에서 가장 자주 떠오르는 고민" }
         val life = bundle.content.lifeRecord
         val destiny = bundle.content.destinyProfile
+        val coreKeyword = destiny.coreKeywords.firstOrNull() ?: destiny.title
+        val cautionKeyword = destiny.cautionKeywords.firstOrNull() ?: "조급함"
 
         return when (topic) {
             PremiumTopic.ROMANCE -> PremiumConsultation(
-                core = "지금 고민의 핵심은 감정 자체보다 관계의 속도와 거리감을 어떻게 조절할지에 있다. ${destiny.title}의 결을 가진 사람일수록 진심이 생긴 뒤에는 마음의 방향이 빨라지기 쉬워, 상대의 반응이 느리게 느껴질 수 있다.",
-                interpretation = "숫자 흐름으로 보면 당신의 기본 성향은 ${destiny.title}이고, 현재 인생 조합 ${life.code}는 관계에서 감정의 뿌리와 현실적 선택이 함께 흔들릴 수 있는 흐름을 만든다. '$concernText'도 결국 상대를 바꾸는 문제보다 내 감정의 리듬을 안정시키는 문제와 연결된다.",
-                caution = "확신이 부족할 때 상대의 말보다 침묵을 더 크게 해석하면 스스로 지치기 쉽다. 지금은 결론을 재촉하는 태도를 줄이는 편이 좋다.",
-                direction = "분위기를 확인할 수 있는 가벼운 대화부터 다시 여는 것이 좋다. 관계의 답은 압박보다 일관된 태도에서 더 잘 드러난다.",
-                oneLineAdvice = "사랑은 정답을 서두를수록 흐려지고, 리듬을 지킬수록 선명해진다."
+                core = "지금 연애 고민은 마음이 있느냐 없느냐보다, 감정이 올라왔을 때 관계를 너무 빨리 몰아붙이는 패턴이 핵심입니다. ${destiny.title}의 $coreKeyword 기질이 장점으로 살아나면 매력인데, ${cautionKeyword}가 섞이면 좋은 인연도 부담스러운 관계로 변할 수 있습니다.",
+                interpretation = "'$concernText' 상황에서는 세 장면을 특히 보셔야 합니다. 답장이 늦을 때 혼자 결론을 내리는 장면, 애매한 말투 하나에 마음이 출렁이는 장면, 상대가 다가오기도 전에 관계 이름부터 확인하고 싶어지는 장면입니다. 이때 무료 결과의 기본 성향처럼 몰입이 강하게 켜지면 진심은 깊어지지만, 상대 입장에서는 감정 검사를 받는 느낌이 들 수 있습니다. 그러면 사랑이 부족해서가 아니라 압박감 때문에 관계가 식을 수 있습니다.",
+                caution = "관계를 확인하고 싶은 마음을 계속 밀어붙이면 상대가 방어적으로 변하고, 당신은 더 불안해지는 악순환이 생길 수 있습니다. 특히 밤늦게 긴 메시지를 보내거나, 답을 듣기 전까지 계속 분위기를 떠보는 습관은 각별히 조심해야 합니다. 방치하면 인연이 끊긴다기보다, 좋은 인연마저 피곤한 사람처럼 느껴질 수 있습니다.",
+                direction = "오늘은 결론을 묻기보다 가벼운 안부 하나로 온도를 확인하세요. 이번 주에는 상대 반응을 해석하기 전에 실제 행동 3가지만 적어보세요. 한 달 안에는 연락 속도, 만남 빈도, 감정 표현 방식 중 하나를 자연스럽게 맞춰보는 게 좋습니다. 이 순서를 건너뛰면 관계가 깊어지기 전에 먼저 지칠 수 있습니다.",
+                oneLineAdvice = "사랑은 확인을 세게 할수록 선명해지는 게 아니라, 부담을 줄일수록 오래 갈 수 있습니다.",
+                bestMonth = bestMonth(topic),
+                bestMonthReason = "${bestMonth(topic)}에는 마음을 새롭게 여는 흐름이 좋습니다. 고백이나 관계 정리는 무겁게 던지기보다, 같이 시간을 보내는 구체적인 제안으로 시작하면 흐름이 훨씬 부드럽습니다.",
+                riskyMonth = riskyMonth(topic),
+                riskyMonthReason = "${riskyMonth(topic)}에는 감정이 앞서 결론을 재촉하기 쉽습니다. 이때 확인 욕구를 그대로 밀어붙이면 상대가 뒤로 물러나 관계가 더 힘들어질 수 있으니, 답을 듣기 전 하루 정도 여백을 두는 편이 낫습니다."
             )
             PremiumTopic.CAREER -> PremiumConsultation(
-                core = "지금 고민의 핵심은 무엇을 선택할지보다 어떤 방식으로 오래 갈 수 있을지에 있다. ${destiny.title}의 성향이 강할수록 방향이 맞는 순간 몰입은 깊지만, 맞지 않는 구조에서는 피로가 더 빨리 온다.",
-                interpretation = "인생 코드 ${life.code}는 초년의 감정 습관, 중년의 현실 판단, 말년의 정리 방식이 서로 이어지며 진로의 리듬을 만든다. '$concernText' 같은 고민도 결국 능력 부족보다 구조와 방향 정렬의 문제일 가능성이 크다.",
-                caution = "지금 당장 결론 하나를 확정하려고 하면 조급함이 커질 수 있다. 특히 타인의 속도를 자신의 기준으로 삼지 않는 것이 중요하다.",
-                direction = "3개월 단위로 실험 가능한 목표를 정하고, 잘하는 일·버틸 수 있는 일·계속 배우고 싶은 일을 따로 적어보는 것이 좋다.",
-                oneLineAdvice = "진로는 한 번에 맞히는 답이 아니라, 맞는 방향을 더 선명하게 만드는 과정이다."
+                core = "지금 일과 진로 고민은 능력이 부족해서가 아니라, 버티는 구조가 맞지 않아 피로가 커지는 쪽에 가깝습니다. ${destiny.title}의 $coreKeyword 기질은 한 번 잡으면 성과를 내지만, ${cautionKeyword}가 올라오면 잘못된 자리에서도 끝까지 버티다 생활 전체가 무거워질 수 있습니다.",
+                interpretation = "'$concernText' 고민에서는 회의에서 할 말을 삼키는 장면, 일이 몰려도 혼자 책임지는 장면, 퇴사나 이직을 갑자기 확정하고 싶어지는 장면을 보셔야 합니다. 인생 코드 ${life.code}의 흐름상 지금은 방향과 방식이 어긋나면 성과보다 소진이 먼저 올 수 있습니다. 특히 남들은 괜찮아 보이는데 나만 지친다고 느끼는 순간이 반복되면, 그건 게으름이 아니라 구조가 몸에 안 맞는 신호일 수 있습니다.",
+                caution = "지금 피로를 대충 넘기면 일의 문제가 아니라 생활 리듬과 건강까지 같이 무너질 수 있습니다. 성급한 퇴사도 위험하지만, 아무 기준 없이 계속 참는 것도 위험합니다. 둘 다 방치하면 커리어가 좋아지는 게 아니라 버티는 인생이 되어버릴 수 있으니 각별히 조심해야 합니다.",
+                direction = "오늘은 지금 일에서 에너지를 빼앗는 요소 3개를 적으세요. 이번 주에는 줄일 일, 넘길 일, 반드시 잡을 일을 나누세요. 한 달 안에는 이직이든 유지든 판단 기준을 숫자로 정하는 게 좋습니다. 감정으로만 움직이면 후련함은 짧고 뒷감당은 길어질 수 있습니다.",
+                oneLineAdvice = "진로는 오래 갈 구조를 못 잡으면 능력이 있어도 삶이 빡빡해질 수 있습니다.",
+                bestMonth = bestMonth(topic),
+                bestMonthReason = "${bestMonth(topic)}에는 준비한 것을 실제 제안, 지원, 면담으로 옮기기 좋습니다. 포트폴리오나 조건 협상처럼 손에 잡히는 행동을 만들면 기회가 더 선명해집니다.",
+                riskyMonth = riskyMonth(topic),
+                riskyMonthReason = "${riskyMonth(topic)}에는 변화 욕구가 커져 성급한 결정을 내리기 쉽습니다. 홧김에 퇴사하거나 검증 안 된 제안을 잡으면 커리어가 예상보다 더 힘들어질 수 있습니다."
             )
             PremiumTopic.MONEY -> PremiumConsultation(
-                core = "지금 고민의 핵심은 돈의 양보다 돈을 다루는 패턴에 있다. 같은 기회도 어떤 기준으로 움직이느냐에 따라 완전히 다른 결과를 만든다.",
-                interpretation = "${life.code}의 흐름은 감정, 선택, 정리의 순서가 재물운에도 그대로 스며든다. '$concernText'라는 문제도 결국 감각만 믿을지, 기준과 구조를 세울지의 문제로 이어진다.",
-                caution = "불안할수록 한 번에 만회하려는 판단, 들뜰수록 검증 없이 뛰어드는 판단을 조심하는 편이 좋다.",
-                direction = "생활 자금, 안전 자금, 도전 자금을 나눠 보는 것부터 시작하면 재물 흐름이 훨씬 안정된다.",
-                oneLineAdvice = "재물운은 큰 기회를 맞히는 힘보다 흐름을 지키는 구조에서 커진다."
+                core = "지금 돈 고민은 수입의 크기보다 돈을 다루는 기준이 흔들리는 데 핵심이 있습니다. ${destiny.title}의 $coreKeyword 기질은 기회를 잡는 힘이 있지만, ${cautionKeyword}가 섞이면 빠른 만회를 노리다가 돈의 흐름이 더 불안해질 수 있습니다.",
+                interpretation = "'$concernText' 상황에서는 갑자기 좋아 보이는 투자 제안, 스트레스를 풀기 위한 충동 지출, 주변 사람 말에 흔들려 돈을 움직이는 장면을 조심해야 합니다. 인생 코드 ${life.code}는 감정과 현실 판단이 같이 움직이는 편이라, 마음이 불안할수록 돈으로 해결하려는 선택이 나올 수 있습니다. 이때 기준 없이 움직이면 한 번의 지출이 아니라 생활 전체의 압박으로 돌아옵니다.",
+                caution = "돈 문제를 감으로만 처리하면 생각보다 빨리 삶이 답답해질 수 있습니다. 특히 확인되지 않은 투자, 빌려주고 말 못 하는 돈, 할부로 미루는 소비를 가볍게 보면 나중에 선택지가 줄어듭니다. 돈이 없어서 힘든 게 아니라 돈의 출구가 많아서 힘들어질 수 있으니 각별히 조심해야 합니다.",
+                direction = "오늘은 고정비, 충동 지출, 회복 자금을 따로 적으세요. 이번 주에는 당장 끊을 지출 하나를 정하고, 한 달 안에는 안전 자금과 도전 자금을 분리하세요. 이 구분을 미루면 좋은 기회가 와도 불안해서 제대로 잡지 못할 수 있습니다.",
+                oneLineAdvice = "재물운은 큰돈보다 기준에서 갈립니다. 기준 없이 움직이면 돈 때문에 마음까지 흔들릴 수 있습니다.",
+                bestMonth = bestMonth(topic),
+                bestMonthReason = "${bestMonth(topic)}에는 수입과 지출 구조를 다시 잡기 좋습니다. 투자보다 정리, 확장보다 기준을 먼저 세우면 돈의 흐름이 더 안정됩니다.",
+                riskyMonth = riskyMonth(topic),
+                riskyMonthReason = "${riskyMonth(topic)}에는 빠른 이익을 좇는 마음이 커질 수 있습니다. 확인 안 된 제안이나 충동 구매를 가볍게 보면 돈의 흐름이 한 번에 꼬일 수 있습니다."
             )
             PremiumTopic.SELF_ESTEEM -> PremiumConsultation(
-                core = "지금 고민의 핵심은 부족함보다 기준이 흔들린 데서 오는 피로일 수 있다. ${destiny.title}의 사람은 자기 기준이 선명할수록 강해지고, 그 기준이 흐릴수록 쉽게 소진된다.",
-                interpretation = "인생 코드 ${life.code}는 시기마다 감정의 뿌리와 현실의 선택이 다른 방식으로 작동한다. '$concernText'가 반복된다면, 외부 평가보다 자신의 루틴과 기준을 회복하는 쪽이 먼저다.",
-                caution = "한 번의 실패나 흔들림으로 자기 전체를 평가하지 않는 것이 중요하다. 자존감은 기분보다 반복되는 태도에서 더 안정적으로 회복된다.",
-                direction = "하루에 꼭 지킬 수 있는 작은 약속 하나를 정하고, 그것을 꾸준히 지키는 경험을 쌓아 보자.",
-                oneLineAdvice = "자존감은 거대한 확신이 아니라, 나를 계속 버리지 않는 습관에서 자란다."
+                core = "지금 자존감 고민은 당신이 약해서가 아니라, 스스로를 평가하는 기준이 너무 거칠어진 데서 시작됐을 가능성이 큽니다. ${destiny.title}의 $coreKeyword 기질은 자기 기준이 살아날 때 강하지만, ${cautionKeyword}가 올라오면 작은 실수 하나로 자기 전체를 몰아붙일 수 있습니다.",
+                interpretation = "'$concernText' 상황에서는 SNS를 보고 비교하는 장면, 한 번의 실수를 오래 곱씹는 장면, 쉬어야 할 때도 뭔가 증명하려는 장면이 반복되기 쉽습니다. 인생 코드 ${life.code}의 흐름상 지금은 마음의 체력을 먼저 회복해야 하는데, 계속 자신을 몰아세우면 성과가 아니라 무기력만 커질 수 있습니다. 자존감은 기분 문제가 아니라 일상 루틴의 문제로 봐야 합니다.",
+                caution = "비교와 자기비난을 방치하면 마음만 힘든 게 아니라 몸의 리듬까지 무너질 수 있습니다. 잠, 식사, 운동 같은 기본 리듬이 흔들리면 판단도 더 어두워지고, 결국 좋은 기회 앞에서도 스스로를 못 믿게 될 수 있습니다. 이 흐름은 각별히 조심해야 합니다.",
+                direction = "오늘은 남에게 보여줄 목표가 아니라 내가 지킬 수 있는 약속 하나만 정하세요. 이번 주에는 비교를 부르는 환경을 줄이고, 한 달 안에는 작은 성취를 기록하는 루틴을 만드세요. 거창한 변화보다 반복 가능한 약속이 지금의 중심을 살립니다.",
+                oneLineAdvice = "자존감은 생각으로만 버티면 더 흔들릴 수 있으니, 몸과 루틴부터 다시 잡아야 합니다.",
+                bestMonth = bestMonth(topic),
+                bestMonthReason = "${bestMonth(topic)}에는 스스로를 다시 세우는 흐름이 좋습니다. 새로운 목표보다 작은 약속을 지키는 경험을 쌓으면 마음의 중심이 살아납니다.",
+                riskyMonth = riskyMonth(topic),
+                riskyMonthReason = "${riskyMonth(topic)}에는 비교와 조급함이 커질 수 있습니다. 무리해서 증명하려 들면 컨디션과 자존감이 같이 떨어질 수 있으니 각별히 쉬는 리듬을 챙겨야 합니다."
             )
             PremiumTopic.RELATIONSHIP -> PremiumConsultation(
-                core = "지금 고민의 핵심은 사람을 많이 만나는가보다, 어떤 관계가 나를 편안하게 만드는가에 있다. ${destiny.title}의 흐름은 가까운 관계에서 더 크게 체감되기 쉽다.",
-                interpretation = "${life.code}의 인생 흐름에서는 초년의 애착 습관, 중년의 협업 방식, 말년의 정리 태도가 인간관계 전반에 연결된다. '$concernText'도 결국 특정 사람의 문제이기보다 관계 패턴의 문제일 가능성이 있다.",
-                caution = "모든 사람을 다 끌어안으려 하면 스스로가 먼저 지친다. 애매한 관계를 오래 끌기보다 기준을 세우는 태도가 필요하다.",
-                direction = "편안해지는 사람과의 접점을 깊게 만들고, 불편한 관계에서는 거리 조절을 죄책감 없이 연습하는 것이 좋다.",
-                oneLineAdvice = "좋은 관계는 많음보다 신뢰와 편안함의 밀도에서 결정된다."
+                core = "지금 인간관계 고민은 사람이 많고 적음의 문제가 아니라, 누구에게 에너지를 써야 하는지 기준이 흐려진 데 핵심이 있습니다. ${destiny.title}의 $coreKeyword 기질은 사람을 끌어오지만, ${cautionKeyword}가 섞이면 불편한 관계까지 오래 끌어안아 삶이 피곤해질 수 있습니다.",
+                interpretation = "'$concernText' 상황에서는 부탁을 거절 못 하는 장면, 단체 대화방에서 눈치를 보는 장면, 이미 불편한 사람에게 또 맞춰주는 장면이 반복될 수 있습니다. 인생 코드 ${life.code}의 흐름상 관계는 당신에게 기회이기도 하지만, 기준 없이 열어두면 가장 빠르게 체력을 빼앗는 통로가 됩니다. 모두에게 좋은 사람으로 남으려다 정작 내 생활이 무너질 수 있습니다.",
+                caution = "애매한 관계를 계속 방치하면 좋은 인연까지 피곤하게 느껴질 수 있습니다. 특히 상대가 선을 넘었는데도 웃고 넘기는 습관은 나중에 더 큰 거리감으로 돌아옵니다. 관계 때문에 삶이 힘들어지는 사람은 대개 큰 사건보다 작은 불편함을 오래 참다가 무너집니다.",
+                direction = "오늘은 편한 사람, 피곤한 사람, 거리를 둬야 할 사람을 나눠보세요. 이번 주에는 부탁 하나를 부드럽게 거절해보고, 한 달 안에는 자주 만나는 사람의 기준을 다시 정리하세요. 선을 세우지 않으면 관계가 아니라 감정 노동이 늘어납니다.",
+                oneLineAdvice = "인연은 넓히는 것보다 가려두는 힘이 없으면 결국 삶이 더 피곤해질 수 있습니다.",
+                bestMonth = bestMonth(topic),
+                bestMonthReason = "${bestMonth(topic)}에는 관계의 접점이 자연스럽게 열립니다. 오래 미뤄둔 대화나 새 만남을 가볍게 시작하면 좋은 흐름을 만들 수 있습니다.",
+                riskyMonth = riskyMonth(topic),
+                riskyMonthReason = "${riskyMonth(topic)}에는 사람 사이의 오해가 커지기 쉽습니다. 단정적인 말이나 무리한 맞춤을 계속하면 관계가 생각보다 차갑게 틀어질 수 있습니다."
             )
         }
+    }
+
+    private fun bestMonth(topic: PremiumTopic): String = when (topic) {
+        PremiumTopic.ROMANCE -> "4월"
+        PremiumTopic.CAREER -> "8월"
+        PremiumTopic.MONEY -> "6월"
+        PremiumTopic.SELF_ESTEEM -> "7월"
+        PremiumTopic.RELATIONSHIP -> "2월"
+    }
+
+    private fun riskyMonth(topic: PremiumTopic): String = when (topic) {
+        PremiumTopic.ROMANCE -> "11월"
+        PremiumTopic.CAREER -> "5월"
+        PremiumTopic.MONEY -> "5월"
+        PremiumTopic.SELF_ESTEEM -> "9월"
+        PremiumTopic.RELATIONSHIP -> "8월"
     }
 }

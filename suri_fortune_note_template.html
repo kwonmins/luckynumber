@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>수리의 운세노트 UI 템플릿</title>
+  <style>
+    :root {
+      --bg: #fbf7ee;
+      --paper: #fffcf5;
+      --paper-2: #f5efe3;
+      --line: #e4d8c8;
+      --line-strong: #d1c1ae;
+      --ink: #24211d;
+      --muted: #5e5850;
+      --soft: #9a9186;
+      --cobalt: #315ebc;
+      --cobalt-2: #eaf0ff;
+      --coral: #e17666;
+      --coral-2: #fff0ec;
+      --mint: #4bae8f;
+      --mint-2: #effaf5;
+      --gold: #c59a48;
+      --shadow: 0 18px 45px rgba(44, 36, 24, 0.16);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(255, 252, 245, 0.92), rgba(251, 247, 238, 0.92)),
+        radial-gradient(circle at 18% 10%, rgba(49, 94, 188, 0.07), transparent 26%),
+        radial-gradient(circle at 88% 4%, rgba(75, 174, 143, 0.06), transparent 22%);
+    }
+
+    .wrap {
+      width: min(1640px, calc(100vw - 36px));
+      margin: 0 auto;
+      padding: 34px 0 48px;
+    }
+
+    .top {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .top h1 {
+      margin: 0;
+      font-size: 32px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .top p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .palette {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 252, 245, 0.75);
+    }
+
+    .swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid rgba(36, 33, 29, 0.12);
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(208px, 1fr));
+      gap: 26px 34px;
+      align-items: start;
+    }
+
+    .shot {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+    }
+
+    .shot:not(:nth-child(6n))::after {
+      content: "→";
+      position: absolute;
+      right: -25px;
+      top: 218px;
+      color: var(--soft);
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .label {
+      font-size: 13px;
+      color: var(--cobalt);
+      font-weight: 700;
+    }
+
+    .phone {
+      width: 208px;
+      height: 448px;
+      border: 8px solid #161616;
+      border-radius: 34px;
+      background: #161616;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 26px;
+      background: var(--bg);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .status {
+      height: 27px;
+      padding: 8px 13px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 8px;
+      font-weight: 800;
+      color: #111;
+    }
+
+    .dots {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #111;
+    }
+
+    .content {
+      height: calc(100% - 27px);
+      padding: 14px 13px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+
+    .content.center {
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      padding: 18px 16px 18px;
+    }
+
+    h2, h3, p {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 17px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+
+    h3 {
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 800;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .mini {
+      color: var(--soft);
+      font-size: 9px;
+      line-height: 1.45;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card,
+    .note,
+    .field,
+    .pill,
+    .tab,
+    .book,
+    .search {
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+
+    .card {
+      padding: 12px;
+    }
+
+    .paper {
+      background:
+        linear-gradient(90deg, rgba(197, 154, 72, 0.07) 0 1px, transparent 1px 100%),
+        var(--paper);
+      background-size: 18px 18px;
+    }
+
+    .primary {
+      width: 100%;
+      min-height: 42px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: var(--cobalt);
+      border-radius: var(--radius);
+      font-weight: 800;
+      font-size: 11px;
+      box-shadow: 0 8px 16px rgba(49, 94, 188, 0.18);
+    }
+
+    .secondary {
+      min-height: 34px;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      font-weight: 800;
+      font-size: 9px;
+    }
+
+    .seal {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--cobalt);
+      border: 1px solid rgba(49, 94, 188, 0.34);
+      background: #fffaf0;
+      font-size: 30px;
+      font-weight: 900;
+    }
+
+    .seal.small {
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+    }
+
+    .book {
+      position: relative;
+      width: 124px;
+      height: 174px;
+      padding: 18px 17px 14px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 8px 10px 0 #eaddca;
+      overflow: visible;
+    }
+
+    .book::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 17px;
+      width: 7px;
+      height: 132px;
+      border-radius: 0 7px 7px 0;
+      background: var(--cobalt);
+    }
+
+    .book::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 18px;
+      width: 16px;
+      height: 54px;
+      border-radius: 0 0 5px 5px;
+      background: var(--cobalt);
+    }
+
+    .book-tabs {
+      position: absolute;
+      right: -14px;
+      top: 54px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .book-tabs span {
+      width: 18px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 0 6px 6px 0;
+      background: var(--paper-2);
+      border: 1px solid var(--line-strong);
+      color: var(--soft);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .book-tabs span:first-child {
+      background: var(--cobalt);
+      color: white;
+      border-color: var(--cobalt);
+    }
+
+    .cover-title {
+      font-size: 17px;
+      line-height: 1.35;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .cover-sub {
+      color: var(--cobalt);
+      font-size: 9px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .ornament {
+      width: 68px;
+      height: 1px;
+      background: var(--line);
+      margin: 0 auto;
+    }
+
+    .progress {
+      height: 7px;
+      border-radius: 99px;
+      background: var(--paper-2);
+      overflow: hidden;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      width: 60%;
+      background: var(--cobalt);
+      border-radius: 99px;
+    }
+
+    .bottom-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 44px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      border-top: 1px solid var(--line);
+      background: rgba(255, 252, 245, 0.95);
+      font-size: 8px;
+      color: var(--soft);
+      font-weight: 800;
+    }
+
+    .bottom-nav span {
+      text-align: center;
+    }
+
+    .bottom-nav span:first-child {
+      color: var(--cobalt);
+    }
+
+    .seg {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      padding: 4px;
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+    }
+
+    .seg span,
+    .field,
+    .chip {
+      min-height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius);
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .seg span.active {
+      color: white;
+      background: var(--cobalt);
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      min-height: 27px;
+      padding: 0 9px;
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+    }
+
+    .chip.active {
+      color: var(--cobalt);
+      background: var(--cobalt-2);
+      border-color: rgba(49, 94, 188, 0.28);
+    }
+
+    .box-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .info-box {
+      min-height: 74px;
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(49, 94, 188, 0.18);
+      background: rgba(49, 94, 188, 0.04);
+    }
+
+    .info-box.coral {
+      border-color: rgba(225, 118, 102, 0.22);
+      background: var(--coral-2);
+    }
+
+    .info-box strong {
+      display: block;
+      color: var(--cobalt);
+      font-size: 10px;
+      margin-bottom: 6px;
+    }
+
+    .info-box.coral strong {
+      color: var(--coral);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 13px;
+      color: var(--muted);
+      font-size: 8px;
+      line-height: 1.55;
+    }
+
+    .chart {
+      width: 100%;
+      height: 84px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(#fffdf7, #fff8ed);
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: 32px 1fr 28px;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      border-radius: var(--radius);
+      background: var(--paper);
+      border: 1px solid var(--line);
+    }
+
+    .bubble {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border: 1px solid rgba(49, 94, 188, 0.24);
+      background: var(--cobalt-2);
+      color: var(--cobalt);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .sticky {
+      padding: 11px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(225, 118, 102, 0.24);
+      background: var(--coral-2);
+    }
+
+    .sticky strong {
+      display: block;
+      color: var(--coral);
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .blue-note {
+      padding: 11px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(49, 94, 188, 0.18);
+      background: var(--cobalt-2);
+    }
+
+    .blue-note strong {
+      color: var(--cobalt);
+      font-size: 11px;
+    }
+
+    .check {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .check span::before {
+      content: "✓";
+      display: inline-grid;
+      place-items: center;
+      width: 13px;
+      height: 13px;
+      margin-right: 5px;
+      border-radius: 50%;
+      color: white;
+      background: var(--mint);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .textarea {
+      height: 94px;
+      padding: 11px;
+      color: var(--soft);
+      align-items: start;
+      justify-items: start;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .page {
+      position: relative;
+      height: 338px;
+      padding: 15px 16px 18px 22px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line-strong);
+      background: var(--paper);
+      box-shadow: 7px 8px 0 #eaddca;
+      overflow: hidden;
+    }
+
+    .page::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 54px;
+      width: 5px;
+      height: 210px;
+      border-radius: 0 8px 8px 0;
+      background: var(--cobalt);
+    }
+
+    .page::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px 0 0 0;
+      background: #f1e5d7;
+      border-left: 1px solid var(--line-strong);
+      border-top: 1px solid var(--line-strong);
+    }
+
+    .toc-row {
+      display: grid;
+      grid-template-columns: 24px 1fr 28px;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(228, 216, 200, 0.72);
+    }
+
+    .toc-num {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--cobalt);
+      border: 1px solid rgba(49, 94, 188, 0.22);
+      background: rgba(49, 94, 188, 0.06);
+      font-size: 9px;
+      font-weight: 900;
+    }
+
+    .search {
+      min-height: 36px;
+      padding: 10px 12px;
+      color: var(--soft);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .book-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .archive {
+      display: grid;
+      grid-template-columns: 52px 1fr 15px;
+      gap: 10px;
+      align-items: center;
+      padding: 9px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+
+    .mini-cover {
+      width: 48px;
+      height: 68px;
+      border-radius: 6px;
+      border: 1px solid var(--line-strong);
+      background: var(--paper);
+      position: relative;
+      display: grid;
+      place-items: center;
+      color: var(--cobalt);
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .mini-cover::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 4px;
+      height: 46px;
+      background: var(--cobalt);
+      border-radius: 0 5px 5px 0;
+    }
+
+    .bookmark {
+      color: var(--cobalt);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1220px) {
+      .flow { grid-template-columns: repeat(4, minmax(208px, 1fr)); }
+      .shot::after { display: none; }
+    }
+
+    @media (max-width: 900px) {
+      .top { align-items: start; flex-direction: column; }
+      .flow { grid-template-columns: repeat(2, minmax(208px, 1fr)); }
+    }
+
+    @media (max-width: 520px) {
+      .wrap { width: min(100vw - 20px, 430px); }
+      .flow { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <div>
+        <h1>수리의 운세노트 HTML 템플릿</h1>
+        <p>실제 앱에 반영할 기준 화면입니다. 전체 톤은 아이보리 종이, 코발트 포인트, 코랄 주의 노트, 민트 완료 상태로 맞췄습니다.</p>
+      </div>
+      <div class="palette" aria-label="palette">
+        <span class="swatch" style="background:#fbf7ee"></span>
+        <span class="swatch" style="background:#fffcf5"></span>
+        <span class="swatch" style="background:#315ebc"></span>
+        <span class="swatch" style="background:#e17666"></span>
+        <span class="swatch" style="background:#4bae8f"></span>
+      </div>
+    </header>
+
+    <section class="flow">
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content center">
+              <div>
+                <h2>수리의<br />운세노트</h2>
+                <p>생년월일 속 숫자 흐름을<br />조용히 열어드립니다</p>
+              </div>
+              <div class="book">
+                <div>
+                  <div class="cover-title">수리의<br />운세노트</div>
+                  <div class="cover-sub">오늘의 숫자 기록</div>
+                </div>
+                <div class="ornament"></div>
+                <div class="seal small" style="margin:0 auto">7</div>
+              </div>
+              <div class="primary">시작하기</div>
+            </div>
+          </div>
+        </div>
+        <div class="label">1. 시작</div>
+      </article>
+
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content" style="padding-bottom:54px">
+              <div class="row">
+                <div>
+                  <h2>오늘의 운세노트</h2>
+                  <p>내 숫자로 조용히 열어보는 오늘</p>
+                </div>
+                <div class="seal small">수</div>
+              </div>
+              <div class="card paper">
+                <div class="row">
+                  <div>
+                    <p class="mini">최근 노트</p>
+                    <h3>나의 성향 리포트</h3>
+                    <p>운명수 7 · 정리율 60%</p>
+                  </div>
+                  <div class="seal">7</div>
+                </div>
+                <p style="margin:8px 0">집중은 강점이지만, 집착으로 번지면 삶이 꽤 피곤해질 수 있습니다.</p>
+                <div class="row"><div class="progress" style="flex:1"><span></span></div><p class="mini">리포트 보기</p></div>
+              </div>
+              <div class="row">
+                <div class="secondary" style="flex:1">무료<br />리포트</div>
+                <div class="secondary" style="flex:1">운세<br />노트</div>
+                <div class="secondary" style="flex:1">보관함</div>
+              </div>
+              <div class="bottom-nav"><span>홈</span><span>입력</span><span>결과</span><span>상담</span><span>기록</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="label">2. 홈</div>
+      </article>
+
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content">
+              <div class="row"><h2>생년월일 정보</h2><p class="mini" style="color:var(--cobalt)">1/3</p></div>
+              <div class="card paper" style="display:grid;gap:12px">
+                <div>
+                  <h3>생년월일 정보를 입력해주세요</h3>
+                  <p>수리의 운세노트가 읽을 첫 숫자입니다.</p>
+                </div>
+                <div>
+                  <p class="mini">날짜 기준</p>
+                  <div class="seg"><span class="active">양력</span><span>음력</span></div>
+                </div>
+                <div>
+                  <p class="mini">성별</p>
+                  <div class="seg"><span class="active">남성</span><span>여성</span></div>
+                </div>
+                <div>
+                  <p class="mini">생년월일</p>
+                  <div class="fields"><div class="field">1999</div><div class="field">03</div><div class="field">13</div></div>
+                </div>
+                <div class="note" style="padding:9px"><p>양력 입력은 내부에서 음력 기준으로 변환해 계산합니다.</p></div>
+              </div>
+              <div class="primary" style="margin-top:auto">결과 보기</div>
+            </div>
+          </div>
+        </div>
+        <div class="label">3. 입력</div>
+      </article>
+
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content center">
+              <div></div>
+              <div class="card paper" style="width:148px;height:168px;display:grid;place-items:center">
+                <div style="position:relative;width:68px;height:82px">
+                  <div class="card" style="position:absolute;width:46px;height:58px;left:0;top:0"></div>
+                  <div class="card" style="position:absolute;width:46px;height:58px;right:0;bottom:0;border-color:var(--cobalt)"></div>
+                  <div class="seal small" style="position:absolute;right:10px;bottom:10px">수</div>
+                </div>
+              </div>
+              <div>
+                <h2>수리가<br />숫자 리포트를<br />정리하고 있어요</h2>
+                <div class="progress" style="width:142px;margin:18px auto 8px"><span></span></div>
+                <p>60%</p>
+              </div>
+              <div class="note" style="padding:10px;width:100%"><p>잠시만 기다려주세요. 숫자 흐름을 차분히 정리하는 중입니다.</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="label">4. 정리중</div>
+      </article>
+
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content">
+              <div class="row"><h2>무료 결과</h2><p class="mini">공유</p></div>
+              <div class="card paper" style="display:grid;gap:10px;text-align:center">
+                <p class="mini">당신의 핵심 번호</p>
+                <div style="font-size:54px;line-height:.9;color:var(--cobalt);font-weight:900">7</div>
+                <h2 style="color:var(--cobalt)">집중형</h2>
+                <p>깊이 파고드는 힘이 강합니다. 다만 몰입이 도를 넘으면 예민함과 번아웃이 따라올 수 있습니다.</p>
+                <div class="box-grid">
+                  <div class="info-box"><strong>강점</strong><ul><li>몰입력</li><li>분석력</li><li>끈기</li></ul></div>
+                  <div class="info-box coral"><strong>주의</strong><ul><li>집착</li><li>고립</li><li>번아웃</li></ul></div>
+                </div>
+                <div class="primary">운세노트 만들기</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="label">5. 무료 결과</div>
+      </article>
+
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content">
+              <h2>인생 흐름 리포트</h2>
+              <div class="chip-row"><span class="chip active">전체 흐름</span><span class="chip">초기</span><span class="chip">중기</span><span class="chip">후기</span></div>
+              <svg class="chart" viewBox="0 0 168 84" aria-label="line chart">
+                <polyline points="10,56 34,42 58,48 82,32 106,24 132,30 156,42" fill="none" stroke="#315ebc" stroke-width="3" stroke-linecap="round" />
+                <polyline points="10,58 34,44 58,50 82,34 106,26 132,32 156,44" fill="none" stroke="#4bae8f" stroke-width="2" stroke-linecap="round" opacity=".65" />
+              </svg>
+              <div class="stage"><div class="bubble">68</div><div><h3>초기 · 기반 잡기</h3><p>개척의 힘이 강하게 올라옵니다.</p></div><p class="mini">초년</p></div>
+              <div class="stage"><div class="bubble">82</div><div><h3>중기 · 성장과 확장</h3><p>책임과 선택이 현실로 다가옵니다.</p></div><p class="mini">중년</p></div>
+              <div class="stage"><div class="bubble">71</div><div><h3>후기 · 안정과 성숙</h3><p>남길 것과 끊을 것이 선명해집니다.</p></div><p class="mini">말년</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="label">6. 흐름</div>
+      </article>
+
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content">
+              <h2>주의 & 액션 플랜</h2>
+              <div class="sticky"><strong>지금 조심할 것</strong><p>집착이 커지면 좋은 흐름도 부담으로 바뀔 수 있습니다. 초반에 끊어내지 않으면 삶이 꽤 피곤해질 수 있어요.</p></div>
+              <p class="mini">주의 신호</p>
+              <div class="chip-row"><span class="chip" style="color:var(--coral)">스토킹</span><span class="chip" style="color:var(--coral)">과로</span><span class="chip" style="color:var(--coral)">고집</span><span class="chip" style="color:var(--coral)">소통 회피</span></div>
+              <p class="mini">액션 플랜</p>
+              <div class="check"><span>하루 10분 마음 상태 먼저 보기</span><span>중요하지 않은 일은 거절하기</span><span>반복되는 패턴을 짧게 기록하기</span></div>
+              <div class="note" style="padding:10px;margin-top:auto"><p><b>TIP</b> 작은 신호를 가볍게 넘기지 마세요. 커지기 전에 잡는 게 핵심입니다.</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="label">7. 주의</div>
+      </article>
+
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content">
+              <h2>수리의 운세노트</h2>
+              <div class="seg"><span class="active">운세노트</span><span>궁합노트</span></div>
+              <div class="card paper">
+                <h3>운세노트에 담을 고민</h3>
+                <p>무료 결과에서 끝나지 않고, 고민별 케이스와 방치 시 손해까지 짚습니다.</p>
+                <div class="chip-row" style="margin-top:9px"><span class="chip active">연애</span><span class="chip">일과 진로</span><span class="chip">돈</span><span class="chip">나 자신</span><span class="chip">인간관계</span></div>
+              </div>
+              <div class="field textarea">요즘 가장 궁금한 고민을 적어주세요. 예: 연락이 줄어든 관계를 계속 이어가도 될까요?</div>
+              <div class="primary" style="margin-top:auto">운세노트 만들기</div>
+            </div>
+          </div>
+        </div>
+        <div class="label">8. 노트 작성</div>
+      </article>
+
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content center">
+              <div class="book" style="width:142px;height:252px;padding-top:26px">
+                <div class="book-tabs"><span>1</span><span>2</span><span>3</span></div>
+                <div>
+                  <p class="cover-sub">프리미엄 운세노트</p>
+                  <div class="cover-title" style="font-size:19px;margin-top:8px">수리의<br />운세노트</div>
+                </div>
+                <div>
+                  <p class="cover-sub">연애 운세노트</p>
+                  <p class="mini">운명수 7 · 집중형 · 2026</p>
+                </div>
+                <div class="seal small" style="margin:0 auto">7</div>
+              </div>
+              <div class="primary">노트 펼치기</div>
+            </div>
+          </div>
+        </div>
+        <div class="label">9. 노트 표지</div>
+      </article>
+
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content">
+              <div class="page">
+                <h2 style="text-align:center;margin-bottom:12px">목차</h2>
+                <div class="ornament" style="margin-bottom:10px"></div>
+                <div class="toc-row"><span class="toc-num">1</span><div><h3>지금의 핵심</h3><p>현재 흐름</p></div><p class="mini">p.14</p></div>
+                <div class="toc-row"><span class="toc-num">2</span><div><h3>상황별 해석</h3><p>연애 · 관계</p></div><p class="mini">p.20</p></div>
+                <div class="toc-row"><span class="toc-num">3</span><div><h3>주의할 장면</h3><p>조심할 신호</p></div><p class="mini">p.26</p></div>
+                <div class="toc-row"><span class="toc-num">4</span><div><h3>이번 달 행동</h3><p>실천 기준</p></div><p class="mini">p.34</p></div>
+                <div class="toc-row"><span class="toc-num">5</span><div><h3>월별 흐름</h3><p>추천과 주의</p></div><p class="mini">p.42</p></div>
+                <p class="mini" style="position:absolute;bottom:14px;left:0;right:0;text-align:center">03</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="label">10. 목차</div>
+      </article>
+
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content">
+              <div class="page">
+                <div class="row" style="align-items:start">
+                  <span class="toc-num">2</span>
+                  <div style="flex:1">
+                    <h2>상황별 해석</h2>
+                    <p>연애 · 관계</p>
+                  </div>
+                </div>
+                <div class="note" style="padding:10px;margin:10px 0"><p>무료 리포트의 기본 성향은 배경으로 두고, 실제 장면에서 어떻게 튀어나오는지 봅니다.</p></div>
+                <div class="sticky"><strong>주의할 장면</strong><p>기다리는 쪽으로만 굳어지면 관계의 주도권을 잃고 마음이 더 힘들어질 수 있습니다.</p></div>
+                <div class="blue-note" style="margin-top:10px"><strong>이번 주 행동</strong><ul><li>답장 기준을 먼저 정하기</li><li>불안할 때 바로 결론 내리지 않기</li><li>내가 원하는 관계 온도 적어보기</li></ul></div>
+                <p class="mini" style="position:absolute;bottom:14px;left:0;right:0;text-align:center">15</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="label">11. 책자 결과</div>
+      </article>
+
+      <article class="shot">
+        <div class="phone">
+          <div class="screen">
+            <div class="status"><span>9:41</span><span class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></span></div>
+            <div class="content" style="padding-bottom:54px">
+              <div class="row"><h2>보관함</h2><p class="mini">검색</p></div>
+              <div class="search">운세노트 검색</div>
+              <div class="chip-row"><span class="chip active">전체</span><span class="chip">운세노트</span><span class="chip">궁합노트</span></div>
+              <div class="book-list">
+                <div class="archive"><div class="mini-cover">7</div><div><h3>연애 운세노트</h3><p>운명수 7 · 집중형</p><p class="mini">2026.05.27</p></div><div class="bookmark">▮</div></div>
+                <div class="archive"><div class="mini-cover" style="color:var(--mint)"><span>5</span></div><div><h3>돈의 흐름 노트</h3><p>생활 리듬 · 지출</p><p class="mini">2026.04.18</p></div><div class="bookmark">▯</div></div>
+                <div class="archive"><div class="mini-cover" style="color:var(--coral)"><span>8</span></div><div><h3>궁합노트</h3><p>관계 속도 · 대화</p><p class="mini">2026.03.22</p></div><div class="bookmark">▮</div></div>
+              </div>
+              <div class="bottom-nav"><span>홈</span><span>입력</span><span>결과</span><span>상담</span><span>기록</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="label">12. 보관함</div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
