@@ -9,8 +9,8 @@ class BuildPremiumDummyConsultationUseCase {
         val concernText = concern.ifBlank { "지금 마음속에서 가장 자주 떠오르는 고민" }
         val destiny = bundle.content.destinyProfile
         val coreKeyword = destiny.coreKeywords.firstOrNull() ?: destiny.title
-        val bestSelection = PremiumMonthPlanner.pickBestMonth(topic, bundle.numbers.destiny)
-        val riskySelection = PremiumMonthPlanner.pickRiskyMonth(topic, bundle.numbers.destiny)
+        val bestSelection = PremiumMonthPlanner.pickBestMonth(topic, bundle.numbers)
+        val riskySelection = PremiumMonthPlanner.pickRiskyMonth(topic, bundle.numbers)
         val bestMonth = bestSelection.toDisplayText()
         val riskyMonth = riskySelection.toDisplayText()
 

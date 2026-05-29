@@ -434,14 +434,14 @@ fun PremiumArchiveRow(
             .background(if (selected) Accent.copy(alpha = 0.06f) else Surface)
             .border(1.dp, if (selected) Accent.copy(alpha = 0.45f) else Border, RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
-            .padding(14.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         BookThumbnailCard(
             book = book,
-            modifier = Modifier.size(width = 88.dp, height = 120.dp),
-            compact = true,
+            modifier = Modifier.size(width = 136.dp, height = 190.dp),
+            compact = false,
             onClick = onClick
         )
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {

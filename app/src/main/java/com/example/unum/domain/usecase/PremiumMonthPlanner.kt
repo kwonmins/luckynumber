@@ -1,5 +1,6 @@
 package com.example.unum.domain.usecase
 
+import com.example.unum.data.model.NumerologyNumbers
 import com.example.unum.data.model.PremiumTopic
 import java.util.Calendar
 
@@ -22,19 +23,27 @@ object PremiumMonthPlanner {
         destiny: Int,
         currentMonth: Int = currentMonth()
     ): MonthSelection {
-        val topMonth = rankedBestMonths(topic, destiny).first()
+        return pickBestMonth(topic, NumerologyNumbers(destiny, destiny, destiny, destiny, destiny.toString()), currentMonth)
+    }
+
+    fun pickBestMonth(
+        topic: PremiumTopic,
+        numbers: NumerologyNumbers,
+        currentMonth: Int = currentMonth()
+    ): MonthSelection {
+        val topMonth = rankedBestMonths(topic, numbers).first()
         if (topMonth >= currentMonth) return MonthSelection(month = topMonth)
 
         val preferredFlows = bestFlows(topic)
-        val remainingThisYear = (currentMonth..12).firstOrNull { month ->
-            flowNumber(destiny, month) in preferredFlows
+        val remainingThisYear = rankedBestMonths(topic, numbers).firstOrNull { month ->
+            month >= currentMonth && flowNumber(numbers, month) in preferredFlows
         }
         if (remainingThisYear != null) {
             return MonthSelection(month = remainingThisYear, replacedPastMonth = topMonth)
         }
 
-        val firstNextYear = (1..12).first { month ->
-            flowNumber(destiny, month) in preferredFlows
+        val firstNextYear = rankedBestMonths(topic, numbers).first { month ->
+            flowNumber(numbers, month) in preferredFlows
         }
         return MonthSelection(month = firstNextYear, isNextYear = true, replacedPastMonth = topMonth)
     }
@@ -44,19 +53,27 @@ object PremiumMonthPlanner {
         destiny: Int,
         currentMonth: Int = currentMonth()
     ): MonthSelection {
-        val topMonth = rankedRiskyMonths(topic, destiny).first()
+        return pickRiskyMonth(topic, NumerologyNumbers(destiny, destiny, destiny, destiny, destiny.toString()), currentMonth)
+    }
+
+    fun pickRiskyMonth(
+        topic: PremiumTopic,
+        numbers: NumerologyNumbers,
+        currentMonth: Int = currentMonth()
+    ): MonthSelection {
+        val topMonth = rankedRiskyMonths(topic, numbers).first()
         if (topMonth >= currentMonth) return MonthSelection(month = topMonth)
 
         val riskyFlows = riskyFlows(topic)
-        val remainingThisYear = (currentMonth..12).firstOrNull { month ->
-            flowNumber(destiny, month) in riskyFlows
+        val remainingThisYear = rankedRiskyMonths(topic, numbers).firstOrNull { month ->
+            month >= currentMonth && flowNumber(numbers, month) in riskyFlows
         }
         if (remainingThisYear != null) {
             return MonthSelection(month = remainingThisYear, replacedPastMonth = topMonth)
         }
 
-        val firstNextYear = (1..12).first { month ->
-            flowNumber(destiny, month) in riskyFlows
+        val firstNextYear = rankedRiskyMonths(topic, numbers).first { month ->
+            flowNumber(numbers, month) in riskyFlows
         }
         return MonthSelection(month = firstNextYear, isNextYear = true, replacedPastMonth = topMonth)
     }
@@ -73,21 +90,23 @@ object PremiumMonthPlanner {
         }
     }
 
-    private fun rankedBestMonths(topic: PremiumTopic, destiny: Int): List<Int> {
+    private fun rankedBestMonths(topic: PremiumTopic, numbers: NumerologyNumbers): List<Int> {
         val preferredFlows = bestFlows(topic)
         return (1..12).sortedWith(
             compareBy<Int> {
-                preferredFlows.indexOf(flowNumber(destiny, it)).let { index -> if (index == -1) 99 else index }
-            }.thenBy { it }
+                preferredFlows.indexOf(flowNumber(numbers, it)).let { index -> if (index == -1) 99 else index }
+            }.thenBy { monthTieBreaker(numbers, it) }
+                .thenBy { it }
         )
     }
 
-    private fun rankedRiskyMonths(topic: PremiumTopic, destiny: Int): List<Int> {
+    private fun rankedRiskyMonths(topic: PremiumTopic, numbers: NumerologyNumbers): List<Int> {
         val riskyFlows = riskyFlows(topic)
         return (1..12).sortedWith(
             compareBy<Int> {
-                riskyFlows.indexOf(flowNumber(destiny, it)).let { index -> if (index == -1) 99 else index }
-            }.thenByDescending { it }
+                riskyFlows.indexOf(flowNumber(numbers, it)).let { index -> if (index == -1) 99 else index }
+            }.thenBy { monthTieBreaker(numbers, it) }
+                .thenByDescending { it }
         )
     }
 
@@ -111,5 +130,17 @@ object PremiumMonthPlanner {
         }
     }
 
-    private fun flowNumber(destiny: Int, month: Int): Int = (destiny + month) % 10
+    private fun flowNumber(numbers: NumerologyNumbers, month: Int): Int {
+        val codeSeed = numbers.code.filter(Char::isDigit).sumOf { it.digitToInt() }
+        val rhythmSeed = numbers.destiny * 11 + numbers.early * 3 + numbers.middle * 5 + numbers.late * 7
+        return (rhythmSeed + codeSeed + month).floorMod(10)
+    }
+
+    private fun monthTieBreaker(numbers: NumerologyNumbers, month: Int): Int {
+        val codeSeed = numbers.code.filter(Char::isDigit).sumOf { it.digitToInt() }
+        return (month * 7 + numbers.destiny * 5 + numbers.early * 3 + numbers.middle * 2 + numbers.late + codeSeed)
+            .floorMod(12)
+    }
+
+    private fun Int.floorMod(divisor: Int): Int = ((this % divisor) + divisor) % divisor
 }

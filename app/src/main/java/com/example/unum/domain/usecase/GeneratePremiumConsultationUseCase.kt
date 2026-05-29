@@ -69,11 +69,11 @@ class GeneratePremiumConsultationUseCase(
             - 이 정보는 말투와 조언의 결을 살짝 조정하는 데만 사용하고, 초년/중년/말년 설명으로 풀지 마세요.
 
             [월별 흐름 판정 규칙 - 절대 사용자에게 계산식 공개 금지]
-            - 각 월의 흐름 수는 운명수와 월 숫자를 더한 뒤 마지막 한 자리만 사용합니다.
-            - 예: 운명수가 7이고 4월이면 7+4=11이므로 흐름 수는 1입니다.
-            - 예: 운명수가 7이고 11월이면 7+11=18이므로 흐름 수는 8입니다.
-            - 이 계산식, "마지막 자리", "더한다" 같은 표현은 절대 답변에 쓰지 마세요.
-            - 대신 "4월에는 새 문이 열리는 흐름", "11월에는 관계의 움직임이 커지는 흐름"처럼 상징으로만 말하세요.
+            - 월 추천은 운명수, 초년/중년/말년수, 전체 코드, 상담 생성 시점의 현재 월을 함께 반영합니다.
+            - 이미 지나간 추천 달이 있으면 먼저 "올해 가장 추천 흐름이 강했던 달은 이미 지났다"는 맥락을 짧게 알리고, 현재 월 이후의 다음 추천 달을 중심으로 설명하세요.
+            - 이미 지나간 주의 달도 같은 방식으로 현재 월 이후의 다음 주의 달을 안내하세요.
+            - 계산식, "마지막 자리", "더한다" 같은 표현은 절대 답변에 쓰지 마세요.
+            - 대신 "새 문이 열리는 흐름", "관계의 움직임이 커지는 흐름"처럼 상징으로만 말하세요.
             - 1: 시작, 새 만남, 결심, 첫 제안
             - 2: 조율, 기다림, 관계의 균형, 섬세한 대화
             - 3: 표현, 고백, 발표, 창작, 즐거운 확장
@@ -185,8 +185,8 @@ class GeneratePremiumConsultationUseCase(
         bundle: NumerologyResultBundle
     ): PremiumConsultation {
         val currentMonth = PremiumMonthPlanner.currentMonth()
-        val bestSelection = PremiumMonthPlanner.pickBestMonth(topic, bundle.numbers.destiny, currentMonth)
-        val riskySelection = PremiumMonthPlanner.pickRiskyMonth(topic, bundle.numbers.destiny, currentMonth)
+        val bestSelection = PremiumMonthPlanner.pickBestMonth(topic, bundle.numbers, currentMonth)
+        val riskySelection = PremiumMonthPlanner.pickRiskyMonth(topic, bundle.numbers, currentMonth)
         val expectedBestMonth = bestSelection.toDisplayText()
         val expectedRiskyMonth = riskySelection.toDisplayText()
         val rawBestReason = consultation.bestMonthReason.takeIf {

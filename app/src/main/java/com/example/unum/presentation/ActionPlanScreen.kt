@@ -2,7 +2,6 @@ package com.example.unum.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,8 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -132,37 +129,27 @@ private fun CautionTags(bundle: NumerologyResultBundle) {
 
 @Composable
 private fun ActionChecklist(bundle: NumerologyResultBundle) {
-    val actions = remember(bundle.numbers.code) {
-        listOf(
-            "하루 10분 마음 상태 먼저 체크하기",
-            "중요하지 않은 일은 과감히 거절하기",
-            "반복되는 실수 패턴을 짧게 기록하기"
-        )
-    }
-    val checked = remember(bundle.numbers.code) { mutableStateListOf(0, 1) }
+    val actions = listOf(
+        "하루 10분 마음 상태 먼저 체크하기",
+        "중요하지 않은 일은 과감히 거절하기",
+        "반복되는 실수 패턴을 짧게 기록하기"
+    )
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("액션 플랜", color = TextMuted, style = MaterialTheme.typography.labelLarge)
-        actions.forEachIndexed { index, action ->
-            ChecklistRow(
-                text = action,
-                checked = index in checked,
-                onClick = {
-                    if (index in checked) checked.remove(index) else checked.add(index)
-                }
-            )
+        actions.forEach { action ->
+            ChecklistRow(text = action)
         }
     }
 }
 
 @Composable
-private fun ChecklistRow(text: String, checked: Boolean, onClick: () -> Unit) {
+private fun ChecklistRow(text: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
             .background(Surface)
             .border(1.dp, Border, RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick)
             .padding(13.dp),
         horizontalArrangement = Arrangement.spacedBy(11.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -171,13 +158,11 @@ private fun ChecklistRow(text: String, checked: Boolean, onClick: () -> Unit) {
             modifier = Modifier
                 .size(22.dp)
                 .clip(CircleShape)
-                .background(if (checked) Mint else Color.Transparent)
-                .border(1.dp, if (checked) Mint else Border, CircleShape),
+                .background(Mint)
+                .border(1.dp, Mint, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            if (checked) {
-                Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
-            }
+            Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
         }
         Text(text, color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
     }

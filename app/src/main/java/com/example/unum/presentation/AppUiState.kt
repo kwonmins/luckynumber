@@ -13,6 +13,7 @@ import com.example.unum.data.model.ReaderFontScale
 
 enum class PremiumFlowStep {
     FORM,
+    CONFIRM_QUESTION,
     LOADING,
     VOICE_CHOICE,
     HANOK_READING,
@@ -28,6 +29,7 @@ data class AppUiState(
     val premiumMode: PremiumMode = PremiumMode.PERSONAL,
     val premiumTopic: PremiumTopic = PremiumTopic.ROMANCE,
     val premiumConcern: String = "",
+    val premiumEssentialQuestion: String = "",
     val premiumFlowStep: PremiumFlowStep = PremiumFlowStep.FORM,
     val compatibilityForm: CompatibilityFormState = CompatibilityFormState(),
     val compatibilityConcern: String = "",

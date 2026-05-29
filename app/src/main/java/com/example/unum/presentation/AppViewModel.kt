@@ -9,6 +9,7 @@ import com.example.unum.data.model.FortuneBook
 import com.example.unum.data.model.FortuneBookType
 import com.example.unum.data.model.GenderOption
 import com.example.unum.data.model.HomeFormState
+import com.example.unum.data.model.NumerologyNumbers
 import com.example.unum.data.model.PartnerBirthFormState
 import com.example.unum.data.model.PremiumMode
 import com.example.unum.data.model.PremiumTopic
@@ -178,7 +179,7 @@ class AppViewModel : ViewModel() {
     // Premium note input ---------------------------------------------------------
 
     fun selectPremiumTopic(topic: PremiumTopic) {
-        _uiState.update { it.copy(premiumTopic = topic) }
+        _uiState.update { it.copy(premiumTopic = topic, premiumEssentialQuestion = "", inputError = null) }
     }
 
     fun setPremiumMode(mode: PremiumMode) {
@@ -186,15 +187,50 @@ class AppViewModel : ViewModel() {
     }
 
     fun updatePremiumConcern(value: String) {
-        _uiState.update { it.copy(premiumConcern = value) }
+        _uiState.update { it.copy(premiumConcern = value, premiumEssentialQuestion = "", inputError = null) }
     }
 
     fun setPremiumFlowStep(step: PremiumFlowStep) {
-        _uiState.update { it.copy(premiumFlowStep = step, inputError = null) }
+        _uiState.update {
+            if (step == PremiumFlowStep.LOADING) {
+                it.copy(
+                    premiumFlowStep = step,
+                    premiumResult = null,
+                    compatibilityResult = null,
+                    inputError = null
+                )
+            } else {
+                it.copy(premiumFlowStep = step, inputError = null)
+            }
+        }
     }
 
     fun resetPremiumFlow() {
-        _uiState.update { it.copy(premiumFlowStep = PremiumFlowStep.FORM, inputError = null) }
+        _uiState.update { it.copy(premiumFlowStep = PremiumFlowStep.FORM, premiumEssentialQuestion = "", inputError = null) }
+    }
+
+    fun preparePremiumQuestionConfirmation(): Boolean {
+        val current = _uiState.value
+        if (current.latestBundle == null) {
+            _uiState.update { it.copy(inputError = "먼저 생년월일 결과를 만든 뒤 프리미엄 책자를 신청해 주세요.") }
+            return false
+        }
+
+        val normalizedConcern = current.premiumConcern.trim().replace(Regex("\\s+"), " ")
+        if (normalizedConcern.length < 6) {
+            _uiState.update { it.copy(inputError = "수리가 질문의 본질을 잡을 수 있도록 고민을 한 문장 이상 적어주세요.") }
+            return false
+        }
+
+        val essentialQuestion = buildEssentialQuestion(current.premiumTopic, normalizedConcern)
+        _uiState.update {
+            it.copy(
+                premiumEssentialQuestion = essentialQuestion,
+                premiumFlowStep = PremiumFlowStep.CONFIRM_QUESTION,
+                inputError = null
+            )
+        }
+        return true
     }
 
     fun updateCompatibilityConcern(value: String) {
@@ -257,6 +293,7 @@ class AppViewModel : ViewModel() {
 
         viewModelScope.launch {
             val current = _uiState.value
+            val confirmedConcern = current.premiumEssentialQuestion.ifBlank { current.premiumConcern }
             _uiState.update {
                 it.copy(
                     isPremiumLoading = true,
@@ -269,14 +306,14 @@ class AppViewModel : ViewModel() {
                 if (BuildConfig.OPENAI_API_KEY.isBlank()) {
                     buildPremiumDummyConsultation(
                         topic = current.premiumTopic,
-                        concern = current.premiumConcern,
+                        concern = confirmedConcern,
                         bundle = bundle
                     )
                 } else {
                     generatePremiumConsultation(
                         apiKey = BuildConfig.OPENAI_API_KEY,
                         topic = current.premiumTopic,
-                        concern = current.premiumConcern,
+                        concern = confirmedConcern,
                         bundle = bundle
                     )
                 }
@@ -285,7 +322,7 @@ class AppViewModel : ViewModel() {
                     consultation = consultation,
                     bundle = bundle,
                     topic = current.premiumTopic,
-                    concern = current.premiumConcern
+                    concern = confirmedConcern
                 )
                 val nextBooks = saveNewBook(book)
                 _uiState.update {
@@ -403,24 +440,25 @@ class AppViewModel : ViewModel() {
         return when (current.premiumMode) {
             PremiumMode.PERSONAL -> {
                 val bundle = current.latestBundle ?: return null
-                val latestBook = current.savedBooks.firstOrNull { it.bookType == FortuneBookType.PERSONAL }
+                val latestBook = current.selectedPersonalBook()
+                val confirmedConcern = current.premiumEssentialQuestion.ifBlank { current.premiumConcern }
                 current.premiumResult?.let { consultation ->
                     buildSuriSpeechScript.buildPersonalResult(
                         bundle = bundle,
                         consultation = consultation,
                         topic = current.premiumTopic,
-                        concern = current.premiumConcern,
+                        concern = confirmedConcern,
                         book = latestBook
                     )
                 } ?: buildSuriSpeechScript.buildPersonalPreview(
                     bundle = bundle,
                     topic = current.premiumTopic,
-                    concern = current.premiumConcern
+                    concern = confirmedConcern
                 )
             }
 
             PremiumMode.COMPATIBILITY -> {
-                val latestBook = current.savedBooks.firstOrNull { it.bookType == FortuneBookType.COMPATIBILITY }
+                val latestBook = current.selectedCompatibilityBook()
                 current.compatibilityResult?.let { consultation ->
                     buildSuriSpeechScript.buildCompatibilityResult(
                         consultation = consultation,
@@ -446,8 +484,15 @@ class AppViewModel : ViewModel() {
         if (book.bookType != FortuneBookType.PERSONAL) return book
         val topic = PremiumMonthPlanner.topicFromThemeOrLabel(book.coverTheme, book.concernTopic) ?: return book
         val currentMonth = PremiumMonthPlanner.currentMonth()
-        val bestSelection = PremiumMonthPlanner.pickBestMonth(topic, book.destiny, currentMonth)
-        val riskySelection = PremiumMonthPlanner.pickRiskyMonth(topic, book.destiny, currentMonth)
+        val bookNumbers = NumerologyNumbers(
+            destiny = book.destiny,
+            early = book.early,
+            middle = book.middle,
+            late = book.late,
+            code = book.code
+        )
+        val bestSelection = PremiumMonthPlanner.pickBestMonth(topic, bookNumbers, currentMonth)
+        val riskySelection = PremiumMonthPlanner.pickRiskyMonth(topic, bookNumbers, currentMonth)
         val bestMonth = bestSelection.toDisplayText()
         val riskyMonth = riskySelection.toDisplayText()
         val shouldRefreshBest = book.bestMonth != bestMonth ||
@@ -506,6 +551,34 @@ class AppViewModel : ViewModel() {
             compareByDescending<FortuneBook> { it.lastOpenedAt ?: it.createdAt }
                 .thenByDescending { it.createdAt }
         )
+    }
+
+    private fun AppUiState.selectedPersonalBook(): FortuneBook? {
+        return savedBooks.firstOrNull { it.bookId == selectedBookId && it.bookType == FortuneBookType.PERSONAL }
+            ?: savedBooks.firstOrNull { it.bookType == FortuneBookType.PERSONAL }
+    }
+
+    private fun AppUiState.selectedCompatibilityBook(): FortuneBook? {
+        return savedBooks.firstOrNull { it.bookId == selectedBookId && it.bookType == FortuneBookType.COMPATIBILITY }
+            ?: savedBooks.firstOrNull { it.bookType == FortuneBookType.COMPATIBILITY }
+    }
+
+    private fun buildEssentialQuestion(topic: PremiumTopic, concern: String): String {
+        val firstSentence = concern
+            .split(".", "?", "!", "\n")
+            .map { it.trim() }
+            .firstOrNull { it.isNotBlank() }
+            ?: concern
+        val shortened = firstSentence.take(72).trim()
+        val topicHint = when (topic) {
+            PremiumTopic.ROMANCE -> "연애에서"
+            PremiumTopic.CAREER -> "일과 진로에서"
+            PremiumTopic.MONEY -> "돈의 흐름에서"
+            PremiumTopic.SELF_ESTEEM -> "나 자신을 대하는 방식에서"
+            PremiumTopic.RELATIONSHIP -> "인간관계에서"
+        }
+        val sentence = if (shortened.endsWith("?")) shortened.dropLast(1) else shortened
+        return "$topicHint 내가 지금 가장 조정해야 할 핵심은 '$sentence'가 맞나요?"
     }
 
     private fun CompatibilityFormState.hasAnyInput(): Boolean {

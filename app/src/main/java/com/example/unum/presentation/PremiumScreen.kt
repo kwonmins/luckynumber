@@ -103,7 +103,9 @@ fun PremiumScreen(
     onOpenLibrary: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-    val latestBook = uiState.savedBooks.firstOrNull { it.bookType == FortuneBookType.PERSONAL }
+    val currentBook = uiState.savedBooks.firstOrNull {
+        it.bookId == uiState.selectedBookId && it.bookType == FortuneBookType.PERSONAL
+    } ?: uiState.savedBooks.firstOrNull { it.bookType == FortuneBookType.PERSONAL }
     val bookSteps = remember { setOf(PremiumFlowStep.COVER, PremiumFlowStep.TOC, PremiumFlowStep.DETAIL) }
     val flipRotation = remember { Animatable(0f) }
     var previousBookStep by remember { mutableStateOf(uiState.premiumFlowStep) }
@@ -152,14 +154,23 @@ fun PremiumScreen(
                     uiState = uiState,
                     viewModel = viewModel,
                     onStart = {
-                        viewModel.setPremiumFlowStep(PremiumFlowStep.LOADING)
-                        onRequestPersonalConsultation()
+                        viewModel.preparePremiumQuestionConfirmation()
                     }
                 )
             }
+            PremiumFlowStep.CONFIRM_QUESTION -> QuestionConfirmScreen(
+                topicLabel = uiState.premiumTopic.label,
+                question = uiState.premiumEssentialQuestion,
+                originalConcern = uiState.premiumConcern,
+                onEdit = { viewModel.setPremiumFlowStep(PremiumFlowStep.FORM) },
+                onConfirm = {
+                    viewModel.setPremiumFlowStep(PremiumFlowStep.LOADING)
+                    onRequestPersonalConsultation()
+                }
+            )
             PremiumFlowStep.LOADING -> PremiumLoadingScreen(
                 isLoading = uiState.isPremiumLoading,
-                hasBook = latestBook != null,
+                hasBook = uiState.premiumResult != null && currentBook != null,
                 onDone = { viewModel.setPremiumFlowStep(PremiumFlowStep.VOICE_CHOICE) }
             )
             PremiumFlowStep.VOICE_CHOICE -> VoiceChoiceScreen(
@@ -168,28 +179,28 @@ fun PremiumScreen(
             )
             PremiumFlowStep.HANOK_READING -> HanokReadingScreen(
                 advice = viewModel.buildCurrentPremiumSpeechScript()?.segments?.joinToString(" ") { it.body }
-                    ?: latestBook?.summary
+                    ?: currentBook?.summary
                     ?: "지금의 고민은 조급하게 결론내리기보다, 마음의 온도를 먼저 확인할 때 더 선명하게 풀립니다.",
                 onSkip = { viewModel.setPremiumFlowStep(PremiumFlowStep.COVER) },
                 onOpenBook = { viewModel.setPremiumFlowStep(PremiumFlowStep.COVER) }
             )
             PremiumFlowStep.COVER -> BookCoverScreen(
-                book = latestBook,
+                book = currentBook,
                 onReset = viewModel::resetPremiumFlow,
                 onOpen = { viewModel.setPremiumFlowStep(PremiumFlowStep.TOC) },
                 flipModifier = flipModifier
             )
             PremiumFlowStep.TOC -> BookTocScreen(
-                book = latestBook,
+                book = currentBook,
                 onBack = { viewModel.setPremiumFlowStep(PremiumFlowStep.COVER) },
                 onRead = { viewModel.setPremiumFlowStep(PremiumFlowStep.DETAIL) },
                 flipModifier = flipModifier
             )
             PremiumFlowStep.DETAIL -> BookDetailScreen(
-                book = latestBook,
-                concern = uiState.premiumConcern,
+                book = currentBook,
+                concern = uiState.premiumEssentialQuestion.ifBlank { uiState.premiumConcern },
                 onBack = { viewModel.setPremiumFlowStep(PremiumFlowStep.TOC) },
-                onArchive = onOpenLibrary,
+                onArchive = { currentBook?.let(onOpenBook) ?: onOpenLibrary() },
                 flipModifier = flipModifier
             )
         }
@@ -310,6 +321,63 @@ private fun PremiumConcernField(value: String, onValueChange: (String) -> Unit) 
         ),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
     )
+}
+
+@Composable
+private fun QuestionConfirmScreen(
+    topicLabel: String,
+    question: String,
+    originalConcern: String,
+    onEdit: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    MysticBackground(Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 22.dp, vertical = 28.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("질문 확인", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
+                Text(
+                    "수리가 적어주신 내용을 한 문장으로 압축했어요. 이 질문이 맞으면 책자를 만들겠습니다.",
+                    color = TextSecondary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                SurfaceCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    tonalColor = Surface,
+                    borderColor = Accent.copy(alpha = 0.28f),
+                    contentPadding = 18
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(topicLabel, color = Accent, style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            question.ifBlank { originalConcern },
+                            color = TextPrimary,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+                SurfaceCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    tonalColor = Surface2,
+                    borderColor = Border,
+                    contentPadding = 14
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("원문", color = TextMuted, style = MaterialTheme.typography.labelMedium)
+                        Text(originalConcern, color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                GradientButton("네, 이 질문으로 제책하기", onConfirm, Modifier.fillMaxWidth())
+                SecondaryButton("수정하기", onEdit, Modifier.fillMaxWidth())
+            }
+        }
+    }
 }
 
 @Composable
