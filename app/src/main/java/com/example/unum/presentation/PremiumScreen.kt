@@ -109,6 +109,12 @@ fun PremiumScreen(
     val bookSteps = remember { setOf(PremiumFlowStep.COVER, PremiumFlowStep.TOC, PremiumFlowStep.DETAIL) }
     val flipRotation = remember { Animatable(0f) }
     var previousBookStep by remember { mutableStateOf(uiState.premiumFlowStep) }
+    val openCurrentBook: () -> Unit = {
+        currentBook?.let { book ->
+            viewModel.setPremiumFlowStep(PremiumFlowStep.COVER)
+            onOpenBook(book)
+        } ?: viewModel.setPremiumFlowStep(PremiumFlowStep.COVER)
+    }
 
     LaunchedEffect(uiState.premiumFlowStep) {
         val nextStep = uiState.premiumFlowStep
@@ -171,23 +177,23 @@ fun PremiumScreen(
             PremiumFlowStep.LOADING -> PremiumLoadingScreen(
                 isLoading = uiState.isPremiumLoading,
                 hasBook = uiState.premiumResult != null && currentBook != null,
-                onDone = { viewModel.setPremiumFlowStep(PremiumFlowStep.VOICE_CHOICE) }
+                onDone = openCurrentBook
             )
             PremiumFlowStep.VOICE_CHOICE -> VoiceChoiceScreen(
                 onRead = { viewModel.setPremiumFlowStep(PremiumFlowStep.HANOK_READING) },
-                onSkip = { viewModel.setPremiumFlowStep(PremiumFlowStep.COVER) }
+                onSkip = openCurrentBook
             )
             PremiumFlowStep.HANOK_READING -> HanokReadingScreen(
                 advice = viewModel.buildCurrentPremiumSpeechScript()?.segments?.joinToString(" ") { it.body }
                     ?: currentBook?.summary
                     ?: "지금의 고민은 조급하게 결론내리기보다, 마음의 온도를 먼저 확인할 때 더 선명하게 풀립니다.",
-                onSkip = { viewModel.setPremiumFlowStep(PremiumFlowStep.COVER) },
-                onOpenBook = { viewModel.setPremiumFlowStep(PremiumFlowStep.COVER) }
+                onSkip = openCurrentBook,
+                onOpenBook = openCurrentBook
             )
             PremiumFlowStep.COVER -> BookCoverScreen(
                 book = currentBook,
                 onReset = viewModel::resetPremiumFlow,
-                onOpen = { viewModel.setPremiumFlowStep(PremiumFlowStep.TOC) },
+                onOpen = openCurrentBook,
                 flipModifier = flipModifier
             )
             PremiumFlowStep.TOC -> BookTocScreen(
