@@ -10,7 +10,6 @@ import com.example.unum.domain.service.OpenAiChatClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.util.Calendar
 
 class GeneratePremiumConsultationUseCase(
     private val chatClient: OpenAiChatClient = OpenAiChatClient()
@@ -42,7 +41,7 @@ class GeneratePremiumConsultationUseCase(
         val genderResonance = NumerologyCalculator.genderResonanceDescription(displayInput.gender, numbers.destiny)
         val concernText = concern.ifBlank { "요즘 마음에 가장 자주 떠오르는 고민을 아직 구체적으로 적지 않았습니다." }
         val traitBrief = buildTraitBrief(destiny.title, destiny.coreKeywords, destiny.cautionKeywords)
-        val currentMonth = currentMonth()
+        val currentMonth = PremiumMonthPlanner.currentMonth()
 
         return """
             사용자의 프리미엄 운세 상담을 작성하세요.
@@ -86,7 +85,7 @@ class GeneratePremiumConsultationUseCase(
             - 9: 마무리, 정리, 놓아주기, 다음 단계 준비
             - 0: 잠복, 재정비, 비워내기, 무리하지 않는 달
             - 고민 분야별로 12개월 중 가장 추천하는 달 1개와 가장 조심해야 할 달 1개를 고르세요.
-            - bestMonth는 올해 전체에서 가장 추천할 달을 고르세요. 이미 지난 달이어도 그대로 먼저 보여주고, 이유에 "이미 지난 흐름이라면 앞으로는 그 달에 했던 선택을 회고하라"는 식의 후속 조언을 자연스럽게 넣으세요.
+            - bestMonth는 상담 생성 시점 이후를 우선하세요. 올해 가장 추천 흐름이 이미 지났다면 bestMonth에는 지금 이후 다시 추천할 다음 달을 넣고, 이유 첫 문장에서 지난 추천 흐름은 회고 기준으로만 짧게 언급하세요.
             - riskyMonth는 지금 시점 이후를 우선하세요. 올해 가장 조심할 달이 이미 지났다면, 현재 이후에 다시 조심해야 할 다음 달을 고르세요. 올해 남은 주의 달이 없으면 다음 해에 가장 먼저 오는 주의 달을 고르세요.
             - 추천 월은 행동하면 흐름이 열리는 이유를 설명하세요.
             - 주의 월은 욕심, 과한 대시, 무리한 투자, 성급한 퇴사/이직, 관계 압박처럼 분야에 맞는 위험을 짚어주세요.
@@ -185,13 +184,9 @@ class GeneratePremiumConsultationUseCase(
         topic: PremiumTopic,
         bundle: NumerologyResultBundle
     ): PremiumConsultation {
-        val currentMonth = currentMonth()
-        val bestMonth = pickBestMonth(topic, bundle.numbers.destiny)
-        val bestSelection = MonthSelection(
-            month = bestMonth,
-            isPastThisYear = bestMonth < currentMonth
-        )
-        val riskySelection = pickRiskyMonth(topic, bundle.numbers.destiny, currentMonth)
+        val currentMonth = PremiumMonthPlanner.currentMonth()
+        val bestSelection = PremiumMonthPlanner.pickBestMonth(topic, bundle.numbers.destiny, currentMonth)
+        val riskySelection = PremiumMonthPlanner.pickRiskyMonth(topic, bundle.numbers.destiny, currentMonth)
         val expectedBestMonth = bestSelection.toDisplayText()
         val expectedRiskyMonth = riskySelection.toDisplayText()
         val rawBestReason = consultation.bestMonthReason.takeIf {
@@ -211,77 +206,19 @@ class GeneratePremiumConsultationUseCase(
         )
     }
 
-    private fun pickBestMonth(topic: PremiumTopic, destiny: Int): Int {
-        val preferredFlows = when (topic) {
-            PremiumTopic.ROMANCE -> listOf(1, 3, 6, 2)
-            PremiumTopic.CAREER -> listOf(4, 8, 1, 5)
-            PremiumTopic.MONEY -> listOf(8, 4, 6, 1)
-            PremiumTopic.SELF_ESTEEM -> listOf(7, 1, 4, 3)
-            PremiumTopic.RELATIONSHIP -> listOf(2, 8, 3, 6)
-        }
-        return (1..12).minBy { month ->
-            preferredFlows.indexOf(flowNumber(destiny, month)).let { if (it == -1) 99 else it }
-        }
-    }
-
-    private fun pickRiskyMonth(topic: PremiumTopic, destiny: Int): Int {
-        val riskyFlows = riskyFlows(topic)
-        return (1..12).maxBy { month ->
-            val priority = riskyFlows.indexOf(flowNumber(destiny, month)).let { if (it == -1) -99 else -it }
-            priority * 100 + month
+    private fun withBestMonthTimingNote(reason: String, selection: PremiumMonthPlanner.MonthSelection): String {
+        val passedTopMonth = selection.replacedPastMonth ?: return reason
+        val alreadyExplained = reason.contains("${passedTopMonth}월은 이미 지났")
+        if (alreadyExplained) return reason
+        val displayMonth = selection.toDisplayText()
+        return if (selection.isNextYear) {
+            "올해 가장 추천 흐름이 강했던 ${passedTopMonth}월은 이미 지났습니다. 올해 남은 구간에는 같은 결이 약하게 지나가므로, 다음 해에 가장 먼저 돌아오는 ${selection.month}월을 다음 추천 구간으로 보세요. $reason"
+        } else {
+            "올해 가장 추천 흐름이 강했던 ${passedTopMonth}월은 이미 지났습니다. 지금 이후에는 ${displayMonth}을 추천 구간으로 보세요. $reason"
         }
     }
 
-    private fun pickRiskyMonth(topic: PremiumTopic, destiny: Int, currentMonth: Int): MonthSelection {
-        val topMonth = pickRiskyMonth(topic, destiny)
-        if (topMonth >= currentMonth) {
-            return MonthSelection(month = topMonth)
-        }
-        val riskyFlows = riskyFlows(topic)
-        val remainingThisYear = (currentMonth..12).firstOrNull { month ->
-            flowNumber(destiny, month) in riskyFlows
-        }
-        if (remainingThisYear != null) {
-            return MonthSelection(month = remainingThisYear, replacedPastMonth = topMonth)
-        }
-        val firstNextYear = (1..12).first { month ->
-            flowNumber(destiny, month) in riskyFlows
-        }
-        return MonthSelection(month = firstNextYear, isNextYear = true, replacedPastMonth = topMonth)
-    }
-
-    private fun riskyFlows(topic: PremiumTopic): List<Int> {
-        return when (topic) {
-            PremiumTopic.ROMANCE -> listOf(8, 7, 9, 0)
-            PremiumTopic.CAREER -> listOf(5, 9, 7, 0)
-            PremiumTopic.MONEY -> listOf(5, 8, 9, 0)
-            PremiumTopic.SELF_ESTEEM -> listOf(9, 8, 5, 0)
-            PremiumTopic.RELATIONSHIP -> listOf(8, 5, 9, 7)
-        }
-    }
-
-    private data class MonthSelection(
-        val month: Int,
-        val isPastThisYear: Boolean = false,
-        val isNextYear: Boolean = false,
-        val replacedPastMonth: Int? = null
-    ) {
-        fun toDisplayText(): String = when {
-            isNextYear -> "다음 해 ${month}월"
-            else -> "${month}월"
-        }
-    }
-
-    private fun currentMonth(): Int {
-        return Calendar.getInstance().get(Calendar.MONTH) + 1
-    }
-
-    private fun withBestMonthTimingNote(reason: String, selection: MonthSelection): String {
-        if (!selection.isPastThisYear) return reason
-        return "올해 가장 추천되는 달은 이미 지난 ${selection.month}월입니다. 먼저 그 달의 흐름을 기준으로 보면, $reason 이미 지나간 흐름이라면 그때의 선택과 기회를 짧게 회고하고, 남은 달에는 그때 열렸던 방향을 이어가는 쪽이 좋습니다."
-    }
-
-    private fun withRiskyMonthTimingNote(reason: String, selection: MonthSelection): String {
+    private fun withRiskyMonthTimingNote(reason: String, selection: PremiumMonthPlanner.MonthSelection): String {
         val passedTopMonth = selection.replacedPastMonth ?: return reason
         val alreadyExplained = reason.contains("${passedTopMonth}월은 이미 지났")
         if (alreadyExplained) return reason
@@ -291,8 +228,6 @@ class GeneratePremiumConsultationUseCase(
             "올해 가장 강하게 조심할 달인 ${passedTopMonth}월은 이미 지났으니, 지금 이후에는 ${selection.month}월을 다음 주의 구간으로 보세요. $reason"
         }
     }
-
-    private fun flowNumber(destiny: Int, month: Int): Int = (destiny + month) % 10
 
     private fun buildBestMonthReason(topic: PremiumTopic, monthText: String, bundle: NumerologyResultBundle): String {
         return when (topic) {
@@ -312,7 +247,7 @@ class GeneratePremiumConsultationUseCase(
     private fun buildRiskyMonthReason(
         topic: PremiumTopic,
         monthText: String,
-        selection: MonthSelection
+        selection: PremiumMonthPlanner.MonthSelection
     ): String {
         val baseReason = when (topic) {
             PremiumTopic.ROMANCE ->

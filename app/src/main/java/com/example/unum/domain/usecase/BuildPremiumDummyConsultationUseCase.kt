@@ -3,15 +3,16 @@ package com.example.unum.domain.usecase
 import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.data.model.PremiumConsultation
 import com.example.unum.data.model.PremiumTopic
-import java.util.Calendar
 
 class BuildPremiumDummyConsultationUseCase {
     operator fun invoke(topic: PremiumTopic, concern: String, bundle: NumerologyResultBundle): PremiumConsultation {
         val concernText = concern.ifBlank { "지금 마음속에서 가장 자주 떠오르는 고민" }
         val destiny = bundle.content.destinyProfile
         val coreKeyword = destiny.coreKeywords.firstOrNull() ?: destiny.title
-        val bestMonth = bestMonth(topic)
-        val riskyMonth = riskyMonth(topic)
+        val bestSelection = PremiumMonthPlanner.pickBestMonth(topic, bundle.numbers.destiny)
+        val riskySelection = PremiumMonthPlanner.pickRiskyMonth(topic, bundle.numbers.destiny)
+        val bestMonth = bestSelection.toDisplayText()
+        val riskyMonth = riskySelection.toDisplayText()
 
         return when (topic) {
             PremiumTopic.ROMANCE -> PremiumConsultation(
@@ -21,7 +22,7 @@ class BuildPremiumDummyConsultationUseCase {
                 direction = "오늘은 결론을 묻기보다 가벼운 안부 하나로 온도를 확인하세요. 이번 주에는 상대 반응을 해석하기 전에 실제 행동 3가지만 적어보세요. 한 달 안에는 연락 속도, 만남 빈도, 감정 표현 방식 중 하나를 자연스럽게 맞춰보는 게 좋습니다. 이 순서를 건너뛰면 관계가 깊어지기 전에 먼저 지칠 수 있습니다.",
                 oneLineAdvice = "사랑은 확인을 세게 할수록 선명해지는 게 아니라, 부담을 줄일수록 오래 갈 수 있습니다.",
                 bestMonth = bestMonth,
-                bestMonthReason = bestMonthLead(bestMonth) + "마음을 새롭게 여는 흐름이 좋습니다. 고백이나 관계 정리는 무겁게 던지기보다, 같이 시간을 보내는 구체적인 제안으로 시작하면 흐름이 훨씬 부드럽습니다.",
+                bestMonthReason = bestMonthLead(bestSelection) + "마음을 새롭게 여는 흐름이 좋습니다. 고백이나 관계 정리는 무겁게 던지기보다, 같이 시간을 보내는 구체적인 제안으로 시작하면 흐름이 훨씬 부드럽습니다.",
                 riskyMonth = riskyMonth,
                 riskyMonthReason = "${riskyMonth}에는 감정이 앞서 결론을 재촉하기 쉽습니다. 이때 확인 욕구를 그대로 밀어붙이면 상대가 뒤로 물러나 관계가 더 힘들어질 수 있으니, 답을 듣기 전 하루 정도 여백을 두는 편이 낫습니다."
             )
@@ -32,7 +33,7 @@ class BuildPremiumDummyConsultationUseCase {
                 direction = "오늘은 지금 일에서 에너지를 빼앗는 요소 3개를 적으세요. 이번 주에는 줄일 일, 넘길 일, 반드시 잡을 일을 나누세요. 한 달 안에는 이직이든 유지든 판단 기준을 숫자로 정하는 게 좋습니다. 감정으로만 움직이면 후련함은 짧고 뒷감당은 길어질 수 있습니다.",
                 oneLineAdvice = "진로는 오래 갈 구조를 못 잡으면 능력이 있어도 삶이 빡빡해질 수 있습니다.",
                 bestMonth = bestMonth,
-                bestMonthReason = bestMonthLead(bestMonth) + "준비한 것을 실제 제안, 지원, 면담으로 옮기기 좋습니다. 포트폴리오나 조건 협상처럼 손에 잡히는 행동을 만들면 기회가 더 선명해집니다.",
+                bestMonthReason = bestMonthLead(bestSelection) + "준비한 것을 실제 제안, 지원, 면담으로 옮기기 좋습니다. 포트폴리오나 조건 협상처럼 손에 잡히는 행동을 만들면 기회가 더 선명해집니다.",
                 riskyMonth = riskyMonth,
                 riskyMonthReason = "${riskyMonth}에는 변화 욕구가 커져 성급한 결정을 내리기 쉽습니다. 홧김에 퇴사하거나 검증 안 된 제안을 잡으면 커리어가 예상보다 더 힘들어질 수 있습니다."
             )
@@ -43,7 +44,7 @@ class BuildPremiumDummyConsultationUseCase {
                 direction = "오늘은 고정비, 충동 지출, 회복 자금을 따로 적으세요. 이번 주에는 당장 끊을 지출 하나를 정하고, 한 달 안에는 안전 자금과 도전 자금을 분리하세요. 이 구분을 미루면 좋은 기회가 와도 불안해서 제대로 잡지 못할 수 있습니다.",
                 oneLineAdvice = "재물운은 큰돈보다 기준에서 갈립니다. 기준 없이 움직이면 돈 때문에 마음까지 흔들릴 수 있습니다.",
                 bestMonth = bestMonth,
-                bestMonthReason = bestMonthLead(bestMonth) + "수입과 지출 구조를 다시 잡기 좋습니다. 투자보다 정리, 확장보다 기준을 먼저 세우면 돈의 흐름이 더 안정됩니다.",
+                bestMonthReason = bestMonthLead(bestSelection) + "수입과 지출 구조를 다시 잡기 좋습니다. 투자보다 정리, 확장보다 기준을 먼저 세우면 돈의 흐름이 더 안정됩니다.",
                 riskyMonth = riskyMonth,
                 riskyMonthReason = "${riskyMonth}에는 빠른 이익을 좇는 마음이 커질 수 있습니다. 확인 안 된 제안이나 충동 구매를 가볍게 보면 돈의 흐름이 한 번에 꼬일 수 있습니다."
             )
@@ -54,7 +55,7 @@ class BuildPremiumDummyConsultationUseCase {
                 direction = "오늘은 남에게 보여줄 목표가 아니라 내가 지킬 수 있는 약속 하나만 정하세요. 이번 주에는 비교를 부르는 환경을 줄이고, 한 달 안에는 작은 성취를 기록하는 루틴을 만드세요. 거창한 변화보다 반복 가능한 약속이 지금의 중심을 살립니다.",
                 oneLineAdvice = "자존감은 생각으로만 버티면 더 흔들릴 수 있으니, 몸과 루틴부터 다시 잡아야 합니다.",
                 bestMonth = bestMonth,
-                bestMonthReason = bestMonthLead(bestMonth) + "스스로를 다시 세우는 흐름이 좋습니다. 새로운 목표보다 작은 약속을 지키는 경험을 쌓으면 마음의 중심이 살아납니다.",
+                bestMonthReason = bestMonthLead(bestSelection) + "스스로를 다시 세우는 흐름이 좋습니다. 새로운 목표보다 작은 약속을 지키는 경험을 쌓으면 마음의 중심이 살아납니다.",
                 riskyMonth = riskyMonth,
                 riskyMonthReason = "${riskyMonth}에는 비교와 조급함이 커질 수 있습니다. 무리해서 증명하려 들면 컨디션과 자존감이 같이 떨어질 수 있으니 각별히 쉬는 리듬을 챙겨야 합니다."
             )
@@ -65,47 +66,20 @@ class BuildPremiumDummyConsultationUseCase {
                 direction = "오늘은 편한 사람, 피곤한 사람, 거리를 둬야 할 사람을 나눠보세요. 이번 주에는 부탁 하나를 부드럽게 거절해보고, 한 달 안에는 자주 만나는 사람의 기준을 다시 정리하세요. 선을 세우지 않으면 관계가 아니라 감정 노동이 늘어납니다.",
                 oneLineAdvice = "인연은 넓히는 것보다 가려두는 힘이 없으면 결국 삶이 더 피곤해질 수 있습니다.",
                 bestMonth = bestMonth,
-                bestMonthReason = bestMonthLead(bestMonth) + "관계의 접점이 자연스럽게 열립니다. 오래 미뤄둔 대화나 새 만남을 가볍게 시작하면 좋은 흐름을 만들 수 있습니다.",
+                bestMonthReason = bestMonthLead(bestSelection) + "관계의 접점이 자연스럽게 열립니다. 오래 미뤄둔 대화나 새 만남을 가볍게 시작하면 좋은 흐름을 만들 수 있습니다.",
                 riskyMonth = riskyMonth,
                 riskyMonthReason = "${riskyMonth}에는 사람 사이의 오해가 커지기 쉽습니다. 단정적인 말이나 무리한 맞춤을 계속하면 관계가 생각보다 차갑게 틀어질 수 있습니다."
             )
         }
     }
 
-    private fun bestMonth(topic: PremiumTopic): String = when (topic) {
-        PremiumTopic.ROMANCE -> "4월"
-        PremiumTopic.CAREER -> "8월"
-        PremiumTopic.MONEY -> "6월"
-        PremiumTopic.SELF_ESTEEM -> "7월"
-        PremiumTopic.RELATIONSHIP -> "2월"
-    }
-
-    private fun bestMonthLead(monthText: String): String {
-        val month = monthText.removeSuffix("월").toIntOrNull() ?: return "${monthText}에는 "
-        val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
-        return if (month < currentMonth) {
-            "올해 가장 추천되는 달은 이미 지난 ${monthText}입니다. 먼저 그 달의 흐름을 기준으로 보면, "
+    private fun bestMonthLead(selection: PremiumMonthPlanner.MonthSelection): String {
+        val displayMonth = selection.toDisplayText()
+        val passedMonth = selection.replacedPastMonth
+        return if (passedMonth != null) {
+            "올해 가장 추천 흐름이 강했던 ${passedMonth}월은 이미 지났습니다. 지금 이후에는 ${displayMonth}을 추천 구간으로 보고, "
         } else {
-            "${monthText}에는 "
-        }
-    }
-
-    private fun riskyMonth(topic: PremiumTopic): String {
-        val candidates = when (topic) {
-            PremiumTopic.ROMANCE -> listOf(11, 12, 1, 2)
-            PremiumTopic.CAREER -> listOf(5, 7, 9, 12)
-            PremiumTopic.MONEY -> listOf(5, 8, 9, 12)
-            PremiumTopic.SELF_ESTEEM -> listOf(9, 10, 5, 12)
-            PremiumTopic.RELATIONSHIP -> listOf(8, 9, 11, 12)
-        }
-        val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
-        val topMonth = candidates.first()
-        if (topMonth >= currentMonth) return "${topMonth}월"
-        val nextMonth = candidates.drop(1).firstOrNull { it >= currentMonth }
-        return if (nextMonth != null) {
-            "${nextMonth}월"
-        } else {
-            "다음 해 ${topMonth}월"
+            "${displayMonth}에는 "
         }
     }
 }
