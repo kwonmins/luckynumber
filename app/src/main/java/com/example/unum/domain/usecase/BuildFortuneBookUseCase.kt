@@ -36,7 +36,7 @@ class BuildFortuneBookUseCase {
             bestMonthReason = consultation.bestMonthReason,
             riskyMonth = consultation.riskyMonth,
             riskyMonthReason = consultation.riskyMonthReason,
-            chapters = buildPersonalBookChapters(consultation, bundle, topicLabel),
+            chapters = buildPersonalBookChapters(consultation, topicLabel),
             createdAt = now,
             lastOpenedAt = now,
             purchasedAt = now,
@@ -93,16 +93,15 @@ class BuildFortuneBookUseCase {
 
     private fun buildPersonalBookChapters(
         consultation: PremiumConsultation,
-        bundle: NumerologyResultBundle,
         topicLabel: String
     ): List<FortuneBookChapter> {
         return listOf(
             FortuneBookChapter(
                 title = "지금의 핵심",
-                lead = "무료 리포트의 기본 성향은 배경으로 두고, 지금 고민에서 실제로 걸리는 지점부터 봅니다.",
+                lead = "성향은 짧게만 짚고, 지금 적어둔 질문에서 실제로 걸리는 지점부터 봅니다.",
                 body = listOf(
                     consultation.core,
-                    "이 장에서는 성향을 다시 설명하기보다, 지금 고민이 생활 속에서 어떤 압박으로 나타나는지 먼저 짚습니다."
+                    "이 장에서는 성향 설명을 길게 반복하지 않고, 지금 고민이 생활 속에서 어떤 압박으로 나타나는지 먼저 짚습니다."
                 ),
                 highlightQuote = consultation.oneLineAdvice,
                 actionTip = listOf(
@@ -112,12 +111,12 @@ class BuildFortuneBookUseCase {
             ),
             FortuneBookChapter(
                 title = "상황별 해석",
-                lead = "이번 상담은 기본 성향을 반복하지 않고, 실제 장면에서 어떻게 튀어나오는지 봅니다.",
+                lead = "사용자가 던진 질문이 실제 장면에서 어떻게 반복되는지 봅니다.",
                 body = listOf(
                     consultation.interpretation,
-                    "${bundle.content.destinyProfile.title}의 흐름은 장점이지만, 상황을 잘못 만나면 같은 장점이 부담으로 바뀔 수 있습니다."
+                    "핵심은 성향 이름이 아니라, 같은 장면에서 반복되는 선택과 반응을 어떻게 바꿀지입니다."
                 ),
-                highlightQuote = "성향은 설명으로 끝나는 게 아니라, 반복되는 장면에서 가장 분명하게 드러납니다.",
+                highlightQuote = "질문은 막연할수록 커지고, 장면으로 나누면 바로 다룰 수 있습니다.",
                 actionTip = listOf(
                     "반복해서 나오는 감정 반응이 무엇인지 먼저 적어보세요.",
                     "무리해서 바꾸려 하기보다 강점이 살아나는 환경을 더 자주 선택해보세요."

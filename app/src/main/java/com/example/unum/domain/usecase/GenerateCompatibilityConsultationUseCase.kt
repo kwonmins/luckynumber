@@ -4,23 +4,20 @@ import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.CompatibilityConsultation
 import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.domain.NumerologyCalculator
+import com.example.unum.domain.service.OpenAiChatClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
 
-class GenerateCompatibilityConsultationUseCase {
+class GenerateCompatibilityConsultationUseCase(
+    private val chatClient: OpenAiChatClient = OpenAiChatClient()
+) {
     suspend operator fun invoke(
         apiKey: String,
         maleBundle: NumerologyResultBundle,
         femaleBundle: NumerologyResultBundle,
         concern: String
     ): CompatibilityConsultation = withContext(Dispatchers.IO) {
-        require(apiKey.isNotBlank()) { "상담 연결 키가 설정되지 않았습니다." }
-        require(apiKey.startsWith("sk-")) { "상담 연결 키 형식이 올바르지 않습니다." }
-
         val relationshipNumber = relationshipNumber(maleBundle, femaleBundle)
         val prompt = buildPrompt(
             maleBundle = maleBundle,
@@ -28,81 +25,14 @@ class GenerateCompatibilityConsultationUseCase {
             concern = concern,
             relationshipNumber = relationshipNumber
         )
-        val content = requestOpenAi(apiKey.trim(), OPENAI_MODEL, prompt)
-        parseConsultation(content, maleBundle, femaleBundle, concern, relationshipNumber)
-    }
-
-    private fun requestOpenAi(apiKey: String, model: String, prompt: String): String {
-        val body = JSONObject()
-            .put("model", model)
-            .put(
-                "messages",
-                JSONArray()
-                    .put(JSONObject().put("role", "developer").put("content", SYSTEM_PROMPT))
-                    .put(JSONObject().put("role", "user").put("content", prompt))
-            )
-            .put("response_format", JSONObject().put("type", "json_object"))
-
-        val response = postJson(
-            url = "https://api.openai.com/v1/chat/completions",
-            body = body,
-            headers = mapOf("Authorization" to "Bearer $apiKey")
+        val content = chatClient.requestJsonContent(
+            apiKey = apiKey,
+            model = OPENAI_MODEL,
+            systemPrompt = SYSTEM_PROMPT,
+            userPrompt = prompt,
+            failureLabel = "궁합노트"
         )
-
-        return JSONObject(response)
-            .getJSONArray("choices")
-            .getJSONObject(0)
-            .getJSONObject("message")
-            .getString("content")
-    }
-
-    private fun postJson(url: String, body: JSONObject, headers: Map<String, String>): String {
-        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            connectTimeout = 20_000
-            readTimeout = 60_000
-            doOutput = true
-            setRequestProperty("Content-Type", "application/json; charset=utf-8")
-            headers.forEach { (key, value) -> setRequestProperty(key, value) }
-        }
-
-        connection.outputStream.use { output ->
-            output.write(body.toString().toByteArray(Charsets.UTF_8))
-        }
-
-        val stream = if (connection.responseCode in 200..299) {
-            connection.inputStream
-        } else {
-            connection.errorStream ?: connection.inputStream
-        }
-
-        val response = stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-        if (connection.responseCode !in 200..299) {
-            throwOpenAiError(connection.responseCode, response)
-        }
-        return response
-    }
-
-    private fun throwOpenAiError(responseCode: Int, response: String): Nothing {
-        val code = runCatching {
-            JSONObject(response)
-                .optJSONObject("error")
-                ?.optString("code")
-                .orEmpty()
-        }.getOrDefault("")
-
-        val message = when {
-            responseCode == 401 || code == "invalid_api_key" ->
-                "상담 연결 키가 유효하지 않습니다. 설정을 다시 확인해주세요."
-            responseCode == 429 ->
-                "상담 요청 한도를 확인해주세요."
-            responseCode in 500..599 ->
-                "상담 서버 응답이 불안정합니다. 잠시 뒤 다시 시도해주세요."
-            else ->
-                "궁합노트 요청에 실패했습니다. 설정을 확인한 뒤 다시 시도해주세요."
-        }
-
-        error(message)
+        parseConsultation(content, maleBundle, femaleBundle, concern, relationshipNumber)
     }
 
     private fun buildPrompt(

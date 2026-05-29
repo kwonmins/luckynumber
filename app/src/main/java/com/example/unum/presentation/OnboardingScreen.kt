@@ -1,7 +1,7 @@
 package com.example.unum.presentation
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,215 +10,93 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.unum.ui.components.GradientButton
 import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.theme.Accent
-import com.example.unum.ui.theme.Border
-import com.example.unum.ui.theme.BorderStrong
-import com.example.unum.ui.theme.Surface
 import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
 
 @Composable
 fun OnboardingScreen(onFinished: () -> Unit) {
-    var page by remember { mutableIntStateOf(0) }
-    val pages = listOf(
-        "생년월일 속 숫자 흐름을 조용히 열어 오늘의 선택을 도와드려요.",
-        "무료 결과에서는 핵심 성향과 조심해야 할 흐름을 먼저 보여드려요.",
-        "더 깊은 고민은 수리의 운세노트로 상황별 조언까지 확인할 수 있어요."
-    )
-
     MysticBackground(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 22.dp, vertical = 26.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 22.dp, vertical = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Spacer(Modifier.height(24.dp))
-
+            Spacer(Modifier.height(36.dp))
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(18.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = "수리의\n운세노트",
-                        color = TextPrimary,
-                        style = MaterialTheme.typography.displayLarge
-                    )
-                    Text(
-                        text = pages[page],
-                        color = TextSecondary,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(horizontal = 10.dp)
-                    )
-                }
-                InsightArtwork()
+                Text(
+                    text = "내 숫자로 보는\n성향 리포트",
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.displayLarge
+                )
+                Text(
+                    text = "수리가 생년월일의 흐름을 정리해\n오늘부터 더 나은 선택을 도와드려요.",
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
-
+            WaveArtwork(modifier = Modifier.fillMaxWidth())
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    pages.indices.forEach { index ->
-                        Box(
-                            modifier = Modifier
-                                .size(width = if (index == page) 18.dp else 6.dp, height = 6.dp)
-                                .clip(RoundedCornerShape(999.dp))
-                                .background(if (index == page) Accent else Surface2)
-                        )
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(Modifier.size(7.dp).background(Accent, CircleShape))
+                    repeat(3) {
+                        Box(Modifier.size(7.dp).background(Surface2, CircleShape))
                     }
                 }
-                GradientButton(
-                    text = if (page == pages.lastIndex) "시작하기" else "다음",
-                    onClick = {
-                        if (page == pages.lastIndex) onFinished() else page += 1
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                GradientButton("시작하기", onFinished, Modifier.fillMaxWidth())
             }
         }
     }
 }
 
 @Composable
-private fun InsightArtwork() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(260.dp),
-        contentAlignment = Alignment.Center
+private fun WaveArtwork(modifier: Modifier = Modifier) {
+    Canvas(
+        modifier = modifier
+            .height(220.dp)
+            .padding(horizontal = 8.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(width = 172.dp, height = 222.dp)
-                .offset(x = 9.dp, y = 9.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color(0xFFECE0D0))
-                .border(1.dp, Color(0xFFDCCBB7), RoundedCornerShape(8.dp))
-        )
-        Box(
-            modifier = Modifier
-                .size(width = 154.dp, height = 210.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Surface)
-                .border(1.dp, BorderStrong, RoundedCornerShape(8.dp))
-        ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .size(width = 8.dp, height = 172.dp)
-                    .clip(RoundedCornerShape(topEnd = 8.dp, bottomEnd = 8.dp))
-                    .background(Accent.copy(alpha = 0.86f))
-            )
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(end = 18.dp)
-                    .size(width = 18.dp, height = 64.dp)
-                    .clip(RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp))
-                    .background(Accent.copy(alpha = 0.86f))
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 24.dp, top = 22.dp, end = 22.dp, bottom = 18.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text(
-                        "수리의\n운세노트",
-                        color = TextPrimary,
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Text("생년월일 숫자 흐름", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(0.72f)
-                            .height(1.dp)
-                            .background(Border)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFFFFAEF))
-                            .border(1.dp, Accent.copy(alpha = 0.38f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("7", color = Accent, style = MaterialTheme.typography.displayMedium)
-                    }
-                    Text("오늘의 선택을 도와드려요", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
-                }
+        fun drawWave(offsetY: Float, color: androidx.compose.ui.graphics.Color, alpha: Float, width: Float) {
+            val path = Path().apply {
+                moveTo(0f, center.y + offsetY)
+                cubicTo(size.width * 0.20f, center.y - 80f + offsetY, size.width * 0.30f, center.y + 80f + offsetY, size.width * 0.50f, center.y + offsetY)
+                cubicTo(size.width * 0.70f, center.y - 80f + offsetY, size.width * 0.80f, center.y + 80f + offsetY, size.width, center.y + offsetY)
             }
-            Column(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-                horizontalAlignment = Alignment.End
-            ) {
-                repeat(4) { index ->
-                    Box(
-                        modifier = Modifier
-                            .size(width = (16 + index * 4).dp, height = 2.dp)
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(Border.copy(alpha = 0.72f))
-                    )
-                }
-            }
+            drawPath(path, color.copy(alpha = alpha), style = Stroke(width = width, cap = StrokeCap.Round))
         }
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .offset(x = (-45).dp, y = (-10).dp)
-                .size(width = 26.dp, height = 78.dp)
-                .clip(RoundedCornerShape(7.dp))
-                .background(Accent.copy(alpha = 0.86f))
-                .border(1.dp, Accent.copy(alpha = 0.22f), RoundedCornerShape(7.dp))
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = (-30).dp, y = 24.dp)
-                .size(46.dp)
-                .clip(CircleShape)
-                .background(Surface)
-                .border(1.dp, Border, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("수", color = Accent, style = MaterialTheme.typography.labelLarge)
-        }
+        drawCircle(Accent.copy(alpha = 0.07f), radius = size.minDimension * 0.44f, center = Offset(size.width * 0.82f, size.height * 0.68f))
+        drawCircle(Accent.copy(alpha = 0.05f), radius = size.minDimension * 0.38f, center = Offset(size.width * 0.16f, size.height * 0.72f))
+        drawWave(0f, Accent, 0.92f, 4.dp.toPx())
+        drawWave(24.dp.toPx(), androidx.compose.ui.graphics.Color(0xFFA855F7), 0.45f, 2.dp.toPx())
+        drawWave((-22).dp.toPx(), androidx.compose.ui.graphics.Color(0xFF818CF8), 0.42f, 3.dp.toPx())
     }
 }

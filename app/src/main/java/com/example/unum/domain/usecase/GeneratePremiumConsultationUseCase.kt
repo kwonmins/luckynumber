@@ -6,99 +6,30 @@ import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.data.model.PremiumConsultation
 import com.example.unum.data.model.PremiumTopic
 import com.example.unum.domain.NumerologyCalculator
+import com.example.unum.domain.service.OpenAiChatClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
+import java.util.Calendar
 
-class GeneratePremiumConsultationUseCase {
+class GeneratePremiumConsultationUseCase(
+    private val chatClient: OpenAiChatClient = OpenAiChatClient()
+) {
     suspend operator fun invoke(
         apiKey: String,
         topic: PremiumTopic,
         concern: String,
         bundle: NumerologyResultBundle
     ): PremiumConsultation = withContext(Dispatchers.IO) {
-        require(apiKey.isNotBlank()) { "상담 연결 키가 설정되지 않았습니다." }
-        require(apiKey.startsWith("sk-")) { "상담 연결 키 형식이 올바르지 않습니다." }
-
         val prompt = buildPrompt(topic, concern, bundle)
-        val content = requestOpenAi(apiKey.trim(), OPENAI_MODEL, prompt)
-        parseConsultation(content, topic, bundle)
-    }
-
-    private fun requestOpenAi(apiKey: String, model: String, prompt: String): String {
-        val body = JSONObject()
-            .put("model", model)
-            .put(
-                "messages",
-                JSONArray()
-                    .put(JSONObject().put("role", "developer").put("content", SYSTEM_PROMPT))
-                    .put(JSONObject().put("role", "user").put("content", prompt))
-            )
-            .put("response_format", JSONObject().put("type", "json_object"))
-
-        val response = postJson(
-            url = "https://api.openai.com/v1/chat/completions",
-            body = body,
-            headers = mapOf("Authorization" to "Bearer $apiKey")
+        val content = chatClient.requestJsonContent(
+            apiKey = apiKey,
+            model = OPENAI_MODEL,
+            systemPrompt = SYSTEM_PROMPT,
+            userPrompt = prompt,
+            failureLabel = "운세노트"
         )
-
-        return JSONObject(response)
-            .getJSONArray("choices")
-            .getJSONObject(0)
-            .getJSONObject("message")
-            .getString("content")
-    }
-
-    private fun postJson(url: String, body: JSONObject, headers: Map<String, String>): String {
-        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            connectTimeout = 20_000
-            readTimeout = 60_000
-            doOutput = true
-            setRequestProperty("Content-Type", "application/json; charset=utf-8")
-            headers.forEach { (key, value) -> setRequestProperty(key, value) }
-        }
-
-        connection.outputStream.use { output ->
-            output.write(body.toString().toByteArray(Charsets.UTF_8))
-        }
-
-        val stream = if (connection.responseCode in 200..299) {
-            connection.inputStream
-        } else {
-            connection.errorStream ?: connection.inputStream
-        }
-
-        val response = stream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-        if (connection.responseCode !in 200..299) {
-            throwOpenAiError(connection.responseCode, response)
-        }
-        return response
-    }
-
-    private fun throwOpenAiError(responseCode: Int, response: String): Nothing {
-        val code = runCatching {
-            JSONObject(response)
-                .optJSONObject("error")
-                ?.optString("code")
-                .orEmpty()
-        }.getOrDefault("")
-
-        val message = when {
-            responseCode == 401 || code == "invalid_api_key" ->
-                "상담 연결 키가 유효하지 않습니다. 설정을 다시 확인해주세요."
-            responseCode == 429 ->
-                "상담 요청 한도를 확인해주세요."
-            responseCode in 500..599 ->
-                "상담 서버 응답이 불안정합니다. 잠시 뒤 다시 시도해주세요."
-            else ->
-                "운세노트 요청에 실패했습니다. 설정을 확인한 뒤 다시 시도해주세요."
-        }
-
-        error(message)
+        parseConsultation(content, topic, bundle)
     }
 
     private fun buildPrompt(topic: PremiumTopic, concern: String, bundle: NumerologyResultBundle): String {
@@ -110,6 +41,8 @@ class GeneratePremiumConsultationUseCase {
         val hiddenCue = buildHiddenBirthCue(input)
         val genderResonance = NumerologyCalculator.genderResonanceDescription(displayInput.gender, numbers.destiny)
         val concernText = concern.ifBlank { "요즘 마음에 가장 자주 떠오르는 고민을 아직 구체적으로 적지 않았습니다." }
+        val traitBrief = buildTraitBrief(destiny.title, destiny.coreKeywords, destiny.cautionKeywords)
+        val currentMonth = currentMonth()
 
         return """
             사용자의 프리미엄 운세 상담을 작성하세요.
@@ -117,26 +50,24 @@ class GeneratePremiumConsultationUseCase {
             [사용자 입력]
             - 고민 분야: ${topic.label}
             - 고민 내용: $concernText
+            - 상담 생성 시점: 올해 ${currentMonth}월 기준
             - 사용자가 입력한 생년월일: ${displayInput.year}.${displayInput.month}.${displayInput.day}
             - 달력 구분: ${if (displayInput.calendarType == CalendarType.LUNAR) "음력" else "양력"}
             - 성별 선택: ${displayInput.gender.label}
 
-            [숫자 운세 데이터]
+            [상담 핵심 데이터]
             - 운명수: ${numbers.destiny}
             - 운명수의 기운: ${NumerologyCalculator.destinyPolarity(numbers.destiny).label}
             - 성별 공명 해석: $genderResonance
-            - 인생 코드: ${numbers.code}
-            - 초년 흐름: ${numbers.early}
-            - 중년 흐름: ${numbers.middle}
-            - 말년 흐름: ${numbers.late}
-            - 운명 프로필: ${destiny.title}
-            - 핵심 키워드: ${destiny.coreKeywords.joinToString(", ")}
-            - 주의 키워드: ${destiny.cautionKeywords.joinToString(", ")}
-            - 운명 해석: ${destiny.destinyText}
-            - 인생 해석: ${life.lifeText}
-            - 요약: ${life.summaryText}
-            - 조언: ${life.oneLineAdvice}
+            - 성향 압축 요약: $traitBrief
+            - 성향 주의점: ${destiny.cautionKeywords.take(2).joinToString(", ")}
+            - 참고 조언: ${life.oneLineAdvice}
             - 내부 계산 기준 생년월일: ${input.year}.${input.month}.${input.day} (${if (input.calendarType == CalendarType.LUNAR) "음력" else "양력"})
+
+            [내부 리듬 힌트 - 절대 사용자에게 항목명 노출 금지]
+            - 코드: ${numbers.code}
+            - 세 시기 리듬: ${numbers.early}, ${numbers.middle}, ${numbers.late}
+            - 이 정보는 말투와 조언의 결을 살짝 조정하는 데만 사용하고, 초년/중년/말년 설명으로 풀지 마세요.
 
             [월별 흐름 판정 규칙 - 절대 사용자에게 계산식 공개 금지]
             - 각 월의 흐름 수는 운명수와 월 숫자를 더한 뒤 마지막 한 자리만 사용합니다.
@@ -155,23 +86,27 @@ class GeneratePremiumConsultationUseCase {
             - 9: 마무리, 정리, 놓아주기, 다음 단계 준비
             - 0: 잠복, 재정비, 비워내기, 무리하지 않는 달
             - 고민 분야별로 12개월 중 가장 추천하는 달 1개와 가장 조심해야 할 달 1개를 고르세요.
+            - bestMonth는 올해 전체에서 가장 추천할 달을 고르세요. 이미 지난 달이어도 그대로 먼저 보여주고, 이유에 "이미 지난 흐름이라면 앞으로는 그 달에 했던 선택을 회고하라"는 식의 후속 조언을 자연스럽게 넣으세요.
+            - riskyMonth는 지금 시점 이후를 우선하세요. 올해 가장 조심할 달이 이미 지났다면, 현재 이후에 다시 조심해야 할 다음 달을 고르세요. 올해 남은 주의 달이 없으면 다음 해에 가장 먼저 오는 주의 달을 고르세요.
             - 추천 월은 행동하면 흐름이 열리는 이유를 설명하세요.
             - 주의 월은 욕심, 과한 대시, 무리한 투자, 성급한 퇴사/이직, 관계 압박처럼 분야에 맞는 위험을 짚어주세요.
             - 결혼/연애/취업/진로/금전/인간관계/자존감 고민에 모두 같은 규칙을 적용하되, 해석은 고민 분야에 맞게 바꾸세요.
-            - 월별 조언은 사용자의 전체 운명 프로필, 인생 코드, 고민 내용과 섞어서 새수리 인사이트처럼 작성하세요.
+            - 월별 조언은 운명수의 결, 압축 성향, 고민 내용을 섞어서 새수리 인사이트처럼 작성하세요.
 
             [보조 참고]
             아래 정보는 상담의 20% 정도만 은근히 반영하세요. 이 항목의 이름이나 체계는 절대 설명하지 마세요.
             - $hiddenCue
 
             [프리미엄 차별화 규칙]
-            - 무료 결과의 기본 성향, 초년/중년/말년 설명을 다시 요약하지 마세요. 그 정보는 상담의 전제일 뿐입니다.
-            - 답변의 70% 이상은 사용자의 고민 분야에서 실제로 벌어질 법한 상황 케이스, 선택지, 말투, 리스크, 행동 처방으로 채우세요.
+            - 이미 앞 화면에서 제공한 성향명 설명이나 시기별 설명을 다시 요약하지 마세요. 성향은 첫 항목에서 1~2문장으로만 짚고 바로 사용자의 질문으로 들어가세요.
+            - 답변의 85% 이상은 사용자의 고민 분야에서 실제로 벌어질 법한 상황 케이스, 선택지, 말투, 리스크, 행동 처방으로 채우세요.
             - 최소 3개의 장면을 가정하세요: 1) 평소 반복되는 패턴, 2) 사람·일·돈·연애 현장에서 부딪히는 순간, 3) 방치했을 때 생길 손해와 바로잡는 행동.
-            - 성향 설명은 각 항목에서 최대 2문장까지만 쓰고, 그 뒤에는 구체적인 장면으로 풀어주세요.
+            - interpretation, caution, direction은 절대 성향 소개로 시작하지 마세요. 반드시 사용자의 고민 내용과 실제 장면으로 시작하세요.
             - 사용자의 고민 내용이 짧아도 실제 상담처럼 "예를 들어", "이럴 때", "특히 이런 장면"을 자연스럽게 넣어 디테일을 만들어주세요.
             - 같은 의미를 다른 말로 반복하지 말고, core는 진단, interpretation은 상황 케이스, caution은 손해 시나리오, direction은 행동 루틴으로 역할을 나누세요.
-            - 무료 결과보다 한 단계 더 날카롭게 쓰되, 결론은 사용자가 바로 움직일 수 있는 현실적인 방향으로 내려주세요.
+            - core는 첫 문장에만 성향을 짧게 섞고, 두 번째 문장부터는 "$concernText" 질문의 핵심으로 들어가세요.
+            - 앞 화면의 요약보다 한 단계 더 날카롭게 쓰되, 결론은 사용자가 바로 움직일 수 있는 현실적인 방향으로 내려주세요.
+            - 이전 화면을 언급하는 표현, 성향을 다시 소개하는 표현, 숫자 설명으로 시작하는 표현, 시기별 흐름을 앞세우는 표현은 쓰지 마세요.
 
             [작성 규칙]
             - 사용자가 만든 숫자 운세와 고민 분야를 중심으로 상담하세요.
@@ -186,10 +121,10 @@ class GeneratePremiumConsultationUseCase {
             - 반드시 아래 JSON 형식만 반환하세요. 코드블록이나 설명 문장은 붙이지 마세요.
 
             {
-              "core": "무료 성향을 전제로 한 지금 고민의 핵심 진단. 짧지만 자극적으로 작성",
-              "interpretation": "실제 상황 케이스 2~3개를 넣은 심층 해석. 무료 결과 반복 금지",
-              "caution": "방치하면 어떤 장면에서 손해, 소진, 관계 악화, 기회 상실이 생기는지 구체적으로 작성",
-              "direction": "오늘, 이번 주, 한 달 안에 할 행동을 단계별로 제안",
+              "core": "첫 문장에는 성향을 아주 짧게만 연결하고, 바로 사용자가 적은 고민의 핵심 진단으로 전환",
+              "interpretation": "사용자의 질문에서 실제로 벌어질 상황 케이스 2~3개. 성향 소개 금지",
+              "caution": "사용자의 질문을 방치하면 어떤 장면에서 손해, 소진, 관계 악화, 기회 상실이 생기는지 구체적으로 작성",
+              "direction": "사용자의 질문을 해결하기 위한 오늘, 이번 주, 한 달 안 행동을 단계별로 제안",
               "oneLineAdvice": "한 줄 조언",
               "bestMonth": "추천 월, 예: 4월",
               "bestMonthReason": "그 달이 왜 좋은지와 어떤 상황에서 움직이면 좋은지",
@@ -197,6 +132,16 @@ class GeneratePremiumConsultationUseCase {
               "riskyMonthReason": "그 달에 어떤 행동을 하면 삶이 더 힘들어질 수 있는지"
             }
         """.trimIndent()
+    }
+
+    private fun buildTraitBrief(
+        title: String,
+        coreKeywords: List<String>,
+        cautionKeywords: List<String>
+    ): String {
+        val core = coreKeywords.take(2).joinToString(", ").ifBlank { title }
+        val caution = cautionKeywords.take(2).joinToString(", ").ifBlank { "조급함" }
+        return "$title 기질은 $core 쪽이 강하고, 고민 상황에서는 ${caution}이 과해질 수 있습니다."
     }
 
     private fun buildHiddenBirthCue(input: BirthInput): String {
@@ -240,14 +185,23 @@ class GeneratePremiumConsultationUseCase {
         topic: PremiumTopic,
         bundle: NumerologyResultBundle
     ): PremiumConsultation {
-        val expectedBestMonth = pickBestMonth(topic, bundle.numbers.destiny).toMonthText()
-        val expectedRiskyMonth = pickRiskyMonth(topic, bundle.numbers.destiny).toMonthText()
-        val bestReason = consultation.bestMonthReason.takeIf {
+        val currentMonth = currentMonth()
+        val bestMonth = pickBestMonth(topic, bundle.numbers.destiny)
+        val bestSelection = MonthSelection(
+            month = bestMonth,
+            isPastThisYear = bestMonth < currentMonth
+        )
+        val riskySelection = pickRiskyMonth(topic, bundle.numbers.destiny, currentMonth)
+        val expectedBestMonth = bestSelection.toDisplayText()
+        val expectedRiskyMonth = riskySelection.toDisplayText()
+        val rawBestReason = consultation.bestMonthReason.takeIf {
             consultation.bestMonth == expectedBestMonth && it.isNotBlank()
         } ?: buildBestMonthReason(topic, expectedBestMonth, bundle)
-        val riskyReason = consultation.riskyMonthReason.takeIf {
+        val bestReason = withBestMonthTimingNote(rawBestReason, bestSelection)
+        val rawRiskyReason = consultation.riskyMonthReason.takeIf {
             consultation.riskyMonth == expectedRiskyMonth && it.isNotBlank()
-        } ?: buildRiskyMonthReason(topic, expectedRiskyMonth, bundle)
+        } ?: buildRiskyMonthReason(topic, expectedRiskyMonth, riskySelection)
+        val riskyReason = withRiskyMonthTimingNote(rawRiskyReason, riskySelection)
 
         return consultation.copy(
             bestMonth = expectedBestMonth,
@@ -271,22 +225,74 @@ class GeneratePremiumConsultationUseCase {
     }
 
     private fun pickRiskyMonth(topic: PremiumTopic, destiny: Int): Int {
-        val riskyFlows = when (topic) {
-            PremiumTopic.ROMANCE -> listOf(8, 7, 9, 0)
-            PremiumTopic.CAREER -> listOf(5, 9, 7, 0)
-            PremiumTopic.MONEY -> listOf(5, 8, 9, 0)
-            PremiumTopic.SELF_ESTEEM -> listOf(9, 8, 5, 0)
-            PremiumTopic.RELATIONSHIP -> listOf(8, 5, 9, 7)
-        }
+        val riskyFlows = riskyFlows(topic)
         return (1..12).maxBy { month ->
             val priority = riskyFlows.indexOf(flowNumber(destiny, month)).let { if (it == -1) -99 else -it }
             priority * 100 + month
         }
     }
 
-    private fun flowNumber(destiny: Int, month: Int): Int = (destiny + month) % 10
+    private fun pickRiskyMonth(topic: PremiumTopic, destiny: Int, currentMonth: Int): MonthSelection {
+        val topMonth = pickRiskyMonth(topic, destiny)
+        if (topMonth >= currentMonth) {
+            return MonthSelection(month = topMonth)
+        }
+        val riskyFlows = riskyFlows(topic)
+        val remainingThisYear = (currentMonth..12).firstOrNull { month ->
+            flowNumber(destiny, month) in riskyFlows
+        }
+        if (remainingThisYear != null) {
+            return MonthSelection(month = remainingThisYear, replacedPastMonth = topMonth)
+        }
+        val firstNextYear = (1..12).first { month ->
+            flowNumber(destiny, month) in riskyFlows
+        }
+        return MonthSelection(month = firstNextYear, isNextYear = true, replacedPastMonth = topMonth)
+    }
 
-    private fun Int.toMonthText(): String = "${this}월"
+    private fun riskyFlows(topic: PremiumTopic): List<Int> {
+        return when (topic) {
+            PremiumTopic.ROMANCE -> listOf(8, 7, 9, 0)
+            PremiumTopic.CAREER -> listOf(5, 9, 7, 0)
+            PremiumTopic.MONEY -> listOf(5, 8, 9, 0)
+            PremiumTopic.SELF_ESTEEM -> listOf(9, 8, 5, 0)
+            PremiumTopic.RELATIONSHIP -> listOf(8, 5, 9, 7)
+        }
+    }
+
+    private data class MonthSelection(
+        val month: Int,
+        val isPastThisYear: Boolean = false,
+        val isNextYear: Boolean = false,
+        val replacedPastMonth: Int? = null
+    ) {
+        fun toDisplayText(): String = when {
+            isNextYear -> "다음 해 ${month}월"
+            else -> "${month}월"
+        }
+    }
+
+    private fun currentMonth(): Int {
+        return Calendar.getInstance().get(Calendar.MONTH) + 1
+    }
+
+    private fun withBestMonthTimingNote(reason: String, selection: MonthSelection): String {
+        if (!selection.isPastThisYear) return reason
+        return "올해 가장 추천되는 달은 이미 지난 ${selection.month}월입니다. 먼저 그 달의 흐름을 기준으로 보면, $reason 이미 지나간 흐름이라면 그때의 선택과 기회를 짧게 회고하고, 남은 달에는 그때 열렸던 방향을 이어가는 쪽이 좋습니다."
+    }
+
+    private fun withRiskyMonthTimingNote(reason: String, selection: MonthSelection): String {
+        val passedTopMonth = selection.replacedPastMonth ?: return reason
+        val alreadyExplained = reason.contains("${passedTopMonth}월은 이미 지났")
+        if (alreadyExplained) return reason
+        return if (selection.isNextYear) {
+            "올해 가장 강하게 조심할 달인 ${passedTopMonth}월은 이미 지났고, 올해 남은 구간에는 같은 결의 주의 달이 약하게 지나갑니다. 그래서 다음 해에 가장 먼저 돌아오는 ${selection.month}월을 다음 주의 구간으로 봅니다. $reason"
+        } else {
+            "올해 가장 강하게 조심할 달인 ${passedTopMonth}월은 이미 지났으니, 지금 이후에는 ${selection.month}월을 다음 주의 구간으로 보세요. $reason"
+        }
+    }
+
+    private fun flowNumber(destiny: Int, month: Int): Int = (destiny + month) % 10
 
     private fun buildBestMonthReason(topic: PremiumTopic, monthText: String, bundle: NumerologyResultBundle): String {
         return when (topic) {
@@ -303,8 +309,12 @@ class GeneratePremiumConsultationUseCase {
         }
     }
 
-    private fun buildRiskyMonthReason(topic: PremiumTopic, monthText: String, bundle: NumerologyResultBundle): String {
-        return when (topic) {
+    private fun buildRiskyMonthReason(
+        topic: PremiumTopic,
+        monthText: String,
+        selection: MonthSelection
+    ): String {
+        val baseReason = when (topic) {
             PremiumTopic.ROMANCE ->
                 "${monthText}에는 관계의 움직임이 커지는 만큼 조급함도 함께 올라올 수 있습니다. 마음이 앞서 과하게 다가가면 상대가 부담을 느껴 관계가 더 꼬일 수 있으니, 상대의 속도와 여백을 각별히 조심해야 합니다."
             PremiumTopic.CAREER ->
@@ -316,11 +326,17 @@ class GeneratePremiumConsultationUseCase {
             PremiumTopic.RELATIONSHIP ->
                 "${monthText}에는 사람 사이의 반응이 커져 오해도 빨리 번질 수 있습니다. 단정적인 말이나 압박을 계속하면 관계가 생각보다 차갑게 틀어질 수 있으니, 중요한 대화는 차분히 시간을 두는 편이 좋습니다."
         }
+        val passedTopMonth = selection.replacedPastMonth ?: return baseReason
+        return if (selection.isNextYear) {
+            "올해 가장 강하게 조심할 달인 ${passedTopMonth}월은 이미 지났고, 올해 남은 구간에는 같은 결의 주의 달이 약하게 지나갑니다. 그래서 다음 해에 가장 먼저 돌아오는 ${selection.month}월을 다음 주의 구간으로 봅니다. $baseReason"
+        } else {
+            "올해 가장 강하게 조심할 달인 ${passedTopMonth}월은 이미 지났으니, 지금 이후에는 ${selection.month}월을 다음 주의 구간으로 보세요. $baseReason"
+        }
     }
 
     companion object {
         private const val SYSTEM_PROMPT =
-            "You are a Korean premium fortune consultation writer. Do not repeat the free reading; treat it only as context. Write detailed, situational, case-based advice with a warm but slightly provocative tone. Always use polite Korean honorific style, and clearly describe what may become harder if the user ignores the advice. Never call the user 선생님; use 당신 or omit the direct address. Return only valid JSON."
+            "You are a Korean premium fortune consultation writer. Do not repeat the preliminary reading; treat it only as context. Write detailed, situational, case-based advice with a warm but slightly provocative tone. Always use polite Korean honorific style, and clearly describe what may become harder if the user ignores the advice. Never call the user 선생님; use 당신 or omit the direct address. Return only valid JSON."
         private const val OPENAI_MODEL = "gpt-5.1"
     }
 }

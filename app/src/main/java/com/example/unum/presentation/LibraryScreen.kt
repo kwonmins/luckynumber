@@ -43,7 +43,8 @@ import com.example.unum.ui.theme.TextSecondary
 private enum class LibraryFilter(val label: String) {
     ALL("전체"),
     PERSONAL("운세노트"),
-    COMPATIBILITY("궁합노트")
+    COMPATIBILITY("조합리포트"),
+    CONSULTATION("상담")
 }
 
 @Composable
@@ -56,6 +57,7 @@ fun LibraryScreen(viewModel: AppViewModel, onOpenBook: (FortuneBook) -> Unit) {
         LibraryFilter.ALL -> allBooks
         LibraryFilter.PERSONAL -> allBooks.filter { it.bookType == FortuneBookType.PERSONAL }
         LibraryFilter.COMPATIBILITY -> allBooks.filter { it.bookType == FortuneBookType.COMPATIBILITY }
+        LibraryFilter.CONSULTATION -> allBooks.filter { it.bookType == FortuneBookType.PERSONAL }
     }
 
     MysticBackground(modifier = Modifier.fillMaxSize()) {
@@ -87,9 +89,12 @@ fun LibraryScreen(viewModel: AppViewModel, onOpenBook: (FortuneBook) -> Unit) {
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.Search, contentDescription = null, tint = TextMuted)
-                        androidx.compose.material3.Text("운세노트 검색", color = TextMuted, style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
+                        androidx.compose.material3.Text("리포트 검색", color = TextMuted, style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
                     }
                 }
+            }
+            item {
+                LibraryFilterRow(selected = filter, onSelected = { filter = it })
             }
             if (allBooks.isEmpty()) {
                 item {
@@ -108,9 +113,6 @@ fun LibraryScreen(viewModel: AppViewModel, onOpenBook: (FortuneBook) -> Unit) {
                     }
                 }
             } else {
-                item {
-                    LibraryFilterRow(selected = filter, onSelected = { filter = it })
-                }
                 items(filteredBooks, key = { it.bookId }) { book ->
                     PremiumArchiveRow(
                         book = book,
@@ -148,7 +150,7 @@ private fun LibraryFilterRow(selected: LibraryFilter, onSelected: (LibraryFilter
                     .weight(1f)
                     .padding(bottom = 2.dp)
                     .fillMaxWidth(),
-                tonalColor = if (isSelected) com.example.unum.ui.theme.Accent.copy(alpha = 0.16f) else Surface2,
+                tonalColor = if (isSelected) com.example.unum.ui.theme.Accent else Surface2,
                 borderColor = if (isSelected) com.example.unum.ui.theme.Accent.copy(alpha = 0.42f) else com.example.unum.ui.theme.Border,
                 contentPadding = 0
             ) {
@@ -161,7 +163,7 @@ private fun LibraryFilterRow(selected: LibraryFilter, onSelected: (LibraryFilter
                 ) {
                     androidx.compose.material3.Text(
                         text = filter.label,
-                        color = if (isSelected) TextPrimary else TextSecondary,
+                        color = if (isSelected) androidx.compose.ui.graphics.Color.White else TextSecondary,
                         style = androidx.compose.material3.MaterialTheme.typography.labelLarge
                     )
                 }

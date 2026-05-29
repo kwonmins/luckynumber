@@ -1,6 +1,7 @@
 package com.example.unum.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,7 +36,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,8 +53,12 @@ import com.example.unum.data.model.PremiumTopic
 import com.example.unum.data.model.ReaderFontScale
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Blue
+import com.example.unum.ui.theme.BookLine
+import com.example.unum.ui.theme.BookPaper
+import com.example.unum.ui.theme.BookPaperEdge
 import com.example.unum.ui.theme.Border
 import com.example.unum.ui.theme.BorderStrong
+import com.example.unum.ui.theme.Gold
 import com.example.unum.ui.theme.Mint
 import com.example.unum.ui.theme.Rose
 import com.example.unum.ui.theme.Surface
@@ -59,6 +69,7 @@ import com.example.unum.ui.theme.TextSecondary
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.absoluteValue
 
 @Composable
 fun MiniNumerologySummary(destiny: Int, early: Int, middle: Int, late: Int, modifier: Modifier = Modifier) {
@@ -90,12 +101,12 @@ fun TopicChipGroup(selected: PremiumTopic, onSelected: (PremiumTopic) -> Unit, m
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(999.dp))
-                    .background(if (selected == topic) Accent.copy(alpha = 0.16f) else Surface2)
+                    .background(if (selected == topic) Accent else Surface)
                     .border(1.dp, if (selected == topic) Accent.copy(alpha = 0.40f) else Border, RoundedCornerShape(999.dp))
                     .clickable { onSelected(topic) }
                     .padding(horizontal = 13.dp, vertical = 9.dp)
             ) {
-                Text(topic.label, color = if (selected == topic) TextPrimary else TextSecondary, style = MaterialTheme.typography.bodySmall)
+                Text(topic.label, color = if (selected == topic) Color.White else TextSecondary, style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -107,8 +118,10 @@ fun FortuneBookCover(
     modifier: Modifier = Modifier,
     compact: Boolean = false
 ) {
-    val palette = bookCoverPalette(book.coverTheme)
     val accentColor = noteAccentColor(book.coverTheme)
+    val coverColors = leatherCoverColors(book.coverTheme)
+    val foilColor = leatherFoilColor(book.coverTheme)
+    val ribbonColor = leatherRibbonColor(book.coverTheme)
     val coverHeight = if (compact) 260.dp else 360.dp
 
     Box(
@@ -116,41 +129,77 @@ fun FortuneBookCover(
             .fillMaxWidth()
             .height(coverHeight)
             .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xFFFFFCF5))
-            .border(1.dp, palette.third, RoundedCornerShape(8.dp))
+            .background(Brush.linearGradient(coverColors))
+            .border(1.dp, Color.Black.copy(alpha = 0.32f), RoundedCornerShape(8.dp))
     ) {
+        Canvas(Modifier.fillMaxSize()) {
+            repeat(18) { index ->
+                val y = size.height * (index + 1) / 19f
+                drawLine(
+                    Color.White.copy(alpha = 0.026f),
+                    Offset(16f, y),
+                    Offset(size.width - 16f, y + if (index % 2 == 0) 8f else -6f),
+                    strokeWidth = 1f
+                )
+                drawLine(
+                    Color.Black.copy(alpha = 0.16f),
+                    Offset(18f, y + 8f),
+                    Offset(size.width - 18f, y),
+                    strokeWidth = 1f
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(if (compact) 8.dp else 10.dp)
+                .border(1.dp, foilColor.copy(alpha = 0.72f), RoundedCornerShape(8.dp))
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(if (compact) 12.dp else 15.dp)
+                .border(1.dp, foilColor.copy(alpha = 0.28f), RoundedCornerShape(6.dp))
+        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = if (compact) 17.dp else 22.dp),
+            verticalArrangement = Arrangement.spacedBy(if (compact) 7.dp else 9.dp)
+        ) {
+            repeat(if (compact) 23 else 32) {
+                Box(
+                    modifier = Modifier
+                        .size(2.dp)
+                        .clip(CircleShape)
+                        .background(foilColor.copy(alpha = 0.58f))
+                )
+            }
+        }
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .size(if (compact) 7.dp else 9.dp, if (compact) 232.dp else 326.dp)
+                .size(if (compact) 14.dp else 18.dp, if (compact) 220.dp else 318.dp)
                 .clip(RoundedCornerShape(topEnd = 8.dp, bottomEnd = 8.dp))
-                .background(accentColor.copy(alpha = 0.88f))
+                .background(Color.Black.copy(alpha = 0.22f))
         )
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(end = if (compact) 20.dp else 28.dp)
-                .size(if (compact) 18.dp else 22.dp, if (compact) 60.dp else 78.dp)
+                .size(if (compact) 16.dp else 20.dp, if (compact) 66.dp else 88.dp)
                 .clip(RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp))
-                .background(accentColor.copy(alpha = 0.88f))
-        )
-        BookPageEdges(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 10.dp),
-            accentColor = accentColor
-        )
-        NotebookSideTabs(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 1.dp),
-            accentColor = accentColor,
-            compact = compact
+                .background(Brush.verticalGradient(listOf(ribbonColor, accentColor.copy(alpha = 0.78f))))
         )
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = if (compact) 22.dp else 28.dp, top = if (compact) 18.dp else 24.dp, end = if (compact) 26.dp else 34.dp, bottom = if (compact) 18.dp else 24.dp),
+                .padding(
+                    start = if (compact) 42.dp else 54.dp,
+                    top = if (compact) 24.dp else 34.dp,
+                    end = if (compact) 24.dp else 34.dp,
+                    bottom = if (compact) 22.dp else 30.dp
+                ),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
@@ -158,21 +207,41 @@ fun FortuneBookCover(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                PremiumBadge(if (book.bookType == FortuneBookType.COMPATIBILITY) "궁합노트" else "프리미엄 운세노트")
-                Text(formatBookDate(book.createdAt), color = TextSecondary, style = MaterialTheme.typography.bodySmall)
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    if (book.bookType == FortuneBookType.COMPATIBILITY) "수리의 궁합노트" else "수리의 운세노트",
-                    color = TextPrimary,
+                    if (book.bookType == FortuneBookType.COMPATIBILITY) "PREMIUM MATCH NOTE" else "PREMIUM FORTUNE NOTE",
+                    color = foilColor,
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(formatBookDate(book.createdAt), color = Color(0xFF94A3B8), style = MaterialTheme.typography.bodySmall)
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp)) {
+                Text(
+                    if (compact) {
+                        if (book.bookType == FortuneBookType.COMPATIBILITY) "수리의 궁합노트" else "수리의 운세노트"
+                    } else {
+                        if (book.bookType == FortuneBookType.COMPATIBILITY) "수리의\n궁합노트" else "수리의\n운세노트"
+                    },
+                    color = foilColor,
                     style = if (compact) MaterialTheme.typography.titleLarge else MaterialTheme.typography.displayMedium
                 )
-                Text(book.coverTitle, color = accentColor, style = MaterialTheme.typography.labelLarge)
-                Text(book.coverSubtitle, color = TextSecondary, style = MaterialTheme.typography.bodySmall)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    coverTags(book).forEach { tag ->
-                        CoverTag(tag, accentColor)
-                    }
+                Box(
+                    modifier = Modifier
+                        .size(width = if (compact) 92.dp else 132.dp, height = 2.dp)
+                        .background(foilColor.copy(alpha = 0.86f))
+                )
+                Text(book.coverTitle, color = Color(0xFFCBD5E1), style = MaterialTheme.typography.bodySmall)
+                Text(book.coverSubtitle, color = Color(0xFF94A3B8), style = MaterialTheme.typography.bodySmall, maxLines = if (compact) 1 else 2)
+            }
+            if (!compact) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .size(42.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFB91C1C).copy(alpha = 0.94f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("수리", color = Color.White, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
                 }
             }
             Row(
@@ -181,8 +250,8 @@ fun FortuneBookCover(
                 verticalAlignment = Alignment.Bottom
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("핵심 요약", color = TextMuted, style = MaterialTheme.typography.bodySmall)
-                    Text(book.summary, color = TextSecondary, style = MaterialTheme.typography.bodyMedium, maxLines = if (compact) 2 else 3)
+                    Text("핵심 요약", color = Color(0xFF94A3B8), style = MaterialTheme.typography.bodySmall)
+                    Text(book.summary, color = Color(0xFFCBD5E1), style = MaterialTheme.typography.bodyMedium, maxLines = if (compact) 2 else 3)
                 }
                 NotebookSeal(
                     text = if (book.bookType == FortuneBookType.COMPATIBILITY) {
@@ -190,7 +259,7 @@ fun FortuneBookCover(
                     } else {
                         book.destiny.toString()
                     },
-                    color = accentColor,
+                    color = foilColor,
                     size = if (compact) 64 else 82
                 )
             }
@@ -208,77 +277,6 @@ private fun CoverTag(text: String, accentColor: Color = Accent) {
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
         Text(text, color = accentColor, style = MaterialTheme.typography.bodySmall)
-    }
-}
-
-@Composable
-private fun NotebookSeal(text: String, color: Color, size: Int, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .size(size.dp)
-            .clip(CircleShape)
-            .background(color.copy(alpha = 0.10f))
-            .border(1.dp, color.copy(alpha = 0.34f), CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text,
-            color = color,
-            style = if (size < 50) MaterialTheme.typography.titleMedium else MaterialTheme.typography.displayMedium
-        )
-    }
-}
-
-@Composable
-private fun BookPageEdges(modifier: Modifier = Modifier, accentColor: Color) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(5.dp),
-        horizontalAlignment = Alignment.End
-    ) {
-        repeat(5) { index ->
-            Box(
-                modifier = Modifier
-                    .size((20 + index * 3).dp, 2.dp)
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(accentColor.copy(alpha = 0.14f))
-            )
-        }
-    }
-}
-
-@Composable
-private fun NotebookSideTabs(
-    modifier: Modifier = Modifier,
-    accentColor: Color,
-    compact: Boolean
-) {
-    val labels = if (compact) listOf("1", "2") else listOf("1", "2", "3")
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(if (compact) 5.dp else 7.dp),
-        horizontalAlignment = Alignment.End
-    ) {
-        labels.forEachIndexed { index, label ->
-            Box(
-                modifier = Modifier
-                    .size(width = if (compact) 18.dp else 22.dp, height = if (compact) 28.dp else 34.dp)
-                    .clip(RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp))
-                    .background(if (index == 0) accentColor else Color(0xFFF0E5D5))
-                    .border(
-                        1.dp,
-                        if (index == 0) accentColor.copy(alpha = 0.26f) else Color(0xFFDDCCB8),
-                        RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    label,
-                    color = if (index == 0) Color.White else TextMuted,
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
-        }
     }
 }
 
@@ -311,8 +309,8 @@ fun BookThumbnailCard(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xFFFFFCF5))
-            .border(1.dp, palette.third, RoundedCornerShape(8.dp))
+            .background(BookPaper)
+            .border(1.dp, BookLine, RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
             .padding(contentPadding)
     ) {
@@ -380,7 +378,7 @@ fun PremiumArchiveRow(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(if (selected) Surface2 else Surface)
+            .background(if (selected) Accent.copy(alpha = 0.06f) else Surface)
             .border(1.dp, if (selected) Accent.copy(alpha = 0.45f) else Border, RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
             .padding(14.dp),
@@ -435,9 +433,11 @@ fun FortuneBookReader(
     val bestMonthPage = if (hasMonthPages) chapterStartPage + book.chapters.size else -1
     val riskyMonthPage = if (hasMonthPages) bestMonthPage + 1 else -1
 
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -457,9 +457,25 @@ fun FortuneBookReader(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            pageSpacing = 12.dp
+            pageSpacing = 0.dp
         ) { page ->
-            ReaderPageScaffold {
+            val rawOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+            val pageOffset = rawOffset.absoluteValue.coerceIn(0f, 1f)
+            ReaderPageScaffold(
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .graphicsLayer {
+                        cameraDistance = 18f * density
+                        rotationY = rawOffset * 30f
+                        scaleX = 1f - pageOffset * 0.035f
+                        scaleY = 1f - pageOffset * 0.025f
+                        alpha = 1f - pageOffset * 0.10f
+                        transformOrigin = TransformOrigin(
+                            pivotFractionX = if (rawOffset > 0) 0f else 1f,
+                            pivotFractionY = 0.5f
+                        )
+                    }
+            ) {
                 when {
                     page == 0 -> OverviewPage(book = book, onBookmarkClick = onBookmarkClick)
                     page == 1 -> ContentsPage(book)
@@ -470,13 +486,13 @@ fun FortuneBookReader(
                         coverTheme = book.coverTheme
                     )
                     hasMonthPages && page == bestMonthPage -> MonthPage(
-                        title = "추천할 월",
+                        title = "올해 추천 월",
                         month = book.bestMonth.ifBlank { "-" },
                         reason = book.bestMonthReason.ifBlank { "리듬을 부드럽게 타기 좋은 시기예요." },
                         color = Mint
                     )
                     hasMonthPages && page == riskyMonthPage -> MonthPage(
-                        title = "주의할 월",
+                        title = "다음 주의 월",
                         month = book.riskyMonth.ifBlank { "-" },
                         reason = book.riskyMonthReason.ifBlank { "속도를 조금 낮추고 다시 확인하면 좋아요." },
                         color = Rose
@@ -490,19 +506,23 @@ fun FortuneBookReader(
 }
 
 @Composable
-private fun ReaderPageScaffold(content: @Composable BoxScope.() -> Unit) {
+private fun ReaderPageScaffold(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
+            .shadow(10.dp, RoundedCornerShape(10.dp), clip = false)
             .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xFFFFFCF5))
-            .border(1.dp, Color(0xFFE7DDCF), RoundedCornerShape(8.dp))
-            .padding(start = 14.dp, top = 12.dp, end = 18.dp, bottom = 12.dp)
+            .background(BookPaper)
+            .border(1.dp, BookPaperEdge, RoundedCornerShape(8.dp))
+            .padding(start = 16.dp, top = 14.dp, end = 20.dp, bottom = 14.dp)
     ) {
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .size(4.dp, 220.dp)
+                .size(5.dp, 360.dp)
                 .clip(RoundedCornerShape(999.dp))
                 .background(Accent.copy(alpha = 0.72f))
         )
@@ -522,8 +542,8 @@ private fun PageCornerFold(modifier: Modifier = Modifier) {
         modifier = modifier
             .size(34.dp)
             .clip(RoundedCornerShape(topStart = 8.dp))
-            .background(Color(0xFFF1E5D7))
-            .border(1.dp, Color(0xFFE0D1BF), RoundedCornerShape(topStart = 8.dp))
+            .background(BookPaperEdge)
+            .border(1.dp, BookLine, RoundedCornerShape(topStart = 8.dp))
     )
 }
 
@@ -643,8 +663,8 @@ private fun MonthHighlightCard(
 private fun ContentsCard(book: FortuneBook) {
     SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        tonalColor = Color(0xFFFFFCF5),
-        borderColor = Color(0xFFE7DDCF),
+        tonalColor = BookPaper,
+        borderColor = BookPaperEdge,
         contentPadding = 18
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -729,7 +749,7 @@ private fun ChapterCard(
 
     SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        tonalColor = Color(0xFFFFFCF5),
+        tonalColor = BookPaper,
         borderColor = palette.third.copy(alpha = 0.28f),
         contentPadding = 18
     ) {
@@ -826,8 +846,8 @@ private fun readerPageTitle(book: FortuneBook, page: Int): String {
         page == 0 -> "표지와 요약"
         page == 1 -> "목차"
         page in 2 until (2 + book.chapters.size) -> book.chapters.getOrNull(page - 2)?.title ?: "읽기"
-        hasMonthPages && page == bestMonthPage -> "추천할 월"
-        hasMonthPages && page == riskyMonthPage -> "주의할 월"
+        hasMonthPages && page == bestMonthPage -> "올해 추천 월"
+        hasMonthPages && page == riskyMonthPage -> "다음 주의 월"
         else -> "읽기"
     }
 }
@@ -911,6 +931,33 @@ private fun bookCoverPalette(theme: String): Triple<Color, Color, Color> {
         PremiumTopic.RELATIONSHIP.name.lowercase() -> Triple(Color(0xFFFFF7F4), Color(0xFFFFFFFF), Rose.copy(alpha = 0.20f))
         "compatibility" -> Triple(Color(0xFFFFFAEF), Color(0xFFFFFFFF), Accent.copy(alpha = 0.22f))
         else -> Triple(Surface, Surface2, BorderStrong)
+    }
+}
+
+private fun leatherCoverColors(theme: String): List<Color> {
+    return when (theme) {
+        PremiumTopic.MONEY.name.lowercase() -> listOf(Color(0xFF1F5B4C), Color(0xFF0E332C), Color(0xFF061C18))
+        PremiumTopic.RELATIONSHIP.name.lowercase() -> listOf(Color(0xFF9C5D32), Color(0xFF673719), Color(0xFF30170C))
+        PremiumTopic.SELF_ESTEEM.name.lowercase() -> listOf(Color(0xFF171A2A), Color(0xFF101225), Color(0xFF070813))
+        else -> listOf(Color(0xFF222633), Color(0xFF10131B), Color(0xFF05070C))
+    }
+}
+
+private fun leatherFoilColor(theme: String): Color {
+    return when (theme) {
+        PremiumTopic.RELATIONSHIP.name.lowercase() -> Color(0xFFF8E3A3)
+        else -> Color(0xFFF7D56A)
+    }
+}
+
+private fun leatherRibbonColor(theme: String): Color {
+    return when (theme) {
+        PremiumTopic.ROMANCE.name.lowercase(), "compatibility" -> Color(0xFFB91C1C)
+        PremiumTopic.CAREER.name.lowercase() -> Blue
+        PremiumTopic.MONEY.name.lowercase() -> Mint
+        PremiumTopic.RELATIONSHIP.name.lowercase() -> Gold
+        PremiumTopic.SELF_ESTEEM.name.lowercase() -> Color(0xFF7C3AED)
+        else -> Accent
     }
 }
 

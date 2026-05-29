@@ -1,21 +1,32 @@
 package com.example.unum.presentation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.unum.ui.components.AppHeader
+import com.example.unum.data.model.FortuneBookType
 import com.example.unum.ui.components.FortuneBookReader
 import com.example.unum.ui.components.MysticBackground
+import com.example.unum.ui.theme.Accent
+import com.example.unum.ui.theme.Border
+import com.example.unum.ui.theme.TextMuted
+import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
 
 @Composable
@@ -25,11 +36,11 @@ fun ReaderScreen(viewModel: AppViewModel, bookId: String?) {
 
     MysticBackground(modifier = Modifier.fillMaxSize()) {
         if (book == null) {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.Center
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     "열 수 있는 운세노트가 아직 없어요. 프리미엄 운세노트를 먼저 만들어주세요.",
@@ -37,33 +48,61 @@ fun ReaderScreen(viewModel: AppViewModel, bookId: String?) {
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp)
-                    .padding(bottom = 90.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Spacer(Modifier.height(18.dp))
-                AppHeader(
-                    title = book.coverTitle,
-                    subtitle = if (book.bookType == com.example.unum.data.model.FortuneBookType.COMPATIBILITY) {
-                        "가로로 넘기며 두 사람의 성향과 궁합 흐름을 노트처럼 읽어보세요. 긴 문장은 페이지 안에서 천천히 스크롤할 수 있어요."
-                    } else {
-                        "섹션별로 넘기며 읽는 수리의 운세노트입니다. 긴 문장은 페이지 안에서 천천히 스크롤해보세요."
-                    },
-                    eyebrow = "수리의 운세노트"
-                )
-                FortuneBookReader(
-                    book = book,
-                    fontScale = uiState.readerFontScale,
-                    onBookmarkClick = { viewModel.toggleBookmark(book) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                )
-            }
+            return@MysticBackground
         }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 8.dp)
+                .padding(top = 12.dp, bottom = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            CompactReaderHeader(
+                title = book.coverTitle,
+                subtitle = if (book.bookType == FortuneBookType.COMPATIBILITY) {
+                    "가로로 넘기며 두 사람의 흐름을 책처럼 읽어보세요."
+                } else {
+                    "책장을 넘기듯 필요한 섹션을 천천히 읽어보세요."
+                }
+            )
+            FortuneBookReader(
+                book = book,
+                fontScale = uiState.readerFontScale,
+                onBookmarkClick = { viewModel.toggleBookmark(book) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompactReaderHeader(title: String, subtitle: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(7.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .background(Accent.copy(alpha = 0.08f))
+                .border(1.dp, Accent.copy(alpha = 0.22f), RoundedCornerShape(999.dp))
+                .padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .background(Accent, CircleShape)
+            )
+            Text("수리의 운세노트", color = Accent, style = MaterialTheme.typography.labelMedium)
+        }
+        Text(title, color = TextPrimary, style = MaterialTheme.typography.titleLarge)
+        Text(subtitle, color = TextMuted, style = MaterialTheme.typography.bodySmall)
     }
 }

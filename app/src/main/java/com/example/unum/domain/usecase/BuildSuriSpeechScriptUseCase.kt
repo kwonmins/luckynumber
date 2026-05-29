@@ -18,7 +18,7 @@ class BuildSuriSpeechScriptUseCase {
     ): SuriSpeechScript {
         val concernText = concern.takeIf { it.isNotBlank() }
         val profile = bundle.content.destinyProfile
-        val life = bundle.content.lifeRecord
+        val traitHint = profile.coreKeywords.take(2).joinToString(", ").ifBlank { profile.title }
 
         return SuriSpeechScript(
             scriptId = "personal-preview-${bundle.numbers.code}-${topic.name}",
@@ -34,12 +34,9 @@ class BuildSuriSpeechScriptUseCase {
                 ),
                 segment(
                     key = "profile",
-                    chip = "기본 기운",
-                    title = "${profile.title}의 기운이 은은하게 바탕에 깔려 있습니다",
-                    body = spokenBody(
-                        lead = "가만히 들여다보면, 손님께서는 기본적으로 ${profile.title}의 결을 타고 계십니다",
-                        text = profile.destinyText
-                    ),
+                    chip = "성향 힌트",
+                    title = "성향은 짧게만 짚고 질문으로 들어가겠습니다",
+                    body = "손님께는 ${profile.title}의 결, 특히 $traitHint 쪽 기운이 짧게 보입니다. 다만 여기서는 성향 설명을 길게 되풀이하기보다, 지금 적어주신 고민이 어디에서 막히는지부터 보겠습니다.",
                     state = SuriSpeechSceneState.EXPLAIN
                 ),
                 concernText?.let {
@@ -53,19 +50,18 @@ class BuildSuriSpeechScriptUseCase {
                 },
                 segment(
                     key = "summary",
-                    chip = "흐름 요약",
-                    title = "지금 보이는 큰 줄기는 이렇습니다",
-                    body = spokenBody(
-                        lead = "짧게 정리해드리면, 지금 손님 흐름은 이런 결로 모입니다",
-                        text = life.summaryText
-                    ),
+                    chip = "질문 초점",
+                    title = "이제 질문의 실제 장면을 좁혀보겠습니다",
+                    body = concernText?.let {
+                        "핵심은 성향 이름이 아니라 \"$it\"라는 질문이 반복되는 순간입니다. 답을 급하게 정하기보다, 평소 어떤 장면에서 마음이 흔들리고 어떤 선택을 미루는지부터 차분히 나눠보겠습니다."
+                    } ?: "핵심은 성향 이름이 아니라 지금 마음에 남아 있는 실제 장면입니다. 고민을 한 문장으로 좁히면, 어디서 멈추고 무엇부터 바꿔야 할지 훨씬 선명해집니다.",
                     state = SuriSpeechSceneState.HIGHLIGHT
                 ),
                 segment(
                     key = "guide",
                     chip = "다음 안내",
                     title = "원하시면 더 깊은 자리까지 이어가겠습니다",
-                    body = "여기까지는 기본 흐름이고요. 조금 더 들어가면 손님 고민을 중심으로 어디에서 막히고, 어느 시점에서 풀릴 수 있는지까지 한 겹 더 섬세하게 말씀드릴 수 있습니다.",
+                    body = "조금 더 들어가면 손님 고민을 중심으로 어디에서 막히고, 어떤 말과 행동부터 바꾸면 좋은지까지 한 겹 더 섬세하게 말씀드릴 수 있습니다.",
                     state = SuriSpeechSceneState.CLOSING
                 )
             )

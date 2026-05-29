@@ -11,6 +11,16 @@ import com.example.unum.data.model.PremiumTopic
 import com.example.unum.data.model.RecentSearch
 import com.example.unum.data.model.ReaderFontScale
 
+enum class PremiumFlowStep {
+    FORM,
+    LOADING,
+    VOICE_CHOICE,
+    HANOK_READING,
+    COVER,
+    TOC,
+    DETAIL
+}
+
 data class AppUiState(
     val formState: HomeFormState = HomeFormState(),
     val latestBundle: NumerologyResultBundle? = null,
@@ -18,6 +28,7 @@ data class AppUiState(
     val premiumMode: PremiumMode = PremiumMode.PERSONAL,
     val premiumTopic: PremiumTopic = PremiumTopic.ROMANCE,
     val premiumConcern: String = "",
+    val premiumFlowStep: PremiumFlowStep = PremiumFlowStep.FORM,
     val compatibilityForm: CompatibilityFormState = CompatibilityFormState(),
     val compatibilityConcern: String = "",
     val premiumResult: PremiumConsultation? = null,

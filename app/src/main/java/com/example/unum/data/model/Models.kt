@@ -5,7 +5,7 @@ enum class CalendarType { SOLAR, LUNAR }
 enum class GenderOption(val label: String) {
     MALE("남성"),
     FEMALE("여성"),
-    NONE("선택 안 함")
+    NONE("무관")
 }
 
 enum class DestinyPolarity(val label: String) {
@@ -22,10 +22,10 @@ enum class GenderResonance(val label: String) {
 
 data class HomeFormState(
     val calendarType: CalendarType = CalendarType.SOLAR,
-    val year: String = "",
-    val month: String = "",
-    val day: String = "",
-    val gender: GenderOption = GenderOption.NONE
+    val year: String = "1999",
+    val month: String = "3",
+    val day: String = "13",
+    val gender: GenderOption = GenderOption.MALE
 )
 
 data class BirthInput(

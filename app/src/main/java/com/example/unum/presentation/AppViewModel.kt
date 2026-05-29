@@ -23,11 +23,21 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Screen-facing orchestration for the app.
+ *
+ * One UiState is shared across bottom-tab screens so the free report, premium
+ * note creation, reader, and archive can hand context to each other. Heavy
+ * business rules stay in use cases; this class coordinates validation, loading
+ * flags, local persistence, and navigation-ready state.
+ */
 class AppViewModel : ViewModel() {
+    // Grouped here to make the eventual move from ServiceLocator to DI simple.
     private val repository = ServiceLocator.numerologyRepository
     private val buildNumerologyResultBundle = ServiceLocator.buildNumerologyResultBundleUseCase
     private val buildFortuneBook = ServiceLocator.buildFortuneBookUseCase
     private val buildSuriSpeechScript = ServiceLocator.buildSuriSpeechScriptUseCase
+    private val buildPremiumDummyConsultation = ServiceLocator.buildPremiumDummyConsultationUseCase
     private val generatePremiumConsultation = ServiceLocator.generatePremiumConsultationUseCase
     private val generateCompatibilityConsultation = ServiceLocator.generateCompatibilityConsultationUseCase
     private val premiumAccessGate = ServiceLocator.premiumAccessGate
@@ -40,6 +50,7 @@ class AppViewModel : ViewModel() {
         val books = sortBooks(fortuneBookStore.loadBooks())
         _uiState.update { it.copy(savedBooks = books, selectedBookId = books.firstOrNull()?.bookId) }
         observeRecentSearches()
+        calculateAndStore(isInitial = true)
     }
 
     private fun observeRecentSearches() {
@@ -49,6 +60,8 @@ class AppViewModel : ViewModel() {
             }
         }
     }
+
+    // Birth input and free report -------------------------------------------------
 
     fun setCalendarType(type: CalendarType) = updateForm { copy(calendarType = type) }
     fun updateYear(value: String) = updateForm { copy(year = value.filter(Char::isDigit).take(4)) }
@@ -157,6 +170,8 @@ class AppViewModel : ViewModel() {
         calculateAndStore(onSuccess = onSuccess)
     }
 
+    // Premium note input ---------------------------------------------------------
+
     fun selectPremiumTopic(topic: PremiumTopic) {
         _uiState.update { it.copy(premiumTopic = topic) }
     }
@@ -167,6 +182,14 @@ class AppViewModel : ViewModel() {
 
     fun updatePremiumConcern(value: String) {
         _uiState.update { it.copy(premiumConcern = value) }
+    }
+
+    fun setPremiumFlowStep(step: PremiumFlowStep) {
+        _uiState.update { it.copy(premiumFlowStep = step, inputError = null) }
+    }
+
+    fun resetPremiumFlow() {
+        _uiState.update { it.copy(premiumFlowStep = PremiumFlowStep.FORM, inputError = null) }
     }
 
     fun updateCompatibilityConcern(value: String) {
@@ -218,6 +241,8 @@ class AppViewModel : ViewModel() {
         }
     }
 
+    // Premium note generation ----------------------------------------------------
+
     fun runPremiumConsultation() {
         val bundle = _uiState.value.latestBundle ?: return
         if (!premiumAccessGate.canUsePremiumForTest()) {
@@ -236,12 +261,20 @@ class AppViewModel : ViewModel() {
                 )
             }
             runCatching {
-                generatePremiumConsultation(
-                    apiKey = BuildConfig.OPENAI_API_KEY,
-                    topic = current.premiumTopic,
-                    concern = current.premiumConcern,
-                    bundle = bundle
-                )
+                if (BuildConfig.OPENAI_API_KEY.isBlank()) {
+                    buildPremiumDummyConsultation(
+                        topic = current.premiumTopic,
+                        concern = current.premiumConcern,
+                        bundle = bundle
+                    )
+                } else {
+                    generatePremiumConsultation(
+                        apiKey = BuildConfig.OPENAI_API_KEY,
+                        topic = current.premiumTopic,
+                        concern = current.premiumConcern,
+                        bundle = bundle
+                    )
+                }
             }.onSuccess { consultation ->
                 val book = buildFortuneBook.buildPersonalBook(
                     consultation = consultation,
@@ -249,8 +282,7 @@ class AppViewModel : ViewModel() {
                     topic = current.premiumTopic,
                     concern = current.premiumConcern
                 )
-                val nextBooks = sortBooks(listOf(book) + _uiState.value.savedBooks)
-                fortuneBookStore.saveBooks(nextBooks)
+                val nextBooks = saveNewBook(book)
                 _uiState.update {
                     it.copy(
                         isPremiumLoading = false,
@@ -263,6 +295,7 @@ class AppViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         isPremiumLoading = false,
+                        premiumFlowStep = PremiumFlowStep.FORM,
                         inputError = error.message ?: "운세노트를 불러오지 못했습니다."
                     )
                 }
@@ -311,8 +344,7 @@ class AppViewModel : ViewModel() {
                     femaleBundle = femaleBundle,
                     concern = current.compatibilityConcern
                 )
-                val nextBooks = sortBooks(listOf(book) + _uiState.value.savedBooks)
-                fortuneBookStore.saveBooks(nextBooks)
+                val nextBooks = saveNewBook(book)
                 _uiState.update {
                     it.copy(
                         isPremiumLoading = false,
@@ -331,6 +363,8 @@ class AppViewModel : ViewModel() {
             }
         }
     }
+
+    // Archive and reader ---------------------------------------------------------
 
     fun selectSavedBook(book: FortuneBook) {
         val now = System.currentTimeMillis()
@@ -356,6 +390,8 @@ class AppViewModel : ViewModel() {
         fortuneBookStore.saveBooks(nextBooks)
         _uiState.update { it.copy(savedBooks = nextBooks) }
     }
+
+    // Speech scene ---------------------------------------------------------------
 
     fun buildCurrentPremiumSpeechScript(): SuriSpeechScript? {
         val current = _uiState.value
@@ -393,6 +429,12 @@ class AppViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    private fun saveNewBook(book: FortuneBook): List<FortuneBook> {
+        val nextBooks = sortBooks(listOf(book) + _uiState.value.savedBooks)
+        fortuneBookStore.saveBooks(nextBooks)
+        return nextBooks
     }
 
     private fun sortBooks(books: List<FortuneBook>): List<FortuneBook> {

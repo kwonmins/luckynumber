@@ -1,7 +1,6 @@
 package com.example.unum.navigation
 
 import android.app.Activity
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,10 +15,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.compose.material3.Scaffold
-import com.example.unum.ads.AdMobBanner
 import com.example.unum.ads.InterstitialAdManager
 import com.example.unum.ads.RewardedAdManager
 import com.example.unum.presentation.AppViewModel
+import com.example.unum.presentation.ActionPlanScreen
+import com.example.unum.presentation.FlowReportScreen
 import com.example.unum.presentation.HomeScreen
 import com.example.unum.presentation.InputScreen
 import com.example.unum.presentation.LibraryScreen
@@ -34,6 +34,8 @@ sealed class AppRoute(val route: String) {
     data object Home : AppRoute("home")
     data object Input : AppRoute("input")
     data object Fortune : AppRoute("fortune")
+    data object FlowReport : AppRoute("flow")
+    data object ActionPlan : AppRoute("action")
     data object Premium : AppRoute("premium")
     data object Library : AppRoute("library")
     data object Settings : AppRoute("settings")
@@ -58,15 +60,23 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
         rewardedAdManager?.load()
     }
 
+    val bottomNavRoute = when {
+        currentRoute.startsWith("reader/") -> AppRoute.Library.route
+        currentRoute == AppRoute.FlowReport.route -> AppRoute.Fortune.route
+        currentRoute == AppRoute.ActionPlan.route -> AppRoute.Fortune.route
+        else -> currentRoute
+    }
+    val showBottomNav = !currentRoute.startsWith("reader/") && bottomNavRoute in setOf(
+        AppRoute.Home.route,
+        AppRoute.Fortune.route,
+        AppRoute.Library.route
+    )
+
     Scaffold(
         bottomBar = {
-            Column {
-                AdMobBanner()
+            if (showBottomNav) {
                 BottomNavBar(
-                    currentRoute = when {
-                        currentRoute.startsWith("reader/") -> AppRoute.Library.route
-                        else -> currentRoute
-                    },
+                    currentRoute = bottomNavRoute,
                     onNavigate = { route ->
                         navController.navigate(route) {
                             popUpTo(navController.graph.startDestinationId) { saveState = true }
@@ -100,11 +110,24 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                         interstitialAdManager?.showOrContinue {
                             navController.navigate(AppRoute.Fortune.route)
                         } ?: navController.navigate(AppRoute.Fortune.route)
-                    }
+                    },
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(AppRoute.Fortune.route) {
                 ResultScreen(
+                    viewModel = viewModel,
+                    onOpenFlow = { navController.navigate(AppRoute.FlowReport.route) }
+                )
+            }
+            composable(AppRoute.FlowReport.route) {
+                FlowReportScreen(
+                    viewModel = viewModel,
+                    onOpenActionPlan = { navController.navigate(AppRoute.ActionPlan.route) }
+                )
+            }
+            composable(AppRoute.ActionPlan.route) {
+                ActionPlanScreen(
                     viewModel = viewModel,
                     onOpenPremium = { navController.navigate(AppRoute.Premium.route) }
                 )
@@ -122,7 +145,8 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                     },
                     onOpenBook = { book ->
                         navController.navigateToBook(viewModel, book)
-                    }
+                    },
+                    onOpenLibrary = { navController.navigate(AppRoute.Library.route) }
                 )
             }
             composable(AppRoute.Library.route) {

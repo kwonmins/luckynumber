@@ -1,7 +1,6 @@
 package com.example.unum.ui.components
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,11 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.unum.R
@@ -49,10 +46,8 @@ import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.GenderOption
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Background
-import com.example.unum.ui.theme.BackgroundAlt
 import com.example.unum.ui.theme.Blue
 import com.example.unum.ui.theme.Border
-import com.example.unum.ui.theme.BorderStrong
 import com.example.unum.ui.theme.Gold
 import com.example.unum.ui.theme.Mint
 import com.example.unum.ui.theme.Overlay
@@ -83,9 +78,10 @@ fun SurfaceCard(
 ) {
     Box(
         modifier = modifier
+            .shadow(2.dp, RoundedCornerShape(8.dp), clip = false)
             .clip(RoundedCornerShape(8.dp))
             .background(tonalColor)
-            .border(1.dp, borderColor.copy(alpha = 0.88f), RoundedCornerShape(8.dp))
+            .border(1.dp, borderColor.copy(alpha = 0.96f), RoundedCornerShape(8.dp))
             .padding(contentPadding.dp)
     ) {
         content()
@@ -97,14 +93,14 @@ fun AppHeader(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    eyebrow: String = "수리노트"
+    eyebrow: String = "수리의 운세노트"
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(999.dp))
                 .background(Accent.copy(alpha = 0.08f))
-                .border(1.dp, Accent.copy(alpha = 0.12f), RoundedCornerShape(999.dp))
+                .border(1.dp, Accent.copy(alpha = 0.16f), RoundedCornerShape(999.dp))
                 .padding(horizontal = 11.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(7.dp)
@@ -195,13 +191,13 @@ private fun RowScope.TogglePill(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(if (selected) Surface else Surface2)
+            .background(if (selected) Accent else Surface)
             .border(1.dp, if (selected) Accent else Border, RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = if (selected) TextPrimary else TextSecondary, style = MaterialTheme.typography.labelLarge)
+        Text(text, color = if (selected) Color.White else TextSecondary, style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -241,7 +237,7 @@ private fun DateField(
             focusedContainerColor = Surface,
             unfocusedContainerColor = Surface,
             focusedBorderColor = Accent,
-            unfocusedBorderColor = BorderStrong,
+            unfocusedBorderColor = Border,
             cursorColor = Accent,
             focusedTextColor = TextPrimary,
             unfocusedTextColor = TextPrimary
@@ -259,13 +255,13 @@ fun GenderSelector(selected: GenderOption, onSelected: (GenderOption) -> Unit, m
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(if (selected == option) Surface else Surface2)
+                        .background(if (selected == option) Accent.copy(alpha = 0.08f) else Surface)
                         .border(1.dp, if (selected == option) Accent else Border, RoundedCornerShape(8.dp))
                         .clickable { onSelected(option) }
                         .padding(vertical = 12.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(option.label, color = if (selected == option) TextPrimary else TextSecondary, style = MaterialTheme.typography.labelLarge)
+                    Text(option.label, color = if (selected == option) Accent else TextSecondary, style = MaterialTheme.typography.labelLarge)
                 }
             }
         }
@@ -296,8 +292,8 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(Surface2)
-            .border(1.dp, BorderStrong, RoundedCornerShape(8.dp))
+            .background(Surface)
+            .border(1.dp, Border, RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 15.dp),
         contentAlignment = Alignment.Center
@@ -312,7 +308,7 @@ val bottomNavItems = listOf(
     BottomNavItem("home", "홈", Icons.Rounded.Home),
     BottomNavItem("input", "입력", Icons.Rounded.EditCalendar),
     BottomNavItem("fortune", "결과", Icons.Rounded.Insights),
-    BottomNavItem("premium", "상담", Icons.Rounded.AutoStories),
+    BottomNavItem("premium", "책자", Icons.Rounded.AutoStories),
     BottomNavItem("library", "기록", Icons.Rounded.Bookmarks)
 )
 
@@ -334,20 +330,20 @@ fun BottomNavBar(currentRoute: String, onNavigate: (String) -> Unit, modifier: M
                     Icon(
                         item.icon,
                         item.label,
-                        tint = if (selected) TextPrimary else TextMuted
+                        tint = if (selected) Accent else TextMuted
                     )
                 },
                 label = {
                     Text(
                         item.label,
-                        color = if (selected) TextPrimary else TextMuted,
+                        color = if (selected) Accent else TextMuted,
                         style = MaterialTheme.typography.bodySmall
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = TextPrimary,
-                    selectedTextColor = TextPrimary,
-                    indicatorColor = Accent.copy(alpha = 0.10f),
+                    selectedIconColor = Accent,
+                    selectedTextColor = Accent,
+                    indicatorColor = Accent.copy(alpha = 0.08f),
                     unselectedIconColor = TextMuted,
                     unselectedTextColor = TextMuted
                 )
