@@ -2,6 +2,9 @@
 
 import com.example.unum.data.model.BirthInput
 import com.example.unum.data.model.CalendarType
+import com.example.unum.data.model.ConsultationAnswerCard
+import com.example.unum.data.model.ConsultationPage
+import com.example.unum.data.model.ConsultationTocItem
 import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.data.model.PremiumConsultation
 import com.example.unum.data.model.PremiumTopic
@@ -9,6 +12,7 @@ import com.example.unum.domain.NumerologyCalculator
 import com.example.unum.domain.service.OpenAiChatClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 
 class GeneratePremiumConsultationUseCase(
@@ -32,6 +36,10 @@ class GeneratePremiumConsultationUseCase(
     }
 
     private fun buildPrompt(topic: PremiumTopic, concern: String, bundle: NumerologyResultBundle): String {
+        if (topic == PremiumTopic.ROMANCE) {
+            return buildRomanceSalonPrompt(topic, concern, bundle)
+        }
+
         val input = bundle.input
         val displayInput = bundle.displayInput
         val numbers = bundle.numbers
@@ -133,6 +141,117 @@ class GeneratePremiumConsultationUseCase(
         """.trimIndent()
     }
 
+    private fun buildRomanceSalonPrompt(topic: PremiumTopic, concern: String, bundle: NumerologyResultBundle): String {
+        val input = bundle.input
+        val displayInput = bundle.displayInput
+        val numbers = bundle.numbers
+        val destiny = bundle.content.destinyProfile
+        val concernText = concern.ifBlank { "요즘 연애에서 어떤 흐름이 열릴지 알고 싶습니다." }
+        val traitBrief = buildTraitBrief(destiny.title, destiny.coreKeywords, destiny.cautionKeywords)
+        val cautionKeywords = destiny.cautionKeywords.take(3).joinToString(", ").ifBlank { "조급함, 과한 확인, 혼자 결론 내리기" }
+        val createdYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+        val currentMonth = PremiumMonthPlanner.currentMonth()
+        val bestMonth = PremiumMonthPlanner.pickBestMonth(topic, bundle.numbers, currentMonth).toDisplayText()
+        val riskyMonth = PremiumMonthPlanner.pickRiskyMonth(topic, bundle.numbers, currentMonth).toDisplayText()
+
+        return """
+            당신은 한국어 수리학 기반 프리미엄 상담 콘텐츠 작가입니다.
+            사용자의 생년월일, 운명수, 고민 내용을 바탕으로 모바일에서 읽기 쉬운 “상담소형 결과 페이지”를 작성하세요.
+
+            [작성 목표]
+            - 긴 리포트가 아니라, 짧은 상담 페이지 묶음으로 작성합니다.
+            - 한 페이지에는 하나의 메시지만 담습니다.
+            - 각 페이지는 핵심 문장 1개와 짧은 문단 2~3개로 제한합니다.
+            - 숫자는 점수처럼 쓰지 말고, 기질과 흐름의 상징으로만 해석합니다.
+            - “좋다/나쁘다” 식의 단정 대신 “이런 흐름이 강하다”, “이런 선택을 조심하라”로 말합니다.
+            - 사주, 타로, 괘, 점괘라는 단어는 쓰지 않습니다.
+            - 사용자를 선생님이라고 부르지 않습니다.
+            - 말투는 따뜻하지만 약간 상담소처럼 콕 짚는 존댓말입니다.
+            - 불안을 부추기는 저주식 표현은 피하되, 방치하면 관계가 꼬이거나 기회를 놓칠 수 있다는 현실적 경고는 분명히 씁니다.
+            - 무료 결과에서 이미 말한 성향 설명을 반복하지 않습니다.
+
+            [입력 정보]
+            - 상담 종류: 연애
+            - 고민 내용: $concernText
+            - 상담 생성 연도: $createdYear
+            - 상담 생성 시점: 올해 ${currentMonth}월 기준
+            - 생년월일: ${displayInput.year}.${displayInput.month}.${displayInput.day}
+            - 달력 구분: ${if (displayInput.calendarType == CalendarType.LUNAR) "음력" else "양력"}
+            - 성별 선택: ${displayInput.gender.label}
+            - 운명수: ${numbers.destiny}
+            - 보조 숫자: ${numbers.early}, ${numbers.middle}, ${numbers.late}, ${numbers.code}
+            - 내부 계산 기준 생년월일: ${input.year}.${input.month}.${input.day}
+            - 성향 요약: $traitBrief
+            - 주의 키워드: $cautionKeywords
+            - 추천 흐름 월: $bestMonth
+            - 조심할 흐름 월: $riskyMonth
+
+            [연애 결과 페이지 구성]
+            1. cover
+               - title: “${createdYear} 수리 연애 상담소”
+               - subtitle: “지금 마음의 흐름을 숫자로 읽어볼게요.”
+
+            2. answer
+               - question: 사용자의 고민을 자연스럽게 질문형으로 재작성
+               - shortAnswer: 한 문장 결론
+               - body: 짧은 설명 2문단
+
+            3. timing
+               - ribbon: “언제 움직일까”
+               - title: “인연이 열리는 시기”
+               - highlight: 가장 중요한 한 문장
+               - body: 추천 흐름 월, 조심할 흐름 월, 행동 타이밍을 2~3문단으로 설명
+
+            4. person
+               - ribbon: “어떤 사람일까”
+               - title: “끌리는 사람의 결”
+               - highlight: 만날 가능성이 큰 사람의 분위기 한 문장
+               - body: 성격, 만나는 장소/상황, 알아보는 신호를 설명
+
+            5. caution
+               - ribbon: “주의사항”
+               - title: “관계를 망치는 습관”
+               - highlight: 반드시 조심해야 할 한 문장
+               - body: 조급함, 과한 확인, 혼자 결론 내리기 등 실제 장면 중심
+
+            6. action
+               - ribbon: “오늘의 처방”
+               - title: “지금 바로 할 일”
+               - highlight: 오늘의 한 줄 조언
+               - body: 오늘, 이번 주, 이번 달 행동 3개를 짧게 제안
+
+            [출력 형식]
+            반드시 JSON만 반환하세요. 코드블록이나 설명 문장은 붙이지 마세요.
+
+            {
+              "coverTitle": "",
+              "coverSubtitle": "",
+              "answerCard": {
+                "question": "",
+                "shortAnswer": "",
+                "body": ["", ""]
+              },
+              "toc": [
+                { "id": "timing", "title": "" },
+                { "id": "person", "title": "" },
+                { "id": "caution", "title": "" },
+                { "id": "action", "title": "" }
+              ],
+              "pages": [
+                {
+                  "id": "",
+                  "ribbon": "",
+                  "title": "",
+                  "highlight": "",
+                  "body": ["", "", ""],
+                  "copyText": ""
+                }
+              ],
+              "closingAdvice": ""
+            }
+        """.trimIndent()
+    }
+
     private fun buildTraitBrief(
         title: String,
         coreKeywords: List<String>,
@@ -165,6 +284,33 @@ class GeneratePremiumConsultationUseCase(
             .substringBeforeLast("}", rawContent)
             .let { "{$it}" }
         val json = JSONObject(jsonText)
+        if (json.has("pages") || json.has("answerCard")) {
+            val answerCard = parseAnswerCard(json.optJSONObject("answerCard"))
+            val pages = parsePages(json.optJSONArray("pages"))
+            val toc = parseToc(json.optJSONArray("toc"))
+            val cautionPage = pages.firstOrNull { it.id == "caution" }
+            val actionPage = pages.firstOrNull { it.id == "action" }
+            val timingPage = pages.firstOrNull { it.id == "timing" }
+            val personPage = pages.firstOrNull { it.id == "person" }
+            val closingAdvice = json.optString("closingAdvice")
+            val parsed = PremiumConsultation(
+                core = answerCard.shortAnswer.ifBlank { answerCard.body.firstOrNull().orEmpty() },
+                interpretation = listOf(timingPage, personPage)
+                    .filterNotNull()
+                    .flatMap { it.body }
+                    .joinToString("\n\n"),
+                caution = cautionPage?.body?.joinToString("\n\n").orEmpty(),
+                direction = actionPage?.body?.joinToString("\n\n").orEmpty(),
+                oneLineAdvice = closingAdvice.ifBlank { actionPage?.highlight.orEmpty() },
+                coverTitle = json.optString("coverTitle"),
+                coverSubtitle = json.optString("coverSubtitle"),
+                answerCard = answerCard,
+                toc = toc,
+                pages = pages,
+                closingAdvice = closingAdvice
+            )
+            return normalizeMonthInsights(parsed, topic, bundle)
+        }
         val parsed = PremiumConsultation(
             core = json.optString("core"),
             interpretation = json.optString("interpretation"),
@@ -177,6 +323,58 @@ class GeneratePremiumConsultationUseCase(
             riskyMonthReason = json.optString("riskyMonthReason")
         )
         return normalizeMonthInsights(parsed, topic, bundle)
+    }
+
+    private fun parseAnswerCard(json: JSONObject?): ConsultationAnswerCard {
+        if (json == null) return ConsultationAnswerCard()
+        return ConsultationAnswerCard(
+            question = json.optString("question"),
+            shortAnswer = json.optString("shortAnswer"),
+            body = json.optJSONArray("body").toStringList()
+        )
+    }
+
+    private fun parseToc(array: JSONArray?): List<ConsultationTocItem> {
+        if (array == null) return emptyList()
+        return buildList {
+            for (index in 0 until array.length()) {
+                val item = array.optJSONObject(index) ?: continue
+                add(
+                    ConsultationTocItem(
+                        id = item.optString("id"),
+                        title = item.optString("title")
+                    )
+                )
+            }
+        }
+    }
+
+    private fun parsePages(array: JSONArray?): List<ConsultationPage> {
+        if (array == null) return emptyList()
+        return buildList {
+            for (index in 0 until array.length()) {
+                val item = array.optJSONObject(index) ?: continue
+                add(
+                    ConsultationPage(
+                        id = item.optString("id"),
+                        ribbon = item.optString("ribbon"),
+                        title = item.optString("title"),
+                        highlight = item.optString("highlight"),
+                        body = item.optJSONArray("body").toStringList(),
+                        copyText = item.optString("copyText")
+                    )
+                )
+            }
+        }
+    }
+
+    private fun JSONArray?.toStringList(): List<String> {
+        if (this == null) return emptyList()
+        return buildList {
+            for (index in 0 until length()) {
+                optString(index).takeIf { it.isNotBlank() }?.let(::add)
+            }
+        }
     }
 
     private fun normalizeMonthInsights(

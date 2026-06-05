@@ -297,6 +297,7 @@ class AppViewModel : ViewModel() {
             _uiState.update {
                 it.copy(
                     isPremiumLoading = true,
+                    premiumFlowStep = PremiumFlowStep.LOADING,
                     inputError = null,
                     premiumResult = null,
                     compatibilityResult = null
@@ -364,6 +365,7 @@ class AppViewModel : ViewModel() {
             _uiState.update {
                 it.copy(
                     isPremiumLoading = true,
+                    premiumFlowStep = PremiumFlowStep.LOADING,
                     inputError = null,
                     premiumResult = null,
                     compatibilityResult = null
@@ -399,6 +401,7 @@ class AppViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         isPremiumLoading = false,
+                        premiumFlowStep = PremiumFlowStep.FORM,
                         inputError = error.message ?: "궁합노트를 불러오지 못했습니다."
                     )
                 }

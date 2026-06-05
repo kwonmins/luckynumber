@@ -128,7 +128,13 @@ data class PremiumConsultation(
     val bestMonth: String = "",
     val bestMonthReason: String = "",
     val riskyMonth: String = "",
-    val riskyMonthReason: String = ""
+    val riskyMonthReason: String = "",
+    val coverTitle: String = "",
+    val coverSubtitle: String = "",
+    val answerCard: ConsultationAnswerCard = ConsultationAnswerCard(),
+    val toc: List<ConsultationTocItem> = emptyList(),
+    val pages: List<ConsultationPage> = emptyList(),
+    val closingAdvice: String = ""
 )
 
 data class CompatibilityConsultation(
@@ -139,7 +145,33 @@ data class CompatibilityConsultation(
     val friction: String,
     val homeTone: String,
     val longTermTip: String,
-    val oneLineSummary: String
+    val oneLineSummary: String,
+    val coverTitle: String = "",
+    val coverSubtitle: String = "",
+    val answerCard: ConsultationAnswerCard = ConsultationAnswerCard(),
+    val toc: List<ConsultationTocItem> = emptyList(),
+    val pages: List<ConsultationPage> = emptyList(),
+    val closingAdvice: String = ""
+)
+
+data class ConsultationAnswerCard(
+    val question: String = "",
+    val shortAnswer: String = "",
+    val body: List<String> = emptyList()
+)
+
+data class ConsultationTocItem(
+    val id: String = "",
+    val title: String = ""
+)
+
+data class ConsultationPage(
+    val id: String = "",
+    val ribbon: String = "",
+    val title: String = "",
+    val highlight: String = "",
+    val body: List<String> = emptyList(),
+    val copyText: String = ""
 )
 
 enum class FortuneBookType(val label: String) {

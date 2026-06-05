@@ -5,6 +5,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -34,6 +35,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -72,13 +76,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.data.model.FortuneBookType
+import com.example.unum.data.model.PremiumMode
 import com.example.unum.data.model.PremiumTopic
+import com.example.unum.ui.components.DateInputRow
 import com.example.unum.ui.components.GradientButton
 import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.components.SecondaryButton
 import com.example.unum.ui.components.SurfaceCard
+import com.example.unum.ui.components.ToggleSegment
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.BookLine
 import com.example.unum.ui.theme.BookPaper
@@ -103,9 +111,18 @@ fun PremiumScreen(
     onOpenLibrary: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val activeBookType = if (uiState.premiumMode == PremiumMode.COMPATIBILITY) {
+        FortuneBookType.COMPATIBILITY
+    } else {
+        FortuneBookType.PERSONAL
+    }
     val currentBook = uiState.savedBooks.firstOrNull {
-        it.bookId == uiState.selectedBookId && it.bookType == FortuneBookType.PERSONAL
-    } ?: uiState.savedBooks.firstOrNull { it.bookType == FortuneBookType.PERSONAL }
+        it.bookId == uiState.selectedBookId && it.bookType == activeBookType
+    } ?: uiState.savedBooks.firstOrNull { it.bookType == activeBookType }
+    val hasGeneratedBook = when (uiState.premiumMode) {
+        PremiumMode.PERSONAL -> uiState.premiumResult != null && currentBook != null
+        PremiumMode.COMPATIBILITY -> uiState.compatibilityResult != null && currentBook != null
+    }
     val bookSteps = remember { setOf(PremiumFlowStep.COVER, PremiumFlowStep.TOC, PremiumFlowStep.DETAIL) }
     val flipRotation = remember { Animatable(0f) }
     var previousBookStep by remember { mutableStateOf(uiState.premiumFlowStep) }
@@ -160,7 +177,10 @@ fun PremiumScreen(
                     uiState = uiState,
                     viewModel = viewModel,
                     onStart = {
-                        viewModel.preparePremiumQuestionConfirmation()
+                        when (uiState.premiumMode) {
+                            PremiumMode.PERSONAL -> viewModel.preparePremiumQuestionConfirmation()
+                            PremiumMode.COMPATIBILITY -> onRequestCompatibilityConsultation()
+                        }
                     }
                 )
             }
@@ -176,7 +196,8 @@ fun PremiumScreen(
             )
             PremiumFlowStep.LOADING -> PremiumLoadingScreen(
                 isLoading = uiState.isPremiumLoading,
-                hasBook = uiState.premiumResult != null && currentBook != null,
+                hasBook = hasGeneratedBook,
+                mode = uiState.premiumMode,
                 onDone = openCurrentBook
             )
             PremiumFlowStep.VOICE_CHOICE -> VoiceChoiceScreen(
@@ -204,7 +225,11 @@ fun PremiumScreen(
             )
             PremiumFlowStep.DETAIL -> BookDetailScreen(
                 book = currentBook,
-                concern = uiState.premiumEssentialQuestion.ifBlank { uiState.premiumConcern },
+                concern = if (uiState.premiumMode == PremiumMode.COMPATIBILITY) {
+                    uiState.compatibilityConcern
+                } else {
+                    uiState.premiumEssentialQuestion.ifBlank { uiState.premiumConcern }
+                },
                 onBack = { viewModel.setPremiumFlowStep(PremiumFlowStep.TOC) },
                 onArchive = { currentBook?.let(onOpenBook) ?: onOpenLibrary() },
                 flipModifier = flipModifier
@@ -219,17 +244,47 @@ private fun PremiumFormScreen(
     viewModel: AppViewModel,
     onStart: () -> Unit
 ) {
+    val isCompatibility = uiState.premiumMode == PremiumMode.COMPATIBILITY
+    val male = uiState.compatibilityForm.male
+    val female = uiState.compatibilityForm.female
+    val compatibilityReady = male.year.length == 4 &&
+        male.month.isNotBlank() &&
+        male.day.isNotBlank() &&
+        female.year.length == 4 &&
+        female.month.isNotBlank() &&
+        female.day.isNotBlank()
+    val canStart = if (isCompatibility) compatibilityReady else uiState.latestBundle != null
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.spacedBy(15.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(15.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("1:1 고민 상담 책자 신청", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
-                Icon(Icons.Rounded.AutoStories, contentDescription = null, tint = TextMuted)
-            }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                if (isCompatibility) "프리미엄 궁합노트 신청" else "프리미엄 운세노트 신청",
+                color = TextPrimary,
+                style = MaterialTheme.typography.titleLarge
+            )
+            Icon(Icons.Rounded.AutoStories, contentDescription = null, tint = TextMuted)
+        }
+        PremiumModeSelector(
+            selected = uiState.premiumMode,
+            onSelected = viewModel::setPremiumMode
+        )
+
+        if (isCompatibility) {
+            CompatibilityGreetingCard()
+            CompatibilityFormSection(uiState = uiState, viewModel = viewModel)
+            Text("두 사람 관계 질문", color = TextMuted, style = MaterialTheme.typography.labelLarge)
+            PremiumConcernField(
+                value = uiState.compatibilityConcern,
+                onValueChange = viewModel::updateCompatibilityConcern,
+                placeholder = "두 사람이 왜 끌리는지, 자주 부딪히는 지점, 앞으로의 가능성처럼 궁금한 관계 질문을 적어주세요."
+            )
+        } else {
             SuriGreetingCard()
             Text("고민 분야 선택", color = TextMuted, style = MaterialTheme.typography.labelLarge)
             TopicGrid(selected = uiState.premiumTopic, onSelected = viewModel::selectPremiumTopic)
@@ -245,14 +300,166 @@ private fun PremiumFormScreen(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            uiState.inputError?.let { Text(it, color = Rose, style = MaterialTheme.typography.bodySmall) }
         }
+        uiState.inputError?.let { Text(it, color = Rose, style = MaterialTheme.typography.bodySmall) }
         GradientButton(
-            text = "프리미엄 맞춤 비책 제책하기",
+            text = if (isCompatibility) "두 사람 궁합노트 제책하기" else "프리미엄 맞춤 비책 제책하기",
             onClick = onStart,
             modifier = Modifier.fillMaxWidth(),
-            enabled = uiState.latestBundle != null
+            enabled = canStart
         )
+        Spacer(Modifier.height(76.dp))
+    }
+}
+
+@Composable
+private fun PremiumModeSelector(selected: PremiumMode, onSelected: (PremiumMode) -> Unit) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface2, borderColor = Border, contentPadding = 4) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PremiumModePill(
+                title = "운세노트",
+                body = "내 생년월일과 고민으로 제책",
+                selected = selected == PremiumMode.PERSONAL,
+                modifier = Modifier.weight(1f),
+                onClick = { onSelected(PremiumMode.PERSONAL) }
+            )
+            PremiumModePill(
+                title = "궁합노트",
+                body = "두 사람의 숫자 흐름 비교",
+                selected = selected == PremiumMode.COMPATIBILITY,
+                modifier = Modifier.weight(1f),
+                onClick = { onSelected(PremiumMode.COMPATIBILITY) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun PremiumModePill(
+    title: String,
+    body: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1.02f else 1f,
+        animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing),
+        label = "premiumModeScale"
+    )
+    Column(
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (selected) Accent.copy(alpha = 0.16f) else Surface)
+            .border(1.dp, if (selected) Accent.copy(alpha = 0.74f) else Border, RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 11.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(title, color = if (selected) Accent else TextPrimary, style = MaterialTheme.typography.labelLarge)
+        Text(body, color = TextMuted, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun CompatibilityGreetingCard() {
+    SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface, borderColor = Border, contentPadding = 16) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(Rose.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("合", color = Rose, style = MaterialTheme.typography.titleMedium)
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
+                Text("두 사람의 숫자 결을 함께 읽어볼게요.", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
+                Text("각자의 기본 기운을 따로 본 뒤, 둘 사이에 만들어지는 궁합수와 생활 흐름을 책자로 정리합니다.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompatibilityFormSection(uiState: AppUiState, viewModel: AppViewModel) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        PartnerBirthInputCard(
+            title = "남자 생년월일",
+            subtitle = "첫 번째 사람의 기본 숫자",
+            calendarType = uiState.compatibilityForm.male.calendarType,
+            year = uiState.compatibilityForm.male.year,
+            month = uiState.compatibilityForm.male.month,
+            day = uiState.compatibilityForm.male.day,
+            onCalendarSelected = viewModel::setCompatibilityMaleCalendarType,
+            onYearChange = viewModel::updateCompatibilityMaleYear,
+            onMonthChange = viewModel::updateCompatibilityMaleMonth,
+            onDayChange = viewModel::updateCompatibilityMaleDay,
+            accentColor = Accent
+        )
+        PartnerBirthInputCard(
+            title = "여자 생년월일",
+            subtitle = "두 번째 사람의 기본 숫자",
+            calendarType = uiState.compatibilityForm.female.calendarType,
+            year = uiState.compatibilityForm.female.year,
+            month = uiState.compatibilityForm.female.month,
+            day = uiState.compatibilityForm.female.day,
+            onCalendarSelected = viewModel::setCompatibilityFemaleCalendarType,
+            onYearChange = viewModel::updateCompatibilityFemaleYear,
+            onMonthChange = viewModel::updateCompatibilityFemaleMonth,
+            onDayChange = viewModel::updateCompatibilityFemaleDay,
+            accentColor = Rose
+        )
+    }
+}
+
+@Composable
+private fun PartnerBirthInputCard(
+    title: String,
+    subtitle: String,
+    calendarType: CalendarType,
+    year: String,
+    month: String,
+    day: String,
+    onCalendarSelected: (CalendarType) -> Unit,
+    onYearChange: (String) -> Unit,
+    onMonthChange: (String) -> Unit,
+    onDayChange: (String) -> Unit,
+    accentColor: Color
+) {
+    SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface, borderColor = Border, contentPadding = 14) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(title, color = TextPrimary, style = MaterialTheme.typography.labelLarge)
+                    Text(subtitle, color = TextMuted, style = MaterialTheme.typography.bodySmall)
+                }
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(accentColor.copy(alpha = 0.13f))
+                        .border(1.dp, accentColor.copy(alpha = 0.34f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(if (accentColor == Rose) "2" else "1", color = accentColor, style = MaterialTheme.typography.labelMedium)
+                }
+            }
+            ToggleSegment(selected = calendarType, onSelected = onCalendarSelected)
+            DateInputRow(
+                year = year,
+                month = month,
+                day = day,
+                onYearChange = onYearChange,
+                onMonthChange = onMonthChange,
+                onDayChange = onDayChange
+            )
+        }
     }
 }
 
@@ -279,32 +486,88 @@ private fun SuriGreetingCard() {
 
 @Composable
 private fun TopicGrid(selected: PremiumTopic, onSelected: (PremiumTopic) -> Unit) {
-    val topics = listOf(PremiumTopic.ROMANCE, PremiumTopic.CAREER, PremiumTopic.MONEY, PremiumTopic.RELATIONSHIP)
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        topics.chunked(2).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                row.forEach { topic ->
-                    val isSelected = selected == topic
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (isSelected) Accent.copy(alpha = 0.08f) else Surface)
-                            .border(1.dp, if (isSelected) Accent else Border, RoundedCornerShape(8.dp))
-                            .clickable { onSelected(topic) }
-                            .padding(vertical = 13.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(topic.bookLabel(), color = if (isSelected) Accent else TextSecondary, style = MaterialTheme.typography.labelLarge)
-                    }
-                }
-            }
+    val topics = PremiumTopic.entries
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        items(topics) { topic ->
+            MagneticTopicCard(
+                topic = topic,
+                selected = selected == topic,
+                onClick = { onSelected(topic) }
+            )
         }
     }
 }
 
 @Composable
-private fun PremiumConcernField(value: String, onValueChange: (String) -> Unit) {
+private fun MagneticTopicCard(topic: PremiumTopic, selected: Boolean, onClick: () -> Unit) {
+    val lift by animateFloatAsState(
+        targetValue = if (selected) -10f else 0f,
+        animationSpec = tween(durationMillis = 360, easing = FastOutSlowInEasing),
+        label = "topicLift"
+    )
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1.06f else 0.96f,
+        animationSpec = tween(durationMillis = 360, easing = FastOutSlowInEasing),
+        label = "topicScale"
+    )
+    val glow by animateFloatAsState(
+        targetValue = if (selected) 0.38f else 0.08f,
+        animationSpec = tween(durationMillis = 360),
+        label = "topicGlow"
+    )
+    Box(
+        modifier = Modifier
+            .width(128.dp)
+            .height(82.dp)
+            .graphicsLayer {
+                translationY = lift
+                scaleX = scale
+                scaleY = scale
+            }
+            .shadow(if (selected) 14.dp else 3.dp, RoundedCornerShape(16.dp), clip = false)
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                Brush.verticalGradient(
+                    if (selected) {
+                        listOf(Accent.copy(alpha = 0.24f), Surface.copy(alpha = 0.94f))
+                    } else {
+                        listOf(Surface2.copy(alpha = 0.86f), Surface.copy(alpha = 0.94f))
+                    }
+                )
+            )
+            .border(1.dp, if (selected) Accent.copy(alpha = 0.72f) else Border, RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            drawCircle(
+                color = Accent.copy(alpha = glow),
+                radius = size.minDimension * 0.42f,
+                center = Offset(size.width * 0.86f, size.height * 0.18f)
+            )
+            drawCircle(
+                color = Gold.copy(alpha = glow * 0.55f),
+                radius = size.minDimension * 0.28f,
+                center = Offset(size.width * 0.12f, size.height * 0.84f)
+            )
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(topic.bookLabel(), color = if (selected) Accent else TextSecondary, style = MaterialTheme.typography.labelLarge)
+            Text(if (selected) "끌림 활성" else "밀어서 선택", color = TextMuted, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+private fun PremiumConcernField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String = "해답을 찾고 싶은 상세한 사연이나 사건을 자유롭게 적어주세요."
+) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -313,7 +576,7 @@ private fun PremiumConcernField(value: String, onValueChange: (String) -> Unit) 
             .height(132.dp),
         textStyle = MaterialTheme.typography.bodyMedium.copy(color = TextPrimary),
         placeholder = {
-            Text("해답을 찾고 싶은 상세한 사연이나 사건을 자유롭게 적어주세요.", color = TextMuted, style = MaterialTheme.typography.bodySmall)
+            Text(placeholder, color = TextMuted, style = MaterialTheme.typography.bodySmall)
         },
         shape = RoundedCornerShape(8.dp),
         colors = OutlinedTextFieldDefaults.colors(
@@ -387,7 +650,37 @@ private fun QuestionConfirmScreen(
 }
 
 @Composable
-private fun PremiumLoadingScreen(isLoading: Boolean, hasBook: Boolean, onDone: () -> Unit) {
+private fun PremiumLoadingScreen(
+    isLoading: Boolean,
+    hasBook: Boolean,
+    mode: PremiumMode,
+    onDone: () -> Unit
+) {
+    val stages = remember(mode) {
+        if (mode == PremiumMode.COMPATIBILITY) {
+            listOf(
+                "두 사람의 숫자를 비교 중",
+                "궁합수를 계산하는 중",
+                "프리미엄 궁합노트 제본 중"
+            )
+        } else {
+            listOf(
+                "수리가 숫자를 해석 중",
+                "고민의 질문을 정리 중",
+                "프리미엄 책자 제본 중"
+            )
+        }
+    }
+    var stageIndex by remember { mutableStateOf(0) }
+    LaunchedEffect(isLoading) {
+        while (isLoading) {
+            delay(1_050)
+            stageIndex = (stageIndex + 1) % stages.size
+        }
+        if (!isLoading && hasBook) {
+            stageIndex = stages.lastIndex
+        }
+    }
     LaunchedEffect(isLoading, hasBook) {
         if (!isLoading && hasBook) {
             delay(2_500)
@@ -405,13 +698,36 @@ private fun PremiumLoadingScreen(isLoading: Boolean, hasBook: Boolean, onDone: (
             Spacer(Modifier.height(12.dp))
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 PaperStackAnimation()
+                ConsultingStageTicker(
+                    stage = stages[stageIndex],
+                    labels = stages,
+                    caption = if (!isLoading && hasBook) {
+                        "책자 준비가 끝났어요. 표지를 여는 중입니다."
+                    } else if (mode == PremiumMode.COMPATIBILITY) {
+                        "남자와 여자 각각의 흐름을 관계 문장과 책자 구조로 엮고 있어요."
+                    } else {
+                        "입력한 흐름을 상담 문장과 책자 구조로 엮고 있어요."
+                    }
+                )
                 Text(
-                    "수리가 당신의 숫자 흐름과\n적어주신 사연을 조용히 풀고 있어요",
+                    if (mode == PremiumMode.COMPATIBILITY) {
+                        "수리가 두 사람 사이의 숫자 흐름과\n관계 질문을 조용히 풀고 있어요"
+                    } else {
+                        "수리가 당신의 숫자 흐름과\n적어주신 사연을 조용히 풀고 있어요"
+                    },
                     color = TextPrimary,
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.titleMedium
                 )
-                Text("고민 분야에 맞는 깊이 있는 비책을 제책 중입니다.", color = TextMuted, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    if (mode == PremiumMode.COMPATIBILITY) {
+                        "궁합수와 생활 흐름에 맞는 관계 비책을 제책 중입니다."
+                    } else {
+                        "고민 분야에 맞는 깊이 있는 비책을 제책 중입니다."
+                    },
+                    color = TextMuted,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
             LinearProgressIndicator(
                 modifier = Modifier
@@ -421,6 +737,39 @@ private fun PremiumLoadingScreen(isLoading: Boolean, hasBook: Boolean, onDone: (
                 color = Accent,
                 trackColor = Surface2
             )
+        }
+    }
+}
+
+@Composable
+private fun ConsultingStageTicker(stage: String, labels: List<String>, caption: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        AnimatedContent(
+            targetState = stage,
+            transitionSpec = {
+                (fadeIn(tween(220)) + scaleIn(initialScale = 0.96f)) togetherWith
+                    (fadeOut(tween(160)) + scaleOut(targetScale = 1.02f))
+            },
+            label = "consultingStage"
+        ) { text ->
+            Text(
+                text,
+                color = TextPrimary,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
+        Text(caption, color = TextMuted, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            labels.forEach { label ->
+                val active = label == stage
+                Box(
+                    modifier = Modifier
+                        .size(width = if (active) 22.dp else 7.dp, height = 7.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(if (active) Accent else Surface2)
+                )
+            }
         }
     }
 }
@@ -636,19 +985,55 @@ private fun BookCoverScreen(
     onOpen: () -> Unit,
     flipModifier: Modifier
 ) {
+    var revealStarted by remember(book?.bookId) { mutableStateOf(false) }
+    LaunchedEffect(book?.bookId) { revealStarted = true }
+    val reveal by animateFloatAsState(
+        targetValue = if (revealStarted) 1f else 0f,
+        animationSpec = tween(durationMillis = 820, easing = FastOutSlowInEasing),
+        label = "bookCoverReveal"
+    )
     BookStageScaffold {
-        PremiumBookCover(
-            book = book,
+        Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
+                .graphicsLayer {
+                    alpha = reveal
+                    scaleX = 0.94f + reveal * 0.06f
+                    scaleY = 0.94f + reveal * 0.06f
+                    translationY = (1f - reveal) * 28f
+                }
                 .bookTurnGestures(onPrevious = null, onNext = onOpen)
-                .then(flipModifier)
-        )
+                .then(flipModifier),
+            contentAlignment = Alignment.Center
+        ) {
+            PremiumBookCover(book = book, modifier = Modifier.fillMaxSize())
+            CoverRevealAura(reveal = reveal, identity = bookIdentityFor(book), modifier = Modifier.fillMaxSize())
+        }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             SecondaryButton("처음으로", onReset, Modifier.weight(1f))
             GradientButton("노트 펼치기", onOpen, Modifier.weight(1f))
         }
+    }
+}
+
+@Composable
+private fun CoverRevealAura(reveal: Float, identity: BookIdentityTheme, modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val shadowAlpha = (1f - reveal).coerceIn(0f, 1f)
+        drawRect(Color.Black.copy(alpha = shadowAlpha * 0.42f))
+        val lineProgress = reveal.coerceIn(0f, 1f)
+        val left = size.width * 0.08f
+        val top = size.height * 0.03f
+        val right = size.width * (0.08f + 0.84f * lineProgress)
+        val bottom = size.height * 0.97f
+        drawLine(identity.foil.copy(alpha = 0.60f * lineProgress), Offset(left, top), Offset(right, top), strokeWidth = 2.2f)
+        drawLine(identity.foil.copy(alpha = 0.42f * lineProgress), Offset(left, bottom), Offset(right, bottom), strokeWidth = 1.6f)
+        drawCircle(
+            identity.foil.copy(alpha = 0.18f * (1f - kotlin.math.abs(0.55f - reveal)).coerceIn(0f, 1f)),
+            radius = size.minDimension * 0.42f,
+            center = Offset(size.width * 0.50f, size.height * 0.40f)
+        )
     }
 }
 
@@ -660,6 +1045,11 @@ private fun BookTocScreen(
     flipModifier: Modifier
 ) {
     val identity = bookIdentityFor(book)
+    val tocTitles = if (book?.bookType == FortuneBookType.COMPATIBILITY) {
+        listOf("남자 성향", "여자 성향", "둘의 궁합수", "생활 흐름")
+    } else {
+        listOf("지혜의 본질", "상황별 해석", "주의할 장면", "이번 달 행동 지침")
+    }
     BookStageScaffold {
         PaperPage(
             identity = identity,
@@ -672,8 +1062,8 @@ private fun BookTocScreen(
             Text("목차", color = TextPrimary, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             Text(identity.caption, color = identity.accent, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(2.dp))
-            listOf("지혜의 본질", "상황별 해석", "주의할 장면", "이번 달 행동 지침").forEachIndexed { index, title ->
-                TocLine(index + 1, title, "p.${4 + index * 10}", identity)
+            tocTitles.forEachIndexed { index, title ->
+                TocLine(index + 1, title, "p.${4 + index * 10}", identity, onClick = onRead)
             }
             Spacer(Modifier.weight(1f))
             Text("03", color = identity.accent.copy(alpha = 0.48f), style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
@@ -695,6 +1085,7 @@ private fun BookDetailScreen(
 ) {
     val chapter = book?.chapters?.firstOrNull()
     val identity = bookIdentityFor(book)
+    val isCompatibility = book?.bookType == FortuneBookType.COMPATIBILITY
     BookStageScaffold {
         PaperPage(
             identity = identity,
@@ -709,15 +1100,35 @@ private fun BookDetailScreen(
                     Text("2", color = Color.White, style = MaterialTheme.typography.bodySmall)
                 }
                 Column {
-                    Text("상황별 고민 해결 비책", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
-                    Text(book?.concernTopic ?: "연애 특화 카운슬링", color = identity.accent, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        if (isCompatibility) "두 사람 궁합 해석 비책" else "상황별 고민 해결 비책",
+                        color = TextPrimary,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        book?.concernTopic ?: if (isCompatibility) "궁합 특화 카운슬링" else "연애 특화 카운슬링",
+                        color = identity.accent,
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
-            DetailBox("던지신 질문", concern.ifBlank { book?.concernText.orEmpty().ifBlank { "지금 마음속에서 가장 자주 떠오르는 고민" } }, identity.accentDeep)
-            DetailBox("주의할 장면", chapter?.highlightQuote ?: book?.summary.orEmpty(), Rose)
             DetailBox(
-                "이번 주 실천 지침",
-                chapter?.actionTip?.joinToString("\n") { "• $it" } ?: "• 하루 10분 마음 상태를 확인하기\n• 중요한 선택은 하루 뒤 다시 보기\n• 반복되는 패턴을 짧게 기록하기",
+                if (isCompatibility) "궁금한 관계 질문" else "던지신 질문",
+                concern.ifBlank {
+                    book?.concernText.orEmpty().ifBlank {
+                        if (isCompatibility) "두 사람 사이의 전반적인 궁합 흐름" else "지금 마음속에서 가장 자주 떠오르는 고민"
+                    }
+                },
+                identity.accentDeep
+            )
+            DetailBox(if (isCompatibility) "마찰이 생기는 장면" else "주의할 장면", chapter?.highlightQuote ?: book?.summary.orEmpty(), Rose)
+            DetailBox(
+                if (isCompatibility) "이번 주 관계 실천" else "이번 주 실천 지침",
+                chapter?.actionTip?.joinToString("\n") { "• $it" } ?: if (isCompatibility) {
+                    "• 연락 방식 하나를 먼저 합의하기\n• 서운한 점은 하루 안에 짧게 말하기\n• 좋은 흐름이 생긴 순간을 함께 기록하기"
+                } else {
+                    "• 하루 10분 마음 상태를 확인하기\n• 중요한 선택은 하루 뒤 다시 보기\n• 반복되는 패턴을 짧게 기록하기"
+                },
                 identity.accent
             )
             Spacer(Modifier.weight(1f))
@@ -917,6 +1328,7 @@ private fun PaperPage(
         modifier = modifier
             .fillMaxWidth(0.96f)
             .fillMaxHeight(0.985f)
+            .shadow(18.dp, RoundedCornerShape(8.dp), clip = false)
             .clip(RoundedCornerShape(8.dp))
             .background(Brush.linearGradient(listOf(identity.coverTop, identity.coverMid, identity.coverBottom)))
             .border(1.dp, Color.Black.copy(alpha = 0.30f), RoundedCornerShape(8.dp))
@@ -928,6 +1340,20 @@ private fun PaperPage(
                 drawLine(Color.White.copy(alpha = 0.022f), Offset(16f, y), Offset(size.width - 16f, y - 4f), strokeWidth = 1f)
             }
         }
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .fillMaxHeight()
+                .width(18.dp)
+                .background(Brush.horizontalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.18f))))
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .fillMaxHeight()
+                .width(10.dp)
+                .background(Brush.horizontalGradient(listOf(Color.White.copy(alpha = 0.15f), Color.Transparent)))
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -943,12 +1369,23 @@ private fun PaperPage(
 }
 
 @Composable
-private fun TocLine(index: Int, title: String, page: String, identity: BookIdentityTheme) {
+private fun TocLine(index: Int, title: String, page: String, identity: BookIdentityTheme, onClick: (() -> Unit)? = null) {
+    val focus by animateFloatAsState(
+        targetValue = if (index == 2) 1f else 0f,
+        animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing),
+        label = "tocFocus"
+    )
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = 1f + focus * 0.025f
+                scaleY = 1f + focus * 0.025f
+                translationX = focus * 6f
+            }
             .clip(RoundedCornerShape(8.dp))
             .background(if (index == 2) identity.tint.copy(alpha = 0.34f) else Color.Transparent)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(horizontal = 8.dp, vertical = 9.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically

@@ -2,6 +2,7 @@ package com.example.unum.presentation
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,11 +14,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -27,13 +30,14 @@ import androidx.compose.ui.unit.dp
 import com.example.unum.ui.components.GradientButton
 import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.theme.Accent
+import com.example.unum.ui.theme.Border
 import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
 
 @Composable
 fun OnboardingScreen(onFinished: () -> Unit) {
-    MysticBackground(modifier = Modifier.fillMaxSize()) {
+    MysticBackground(modifier = Modifier.fillMaxSize(), animatedWaves = true) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -60,21 +64,49 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
+            AppExplanationPanel()
             WaveArtwork(modifier = Modifier.fillMaxWidth())
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(18.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Box(Modifier.size(7.dp).background(Accent, CircleShape))
-                    repeat(3) {
-                        Box(Modifier.size(7.dp).background(Surface2, CircleShape))
-                    }
-                }
+                Text("첫 리포트는 생년월일만 입력하면 바로 만들 수 있어요.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
                 GradientButton("시작하기", onFinished, Modifier.fillMaxWidth())
             }
         }
+    }
+}
+
+@Composable
+private fun AppExplanationPanel() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(Surface2.copy(alpha = 0.78f))
+            .border(1.dp, Border.copy(alpha = 0.7f), RoundedCornerShape(18.dp))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text("무엇을 해주나요?", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+        OnboardingDescriptionLine("생년월일로 성향, 선택 리듬, 시기별 흐름을 정리해요.")
+        OnboardingDescriptionLine("오늘의 연애, 일, 돈, 배움, 자기관리 운세를 짧게 확인해요.")
+        OnboardingDescriptionLine("숫자는 높고 낮음이 아니라 각자 다른 역할과 기질로 읽어요.")
+    }
+}
+
+@Composable
+private fun OnboardingDescriptionLine(text: String) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
+        Box(
+            modifier = Modifier
+                .padding(top = 6.dp)
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(Accent.copy(alpha = 0.84f))
+        )
+        Text(text, color = TextSecondary, style = MaterialTheme.typography.bodySmall)
     }
 }
 

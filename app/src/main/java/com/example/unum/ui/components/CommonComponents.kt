@@ -1,6 +1,15 @@
 package com.example.unum.ui.components
 
+import android.graphics.Paint
+import android.graphics.Typeface
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,15 +42,24 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.unum.R
 import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.GenderOption
@@ -58,13 +77,127 @@ import com.example.unum.ui.theme.Surface3
 import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
+import kotlin.math.PI
+import kotlin.math.sin
 
 @Composable
-fun MysticBackground(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun MysticBackground(
+    modifier: Modifier = Modifier,
+    animatedWaves: Boolean = false,
+    content: @Composable () -> Unit
+) {
     Box(
         modifier = modifier.background(Background)
     ) {
+        if (animatedWaves) {
+            FortuneWaveField(Modifier.fillMaxSize())
+        }
         content()
+    }
+}
+
+@Composable
+private fun FortuneWaveField(modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition(label = "fortuneWaveField")
+    val phase by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 16000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "fortuneWavePhase"
+    )
+    val glowPulse by infiniteTransition.animateFloat(
+        initialValue = 0.72f,
+        targetValue = 1.08f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 5200, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "fortuneWaveGlow"
+    )
+
+    Canvas(modifier = modifier) {
+        val accent = Accent
+        val violet = Color(0xFFA855F7)
+        val blue = Color(0xFF60A5FA)
+        val gold = Gold
+
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(accent.copy(alpha = 0.18f * glowPulse), Color.Transparent),
+                center = Offset(size.width * 0.18f, size.height * 0.16f),
+                radius = size.minDimension * 0.58f
+            ),
+            radius = size.minDimension * 0.58f,
+            center = Offset(size.width * 0.18f, size.height * 0.16f)
+        )
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(violet.copy(alpha = 0.13f * glowPulse), Color.Transparent),
+                center = Offset(size.width * 0.86f, size.height * 0.38f),
+                radius = size.minDimension * 0.54f
+            ),
+            radius = size.minDimension * 0.54f,
+            center = Offset(size.width * 0.86f, size.height * 0.38f)
+        )
+
+        repeat(3) { waveIndex ->
+            val yBase = size.height * (0.18f + waveIndex * 0.20f)
+            val color = listOf(accent, blue, gold)[waveIndex]
+            val alpha = listOf(0.18f, 0.11f, 0.13f)[waveIndex]
+            val stroke = listOf(2.4.dp, 1.6.dp, 1.2.dp)[waveIndex].toPx()
+            val points = 96
+            var previous: Offset? = null
+            for (i in 0..points) {
+                val x = size.width * i / points
+                val wave = sin((i / 12f + phase * 2.0f + waveIndex * 0.65f) * PI).toFloat()
+                val drift = sin((i / 22f + phase + waveIndex) * PI).toFloat()
+                val y = yBase + wave * (22.dp.toPx() + waveIndex * 6.dp.toPx()) + drift * 10.dp.toPx()
+                val current = Offset(x, y)
+                previous?.let {
+                    drawLine(
+                        color = color.copy(alpha = alpha),
+                        start = it,
+                        end = current,
+                        strokeWidth = stroke,
+                        cap = StrokeCap.Round
+                    )
+                }
+                previous = current
+            }
+        }
+
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.White.copy(alpha = 0.18f).toArgb()
+            textAlign = Paint.Align.CENTER
+            textSize = 15.sp.toPx()
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+        }
+        val numbers = listOf("1", "3", "5", "7", "8", "9", "11", "22")
+        drawIntoCanvas { canvas ->
+            numbers.forEachIndexed { index, number ->
+                val seed = index + 1
+                val x = size.width * ((seed * 0.137f + phase * 0.20f) % 1f)
+                val y = size.height * (0.08f + ((seed * 0.173f + phase * 0.12f) % 0.82f))
+                val alpha = 0.08f + 0.14f * kotlin.math.abs(sin((phase * 2f + seed) * PI).toFloat())
+                paint.color = Color.White.copy(alpha = alpha).toArgb()
+                canvas.nativeCanvas.drawText(number, x, y, paint)
+            }
+        }
+
+        repeat(18) { index ->
+            val x = size.width * ((index * 0.071f + phase * 0.08f) % 1f)
+            val y = size.height * ((index * 0.113f + phase * 0.05f) % 1f)
+            val radius = 1.6.dp.toPx() + (index % 3) * 0.9.dp.toPx()
+            drawCircle(
+                color = Color.White.copy(alpha = 0.08f + (index % 4) * 0.025f),
+                radius = radius,
+                center = Offset(x, y),
+                style = Stroke(width = 0.8.dp.toPx())
+            )
+        }
     }
 }
 

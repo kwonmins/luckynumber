@@ -2,19 +2,25 @@ package com.example.unum.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -30,6 +36,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -41,7 +49,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface as MaterialSurface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,11 +64,15 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.example.unum.R
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.data.model.FortuneBookChapter
@@ -77,6 +95,9 @@ import com.example.unum.ui.theme.TextSecondary
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.math.absoluteValue
 
 private object PremiumTokens {
@@ -420,6 +441,158 @@ fun BookThumbnailCard(
 }
 
 @Composable
+fun InteractiveBookArchiveShelf(
+    books: List<FortuneBook>,
+    selectedBookId: String?,
+    onBookOpen: (FortuneBook) -> Unit,
+    onBookmarkClick: (FortuneBook) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (books.isEmpty()) return
+
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val coverWidth = 176.dp
+    val coverHeight = 238.dp
+    val initialIndex = books.indexOfFirst { it.bookId == selectedBookId }.takeIf { it >= 0 } ?: 0
+
+    LaunchedEffect(selectedBookId, books.size) {
+        listState.scrollToItem(initialIndex)
+    }
+
+    val focusedBook by remember(books, listState) {
+        derivedStateOf {
+            val layoutInfo = listState.layoutInfo
+            val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2f
+            val centeredItem = layoutInfo.visibleItemsInfo.minByOrNull { item ->
+                abs(item.offset + item.size / 2f - viewportCenter)
+            }
+            books.getOrNull(centeredItem?.index ?: initialIndex) ?: books.first()
+        }
+    }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(318.dp)
+                .clip(RoundedCornerShape(18.dp))
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF111318), Color(0xFF17110E), Color(0xFF0C0B0F))
+                    )
+                )
+                .border(1.dp, PremiumTokens.BorderGold, RoundedCornerShape(18.dp))
+        ) {
+            val sidePadding = if (maxWidth > coverWidth) (maxWidth - coverWidth) / 2 else 24.dp
+
+            Canvas(Modifier.fillMaxSize()) {
+                val baseY = size.height * 0.82f
+                drawArc(
+                    color = PremiumTokens.Gold.copy(alpha = 0.16f),
+                    startAngle = 198f,
+                    sweepAngle = 144f,
+                    useCenter = false,
+                    topLeft = Offset(size.width * -0.18f, baseY - size.width * 0.62f),
+                    size = androidx.compose.ui.geometry.Size(size.width * 1.36f, size.width * 0.78f),
+                    style = Stroke(width = 2f)
+                )
+            }
+
+            LazyRow(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(290.dp)
+                    .align(Alignment.BottomCenter),
+                contentPadding = PaddingValues(horizontal = sidePadding),
+                horizontalArrangement = Arrangement.spacedBy((-38).dp),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                itemsIndexed(books, key = { _, book -> book.bookId }) { index, book ->
+                    val layoutInfo = listState.layoutInfo
+                    val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+                    val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2f
+                    val offsetFromCenter = itemInfo?.let {
+                        ((it.offset + it.size / 2f) - viewportCenter) / it.size
+                    } ?: (index - listState.firstVisibleItemIndex).toFloat()
+                    val clampedOffset = offsetFromCenter.coerceIn(-3f, 3f)
+                    val distance = abs(clampedOffset)
+                    val scale = (1.08f - distance * 0.11f).coerceIn(0.78f, 1.08f)
+                    val sideDrop = with(density) { (distance * 42f).dp.toPx() }
+                    val forwardLift = with(density) { if (distance < 0.35f) (-12).dp.toPx() else 0.dp.toPx() }
+                    val coverAlpha = (1f - distance * 0.12f).coerceIn(0.58f, 1f)
+
+                    BookThumbnailCard(
+                        book = book,
+                        modifier = Modifier
+                            .size(width = coverWidth, height = coverHeight)
+                            .zIndex(10f - distance)
+                            .graphicsLayer {
+                                cameraDistance = 18f * density.density
+                                transformOrigin = TransformOrigin(0.5f, 1f)
+                                rotationZ = clampedOffset * 8f
+                                rotationY = -clampedOffset * 10f
+                                translationY = sideDrop + forwardLift
+                                scaleX = scale
+                                scaleY = scale
+                                alpha = coverAlpha
+                            },
+                        compact = false,
+                        onClick = {
+                            if (distance < 0.38f) {
+                                onBookOpen(book)
+                            } else {
+                                scope.launch { listState.animateScrollToItem(index) }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+        SurfaceCard(
+            modifier = Modifier.fillMaxWidth(),
+            tonalColor = PremiumTokens.Surface0,
+            borderColor = PremiumTokens.BorderGold,
+            contentPadding = 16
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    CoverTag(focusedBook.concernTopic, accentColor = leatherFoilColor(focusedBook.coverTheme))
+                    Text(focusedBook.coverTitle, color = PremiumTokens.TextCream, style = MaterialTheme.typography.titleMedium, maxLines = 2)
+                    Text(
+                        "${formatBookDate(focusedBook.createdAt)} · 가운데 책을 탭해서 펼치기",
+                        color = PremiumTokens.TextMuted,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                Icon(
+                    imageVector = if (focusedBook.isBookmarked) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
+                    contentDescription = "북마크",
+                    tint = if (focusedBook.isBookmarked) PremiumTokens.Gold else PremiumTokens.TextMuted,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable { onBookmarkClick(focusedBook) }
+                        .padding(9.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun PremiumArchiveRow(
     book: FortuneBook,
     selected: Boolean,
@@ -479,9 +652,13 @@ fun FortuneBookReader(
     onBookmarkClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val hasMonthPages = book.bookType == FortuneBookType.PERSONAL
+    val hasMonthPages = book.bookType == FortuneBookType.PERSONAL &&
+        book.coverTheme != "romance" &&
+        book.bestMonth.isNotBlank() &&
+        book.riskyMonth.isNotBlank()
     val pageCount = book.chapters.size + 2 + if (hasMonthPages) 2 else 0
     val pagerState = rememberPagerState(pageCount = { pageCount })
+    val scope = rememberCoroutineScope()
     val chapterStartPage = 2
     val bestMonthPage = if (hasMonthPages) chapterStartPage + book.chapters.size else -1
     val riskyMonthPage = if (hasMonthPages) bestMonthPage + 1 else -1
@@ -519,10 +696,12 @@ fun FortuneBookReader(
                     .padding(horizontal = 4.dp)
                     .graphicsLayer {
                         cameraDistance = 18f * density
-                        rotationY = rawOffset * 30f
-                        scaleX = 1f - pageOffset * 0.035f
-                        scaleY = 1f - pageOffset * 0.025f
-                        alpha = 1f - pageOffset * 0.10f
+                        rotationY = rawOffset * 42f
+                        translationX = rawOffset * -18f
+                        scaleX = 1f - pageOffset * 0.045f
+                        scaleY = 1f - pageOffset * 0.030f
+                        alpha = 1f - pageOffset * 0.12f
+                        shadowElevation = (18f + pageOffset * 18f) * density
                         transformOrigin = TransformOrigin(
                             pivotFractionX = if (rawOffset > 0) 0f else 1f,
                             pivotFractionY = 0.5f
@@ -531,7 +710,12 @@ fun FortuneBookReader(
             ) {
                 when {
                     page == 0 -> OverviewPage(book = book, onBookmarkClick = onBookmarkClick)
-                    page == 1 -> ContentsPage(book)
+                    page == 1 -> ContentsPage(
+                        book = book,
+                        onChapterClick = { chapterIndex ->
+                            scope.launch { pagerState.animateScrollToPage(chapterStartPage + chapterIndex) }
+                        }
+                    )
                     page in chapterStartPage until chapterStartPage + book.chapters.size -> ChapterPage(
                         index = page - 1,
                         chapter = book.chapters[page - chapterStartPage],
@@ -566,44 +750,35 @@ private fun ReaderPageScaffold(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .shadow(18.dp, RoundedCornerShape(14.dp), clip = false)
-            .clip(RoundedCornerShape(14.dp))
-            .background(
-                Brush.verticalGradient(
-                    listOf(PremiumTokens.InkWarm, PremiumTokens.Surface0, PremiumTokens.Ink)
-                )
-            )
+            .shadow(12.dp, RoundedCornerShape(8.dp), clip = false)
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color(0xFFFFF8EA))
             .border(
                 1.dp,
-                Brush.verticalGradient(listOf(PremiumTokens.BorderGold, PremiumTokens.BorderSubtle)),
-                RoundedCornerShape(14.dp)
+                Color(0xFFD7C9AA),
+                RoundedCornerShape(8.dp)
             )
-            .padding(start = 18.dp, top = 16.dp, end = 22.dp, bottom = 16.dp)
+            .padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 18.dp)
     ) {
         Canvas(Modifier.fillMaxSize()) {
-            repeat(18) { index ->
-                val y = size.height * (index + 1) / 19f
-                drawLine(
-                    Color.White.copy(alpha = 0.018f),
-                    Offset(18f, y),
-                    Offset(size.width - 18f, y + if (index % 2 == 0) 5f else -4f),
-                    strokeWidth = 1f
+            repeat(26) { index ->
+                val y = size.height * (index + 1) / 27f
+                drawCircle(
+                    color = Color(0xFF8B7A5B).copy(alpha = 0.035f),
+                    radius = if (index % 3 == 0) 2.4f else 1.5f,
+                    center = Offset(
+                        x = size.width * ((index * 37 % 100) / 100f),
+                        y = y
+                    )
                 )
             }
+            drawLine(
+                color = Color(0xFFBCA98A).copy(alpha = 0.16f),
+                start = Offset(0f, size.height * 0.98f),
+                end = Offset(size.width, size.height * 0.96f),
+                strokeWidth = 1f
+            )
         }
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .size(5.dp, 360.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(Brush.verticalGradient(listOf(PremiumTokens.GoldLight, PremiumTokens.GoldDeep)))
-        )
-        NotebookSideTabs(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            accentColor = PremiumTokens.Gold,
-            compact = true
-        )
-        PageCornerFold(Modifier.align(Alignment.BottomEnd))
         content()
     }
 }
@@ -637,7 +812,7 @@ private fun OverviewPage(book: FortuneBook, onBookmarkClick: () -> Unit) {
                 "목차를 먼저 보고, 필요한 섹션부터 한 장씩 넘겨 읽어보세요. 추천할 월과 주의할 월은 뒤쪽에서 다시 정리합니다."
             }
         )
-        NotebookSummaryCard(
+        NotebookSummaryCardLight(
             summaryText = book.summary,
             oneLineAdvice = book.chapters.firstOrNull()?.highlightQuote ?: "지금 가장 마음에 남는 문장부터 천천히 읽어보세요."
         )
@@ -660,11 +835,27 @@ private fun NotebookGuideCard(title: String, body: String, modifier: Modifier = 
 }
 
 @Composable
+private fun NotebookSummaryCardLight(summaryText: String, oneLineAdvice: String, modifier: Modifier = Modifier) {
+    SurfaceCard(
+        modifier = modifier.fillMaxWidth(),
+        tonalColor = Color(0xFFFFFAEF),
+        borderColor = PremiumTokens.GoldDeep.copy(alpha = 0.28f),
+        contentPadding = 16
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("첫 답변", color = PremiumTokens.GoldDeep, style = MaterialTheme.typography.labelLarge)
+            Text(summaryText, color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
+            Text(oneLineAdvice, color = TextMuted, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
 private fun NotebookSummaryCard(summaryText: String, oneLineAdvice: String, modifier: Modifier = Modifier) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
-        tonalColor = PremiumTokens.Surface0,
-        borderColor = PremiumTokens.Gold.copy(alpha = 0.24f),
+        tonalColor = Color(0xFFFFFAEF),
+        borderColor = PremiumTokens.GoldDeep.copy(alpha = 0.28f),
         contentPadding = 16
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -732,7 +923,7 @@ private fun MonthHighlightCard(
 }
 
 @Composable
-private fun ContentsCard(book: FortuneBook) {
+private fun ContentsCard(book: FortuneBook, onChapterClick: (Int) -> Unit = {}) {
     SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
         tonalColor = Color(0xFFFBF6EA),
@@ -754,8 +945,22 @@ private fun ContentsCard(book: FortuneBook) {
                 )
             }
             book.chapters.forEachIndexed { index, chapter ->
+                val scale by animateFloatAsState(
+                    targetValue = if (index == 0) 1.02f else 1f,
+                    animationSpec = tween(durationMillis = 360),
+                    label = "contentsRowScale"
+                )
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                        }
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { onChapterClick(index) }
+                        .background(if (index == 0) PremiumTokens.GoldLight.copy(alpha = 0.10f) else Color.Transparent)
+                        .padding(horizontal = 6.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -781,14 +986,14 @@ private fun ContentsCard(book: FortuneBook) {
 }
 
 @Composable
-private fun ContentsPage(book: FortuneBook) {
+private fun ContentsPage(book: FortuneBook, onChapterClick: (Int) -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        ContentsCard(book)
+        ContentsCard(book, onChapterClick)
     }
 }
 
@@ -805,12 +1010,126 @@ private fun ChapterPage(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        ChapterCard(
+        SalonChapterCard(
             index = index,
             chapter = chapter,
             fontScale = fontScale,
             coverTheme = coverTheme
         )
+    }
+}
+
+@Composable
+private fun SalonChapterCard(
+    index: Int,
+    chapter: FortuneBookChapter,
+    fontScale: ReaderFontScale,
+    coverTheme: String
+) {
+    val bodyStyle = MaterialTheme.typography.bodyMedium.copy(
+        fontSize = (17f * fontScale.multiplier).sp,
+        lineHeight = (31f * fontScale.multiplier).sp
+    )
+    val palette = bookCoverPalette(coverTheme)
+    val accentColor = noteAccentColor(coverTheme)
+    val ribbonColor = if (chapter.lead.contains("주의")) Rose else accentColor
+
+    SurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        tonalColor = Color.Transparent,
+        borderColor = Color.Transparent,
+        contentPadding = 0
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 2.dp, bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(22.dp)
+        ) {
+            if (chapter.lead.isNotBlank()) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(topStart = 2.dp, bottomStart = 2.dp))
+                            .background(ribbonColor.copy(alpha = 0.86f))
+                            .padding(horizontal = 18.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            chapter.lead,
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                    }
+                }
+            }
+
+            Text(
+                chapter.title,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                color = TextPrimary,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+            )
+
+            Image(
+                painter = painterResource(chapterMascotRes(coverTheme, index)),
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .size(108.dp)
+                    .graphicsLayer {
+                        alpha = 0.96f
+                        translationY = -4.dp.toPx()
+                    }
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 28.dp)
+                    .height(1.dp)
+                    .background(Color(0xFFB7AA92).copy(alpha = 0.45f))
+            )
+
+            if (chapter.highlightQuote.isNotBlank()) {
+                Text(
+                    chapter.highlightQuote,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    color = ribbonColor,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 32.sp
+                    )
+                )
+            }
+
+            SequentialParagraphs(
+                paragraphs = chapter.body.filter { it.isNotBlank() }.take(3),
+                bodyStyle = bodyStyle
+            )
+
+            if (chapter.actionTip.isNotEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFFFFAEF))
+                        .border(1.dp, palette.third.copy(alpha = 0.26f), RoundedCornerShape(8.dp))
+                        .padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("복사하기 좋은 문장", color = ribbonColor, style = MaterialTheme.typography.labelLarge)
+                    chapter.actionTip.forEach { tip ->
+                        Text(tip, color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -864,9 +1183,7 @@ private fun ChapterCard(
                     Text(chapter.lead, color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            chapter.body.forEach { paragraph ->
-                Text(paragraph, color = TextSecondary, style = bodyStyle)
-            }
+            SequentialParagraphs(paragraphs = chapter.body, bodyStyle = bodyStyle)
             StickyNote(label = "주의할 장면", text = chapter.highlightQuote, color = Rose)
             Column(
                 modifier = Modifier
@@ -881,6 +1198,31 @@ private fun ChapterCard(
                 chapter.actionTip.forEach { tip ->
                     Text("• $tip", color = PremiumTokens.TextCream, style = MaterialTheme.typography.bodySmall)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SequentialParagraphs(
+    paragraphs: List<String>,
+    bodyStyle: androidx.compose.ui.text.TextStyle
+) {
+    var visibleCount by remember(paragraphs) { mutableStateOf(0) }
+    LaunchedEffect(paragraphs) {
+        visibleCount = 0
+        paragraphs.indices.forEach { index ->
+            delay(if (index == 0) 80 else 260)
+            visibleCount = index + 1
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        paragraphs.forEachIndexed { index, paragraph ->
+            AnimatedVisibility(
+                visible = index < visibleCount,
+                enter = fadeIn(tween(240)) + expandVertically()
+            ) {
+                Text(paragraph, color = TextSecondary, style = bodyStyle)
             }
         }
     }
@@ -1183,14 +1525,45 @@ private fun noteAccentColor(theme: String): Color {
 }
 
 private fun chapterMascotRes(theme: String, chapterIndex: Int): Int {
-    val primaryMascot = premiumThemeMascot(theme)
-    val orderedMascots = listOf(
-        primaryMascot,
-        R.drawable.suri_scroll,
-        R.drawable.suri_writer,
-        R.drawable.suri_tea,
-        R.drawable.suri_coins,
-        R.drawable.suri_hanbok
-    ).distinct()
+    val normalizedTheme = theme.lowercase()
+    val orderedMascots = when (normalizedTheme) {
+        PremiumTopic.ROMANCE.name.lowercase() -> listOf(
+            R.drawable.suri_reader_romance,
+            R.drawable.suri_anim_romance_hero,
+            R.drawable.suri_reader_compatibility,
+            R.drawable.suri_reader_caution,
+            R.drawable.suri_reader_action,
+            R.drawable.suri_scroll
+        )
+        "compatibility" -> listOf(
+            R.drawable.suri_reader_compatibility,
+            R.drawable.suri_reader_romance,
+            R.drawable.suri_reader_caution,
+            R.drawable.suri_anim_consult_07,
+            R.drawable.suri_reader_action,
+            R.drawable.suri_hanbok
+        )
+        PremiumTopic.MONEY.name.lowercase() -> listOf(
+            R.drawable.suri_reader_money_cutout,
+            R.drawable.suri_anim_money_01,
+            R.drawable.suri_coins,
+            R.drawable.suri_reader_caution,
+            R.drawable.suri_reader_action
+        )
+        PremiumTopic.CAREER.name.lowercase() -> listOf(
+            R.drawable.suri_reader_action,
+            R.drawable.suri_anim_writer_hero,
+            R.drawable.suri_writer,
+            R.drawable.suri_reader_caution
+        )
+        else -> listOf(
+            premiumThemeMascot(theme),
+            R.drawable.suri_scroll,
+            R.drawable.suri_writer,
+            R.drawable.suri_tea,
+            R.drawable.suri_reader_caution,
+            R.drawable.suri_hanbok
+        )
+    }.distinct()
     return orderedMascots[chapterIndex % orderedMascots.size]
 }

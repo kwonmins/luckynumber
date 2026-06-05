@@ -49,7 +49,7 @@ fun InputScreen(
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
 
-    MysticBackground(modifier = Modifier.fillMaxSize()) {
+    MysticBackground(modifier = Modifier.fillMaxSize(), animatedWaves = true) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()

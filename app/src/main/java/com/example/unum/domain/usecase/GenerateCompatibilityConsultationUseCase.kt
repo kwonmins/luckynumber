@@ -2,11 +2,15 @@ package com.example.unum.domain.usecase
 
 import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.CompatibilityConsultation
+import com.example.unum.data.model.ConsultationAnswerCard
+import com.example.unum.data.model.ConsultationPage
+import com.example.unum.data.model.ConsultationTocItem
 import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.domain.NumerologyCalculator
 import com.example.unum.domain.service.OpenAiChatClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 
 class GenerateCompatibilityConsultationUseCase(
@@ -43,104 +47,111 @@ class GenerateCompatibilityConsultationUseCase(
     ): String {
         val maleInput = maleBundle.displayInput
         val femaleInput = femaleBundle.displayInput
-        val maleDestiny = maleBundle.content.destinyProfile
-        val femaleDestiny = femaleBundle.content.destinyProfile
-        val maleResonance = NumerologyCalculator.genderResonanceDescription(maleInput.gender, maleBundle.numbers.destiny)
-        val femaleResonance = NumerologyCalculator.genderResonanceDescription(femaleInput.gender, femaleBundle.numbers.destiny)
-        val concernText = concern.ifBlank { "특별히 적어둔 질문은 없고, 두 사람의 전반적인 궁합 흐름을 보고 싶어 합니다." }
+        val concernText = concern.ifBlank { "두 사람의 관계가 잘 이어질 수 있을지 궁금합니다." }
+        val createdYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+        val maleTrait = traitBrief(maleBundle)
+        val femaleTrait = traitBrief(femaleBundle)
+        val cautionKeywords = listOf(
+            maleBundle.content.destinyProfile.cautionKeywords.take(2),
+            femaleBundle.content.destinyProfile.cautionKeywords.take(2)
+        ).flatten().distinct().joinToString(", ").ifBlank { "속도 차이, 감정 확인, 거리 조절" }
 
         return """
-            다음 두 사람의 궁합을 수리학 규칙으로 해석해주세요.
+            당신은 한국어 수리학 기반 프리미엄 상담 콘텐츠 작가입니다.
+            사용자의 생년월일, 관계수, 궁합 고민을 바탕으로 모바일에서 읽기 쉬운 “상담소형 결과 페이지”를 작성하세요.
 
-            [남자 정보]
-            - 사용자가 입력한 생년월일: ${maleInput.year}.${maleInput.month}.${maleInput.day}
-            - 달력 구분: ${calendarTypeLabel(maleInput.calendarType)}
-            - 성별: ${maleInput.gender.label}
-            - 운명수: ${maleBundle.numbers.destiny}
-            - 운명수의 기운: ${NumerologyCalculator.destinyPolarity(maleBundle.numbers.destiny).label}
-            - 성별 보정: $maleResonance
-            - 인생 코드: ${maleBundle.numbers.code}
-            - 기본 성향 제목: ${maleDestiny.title}
-            - 핵심 키워드: ${maleDestiny.coreKeywords.joinToString(", ")}
-            - 주의 키워드: ${maleDestiny.cautionKeywords.joinToString(", ")}
-            - 기본 해석: ${maleDestiny.destinyText}
-            - 인생 요약: ${maleBundle.content.lifeRecord.summaryText}
+            [작성 목표]
+            - 긴 리포트가 아니라, 짧은 상담 페이지 묶음으로 작성합니다.
+            - 한 페이지에는 하나의 메시지만 담습니다.
+            - 각 페이지는 핵심 문장 1개와 짧은 문단 2~3개로 제한합니다.
+            - 관계수는 점수처럼 쓰지 말고, 두 사람 사이에 생기는 흐름의 상징으로만 해석합니다.
+            - “좋다/나쁘다” 식의 단정 대신 “이런 흐름이 강하다”, “이런 선택을 조심하라”로 말합니다.
+            - 사주, 타로, 괘, 점괘라는 단어는 쓰지 않습니다.
+            - 사용자를 선생님이라고 부르지 않습니다.
+            - 말투는 따뜻하지만 약간 상담소처럼 콕 짚는 존댓말입니다.
+            - 불안을 부추기는 저주식 표현은 피하되, 방치하면 관계가 꼬이거나 상처가 커질 수 있다는 현실적 경고는 분명히 씁니다.
+            - 무료 결과에서 이미 말한 개인 성향 설명을 반복하지 않습니다.
 
-            [여자 정보]
-            - 사용자가 입력한 생년월일: ${femaleInput.year}.${femaleInput.month}.${femaleInput.day}
-            - 달력 구분: ${calendarTypeLabel(femaleInput.calendarType)}
-            - 성별: ${femaleInput.gender.label}
-            - 운명수: ${femaleBundle.numbers.destiny}
-            - 운명수의 기운: ${NumerologyCalculator.destinyPolarity(femaleBundle.numbers.destiny).label}
-            - 성별 보정: $femaleResonance
-            - 인생 코드: ${femaleBundle.numbers.code}
-            - 기본 성향 제목: ${femaleDestiny.title}
-            - 핵심 키워드: ${femaleDestiny.coreKeywords.joinToString(", ")}
-            - 주의 키워드: ${femaleDestiny.cautionKeywords.joinToString(", ")}
-            - 기본 해석: ${femaleDestiny.destinyText}
-            - 인생 요약: ${femaleBundle.content.lifeRecord.summaryText}
+            [입력 정보]
+            - 상담 종류: 궁합
+            - 고민 내용: $concernText
+            - 상담 생성 연도: $createdYear
+            - 남자 생년월일: ${maleInput.year}.${maleInput.month}.${maleInput.day}
+            - 남자 달력 구분: ${calendarTypeLabel(maleInput.calendarType)}
+            - 남자 운명수: ${maleBundle.numbers.destiny}
+            - 남자 보조 숫자: ${maleBundle.numbers.early}, ${maleBundle.numbers.middle}, ${maleBundle.numbers.late}, ${maleBundle.numbers.code}
+            - 남자 성향 요약: $maleTrait
+            - 여자 생년월일: ${femaleInput.year}.${femaleInput.month}.${femaleInput.day}
+            - 여자 달력 구분: ${calendarTypeLabel(femaleInput.calendarType)}
+            - 여자 운명수: ${femaleBundle.numbers.destiny}
+            - 여자 보조 숫자: ${femaleBundle.numbers.early}, ${femaleBundle.numbers.middle}, ${femaleBundle.numbers.late}, ${femaleBundle.numbers.code}
+            - 여자 성향 요약: $femaleTrait
+            - 관계수: $relationshipNumber
+            - 관계수 해석 참고: ${relationshipMeaning(relationshipNumber)}
+            - 주의 키워드: $cautionKeywords
 
-            [궁합 핵심 규칙]
-            - 궁합수는 남자 운명수 + 여자 운명수의 합을 1의 자리만 남긴 값입니다.
-            - 현재 궁합수는 $relationshipNumber 입니다.
-            - 개인 운명수 의미는 바꾸지 말고 그대로 유지하세요.
-            - 먼저 남자 기질, 다음 여자 기질, 그다음 둘의 관계 흐름을 읽어주세요.
-            - 궁합수는 개인 성향이 아니라 두 사람 사이의 관계의 결로 해석하세요.
+            [궁합 결과 페이지 구성]
+            1. cover
+               - title: “수리 궁합 상담소”
+               - subtitle: “두 사람 사이의 흐름을 읽어볼게요.”
 
-            [프리미엄 궁합 차별화 규칙]
-            - 무료 결과처럼 각자의 성향을 길게 다시 설명하지 마세요. 두 사람의 기본 성향은 관계 장면을 해석하기 위한 재료로만 쓰세요.
-            - 답변의 70% 이상은 실제 커플·썸·부부 사이에서 벌어질 법한 상황 케이스로 작성하세요.
-            - 최소 4개의 장면을 가정하세요: 1) 연락과 답장 속도, 2) 서운함이 쌓이는 대화, 3) 돈·일정·생활 리듬을 맞추는 순간, 4) 싸움 뒤 다시 풀어가는 방식.
-            - 사용자의 관심사가 있으면 그 질문을 중심으로 "이런 말이 오갈 때", "이 선택을 미루면", "이 사람이 지쳤을 때"처럼 구체적인 장면을 만들어주세요.
-            - friction에는 실제 싸움으로 번지는 패턴과 방치했을 때 손해를 쓰세요.
-            - homeTone에는 같이 살거나 오래 만났을 때 집안 분위기, 말의 온도, 생활 리듬을 구체적으로 쓰세요.
-            - longTermTip에는 이번 주, 한 달, 장기 룰을 나눠서 제안하세요.
-            - 자극적이되 존댓말을 유지하세요. "조율이 필요합니다"보다 "그냥 넘기면 관계가 생각보다 빨리 지칠 수 있습니다"처럼 긴장감을 주세요.
+            2. answer
+               - question: 사용자의 궁합 고민을 질문형으로 재작성
+               - shortAnswer: 둘의 관계를 한 문장으로 진단
+               - body: 관계의 전체 분위기 2문단
 
-            [숫자 표준 의미]
-            - 0 = 여백, 가능성, 전환, 유연성
-            - 1 = 시작, 독립, 주도성, 실행
-            - 2 = 관계, 조화, 민감함, 인내
-            - 3 = 표현, 언어, 해석, 기획
-            - 4 = 질서, 기준, 구조, 정리
-            - 5 = 확장, 변화, 대담함, 기회
-            - 6 = 책임, 성실, 축적, 관리
-            - 7 = 집중, 몰입, 추진, 규율
-            - 8 = 연결, 대인관계, 확장, 매력
-            - 9 = 완성, 정리, 마감, 확장
+            3. attraction
+               - ribbon: “서로 끌리는 이유”
+               - title: “맞닿는 지점”
+               - highlight: 두 사람이 끌리는 핵심 이유
+               - body: 말투, 속도, 감정 반응, 생활 리듬 중심
 
-            [궁합수 ${relationshipNumber} 해석 참고]
-            - ${relationshipMeaning(relationshipNumber)}
+            4. friction
+               - ribbon: “주의사항”
+               - title: “엇갈리는 방식”
+               - highlight: 관계에서 반복될 수 있는 충돌 한 문장
+               - body: 실제 다툼 장면, 오해 방식, 감정 처리 차이
 
-            [양의 기운이 큰 관계 규칙]
-            - 홀수 궁합수는 표현력과 추진력이 크게 드러납니다.
-            - 특히 5, 7, 9는 집안의 분위기와 말의 세기, 주장, 감정 표현이 활발하게 커질 수 있습니다.
-            - 이것을 싸움만 강조하지 말고 활기와 추진력의 양면성으로 자연스럽게 해석하세요.
-            - 남자 운명수와 여자 운명수 모두 홀수이거나, 한쪽에 7 또는 9가 있으면 말의 볼륨과 기세가 더 커질 수 있음을 반영하세요.
+            5. view
+               - ribbon: “상대가 보는 나”
+               - title: “상대의 눈에 비친 모습”
+               - highlight: 상대가 느끼는 인상 한 문장
+               - body: 장점과 부담으로 느낄 수 있는 점을 균형 있게 설명
 
-            [추가 질문]
-            - 사용자 관심사: $concernText
+            6. action
+               - ribbon: “오래 가려면”
+               - title: “관계를 살리는 습관”
+               - highlight: 관계 유지의 핵심 조언
+               - body: 대화법, 거리 조절, 갈등 후 회복법 3개 제안
 
-            [문체 규칙]
-            - 한국어 존댓말만 사용하세요.
-            - 철학관 상담문처럼 부드럽고 자연스럽게 써주세요.
-            - 무료 운세와 문장 구조가 겹치지 않게, 현장감 있는 상담 말투로 작성하세요.
-            - "반드시", "무조건", "절대" 같은 단정형은 남발하지 마세요.
-            - 파탄, 범죄, 질병, 사망 같은 공포 조장 표현은 금지합니다.
-            - "선생님" 호칭은 쓰지 말고, "당신" 또는 자연스러운 생략형만 사용하세요.
-
-            [출력 규칙]
-            반드시 아래 JSON만 반환하세요.
+            [출력 형식]
+            반드시 JSON만 반환하세요. 코드블록이나 설명 문장은 붙이지 마세요.
 
             {
-              "maleEnergy": "남자 성향이 관계 안에서 실제로 어떻게 튀어나오는지. 무료 성향 반복 금지",
-              "femaleEnergy": "여자 성향이 관계 안에서 실제로 어떻게 튀어나오는지. 무료 성향 반복 금지",
-              "relationshipFlow": "둘이 만났을 때 생기는 실제 관계 장면과 흐름",
-              "strengths": "두 사람이 잘 맞는 순간의 구체적 케이스",
-              "friction": "싸움으로 번지기 쉬운 구체적 패턴과 방치 시 손해",
-              "homeTone": "오래 만나거나 같이 살 때의 생활 분위기와 말의 온도",
-              "longTermTip": "이번 주, 한 달, 장기 관계 룰",
-              "oneLineSummary": "한줄 궁합 요약. 살짝 자극적인 존댓말"
+              "coverTitle": "",
+              "coverSubtitle": "",
+              "answerCard": {
+                "question": "",
+                "shortAnswer": "",
+                "body": ["", ""]
+              },
+              "toc": [
+                { "id": "attraction", "title": "" },
+                { "id": "friction", "title": "" },
+                { "id": "view", "title": "" },
+                { "id": "action", "title": "" }
+              ],
+              "pages": [
+                {
+                  "id": "",
+                  "ribbon": "",
+                  "title": "",
+                  "highlight": "",
+                  "body": ["", "", ""],
+                  "copyText": ""
+                }
+              ],
+              "closingAdvice": ""
             }
         """.trimIndent()
     }
@@ -157,15 +168,30 @@ class GenerateCompatibilityConsultationUseCase(
             .substringBeforeLast("}", rawContent)
             .let { "{$it}" }
         val json = JSONObject(jsonText)
+        val answerCard = parseAnswerCard(json.optJSONObject("answerCard"))
+        val pages = parsePages(json.optJSONArray("pages"))
+        val toc = parseToc(json.optJSONArray("toc"))
+        val attraction = pages.firstOrNull { it.id == "attraction" }
+        val friction = pages.firstOrNull { it.id == "friction" }
+        val view = pages.firstOrNull { it.id == "view" }
+        val action = pages.firstOrNull { it.id == "action" }
+        val closingAdvice = json.optString("closingAdvice")
+
         val parsed = CompatibilityConsultation(
-            maleEnergy = json.optString("maleEnergy"),
-            femaleEnergy = json.optString("femaleEnergy"),
-            relationshipFlow = json.optString("relationshipFlow"),
-            strengths = json.optString("strengths"),
-            friction = json.optString("friction"),
-            homeTone = json.optString("homeTone"),
-            longTermTip = json.optString("longTermTip"),
-            oneLineSummary = json.optString("oneLineSummary")
+            maleEnergy = view?.body?.joinToString("\n\n").orEmpty(),
+            femaleEnergy = view?.highlight.orEmpty(),
+            relationshipFlow = answerCard.body.joinToString("\n\n"),
+            strengths = attraction?.body?.joinToString("\n\n").orEmpty(),
+            friction = friction?.body?.joinToString("\n\n").orEmpty(),
+            homeTone = action?.body?.joinToString("\n\n").orEmpty(),
+            longTermTip = action?.highlight.orEmpty(),
+            oneLineSummary = answerCard.shortAnswer.ifBlank { closingAdvice },
+            coverTitle = json.optString("coverTitle"),
+            coverSubtitle = json.optString("coverSubtitle"),
+            answerCard = answerCard,
+            toc = toc,
+            pages = pages,
+            closingAdvice = closingAdvice
         )
         return normalizeConsultation(parsed, maleBundle, femaleBundle, concern, relationshipNumber)
     }
@@ -177,134 +203,80 @@ class GenerateCompatibilityConsultationUseCase(
         concern: String,
         relationshipNumber: Int
     ): CompatibilityConsultation {
-        val maleProfile = maleBundle.content.destinyProfile
-        val femaleProfile = femaleBundle.content.destinyProfile
-        val maleCore = maleProfile.coreKeywords.firstOrNull() ?: maleProfile.title
-        val femaleCore = femaleProfile.coreKeywords.firstOrNull() ?: femaleProfile.title
-        val maleCaution = maleProfile.cautionKeywords.firstOrNull() ?: "조급함"
-        val femaleCaution = femaleProfile.cautionKeywords.firstOrNull() ?: "속앓이"
-        val concernText = concern.takeIf { it.isNotBlank() }
-
+        val concernText = concern.takeIf { it.isNotBlank() } ?: "두 사람의 관계"
+        val fallbackSummary = "두 사람은 ${relationshipMeaning(relationshipNumber)} 다만 $concernText 안에서는 속도와 표현 방식을 맞추지 않으면 작은 오해가 오래 갈 수 있습니다."
         return consultation.copy(
-            maleEnergy = consultation.maleEnergy.ifBlank {
-                "남자 쪽은 ${maleProfile.title}의 결이 관계 안에서 $maleCore 쪽으로 먼저 튀어나오기 쉽습니다. 답장이 늦거나 약속이 흔들리는 장면에서 ${maleCaution}가 올라오면 말투가 딱딱해지고, 그 순간을 그냥 넘기면 상대에게는 차갑게 느껴질 수 있습니다."
-            },
-            femaleEnergy = consultation.femaleEnergy.ifBlank {
-                "여자 쪽은 ${femaleProfile.title}의 결이 관계 안에서 $femaleCore 쪽으로 드러납니다. 겉으로는 괜찮다고 해도 ${femaleCaution}가 쌓이면 어느 날 갑자기 거리감이 생길 수 있으니, 작은 서운함을 오래 묵히는 흐름은 조심해야 합니다."
-            },
-            relationshipFlow = consultation.relationshipFlow.ifBlank {
-                "두 사람의 궁합수는 ${relationshipNumber}로 읽히며, ${relationshipMeaning(relationshipNumber)} 쉽게 말해 잘 맞을 때는 속도가 붙지만, 서로의 방식만 고집하면 연락 하나, 약속 하나에서도 생각보다 빨리 피곤해질 수 있는 관계입니다."
-            },
+            relationshipFlow = consultation.relationshipFlow.ifBlank { fallbackSummary },
             strengths = consultation.strengths.ifBlank {
-                buildStrengthsFallback(maleBundle, femaleBundle, relationshipNumber)
+                "서로 다른 결이 만나는 관계라 처음에는 낯설어도, 대화의 리듬이 맞으면 서로에게 필요한 균형을 줄 수 있습니다."
             },
             friction = consultation.friction.ifBlank {
-                buildFrictionFallback(maleBundle, femaleBundle, relationshipNumber)
+                "감정을 확인하는 속도가 어긋나면 한쪽은 재촉으로, 다른 한쪽은 부담으로 받아들일 수 있습니다. 이 지점을 그냥 넘기면 관계가 차갑게 굳을 수 있습니다."
             },
             homeTone = consultation.homeTone.ifBlank {
-                buildHomeToneFallback(maleBundle, femaleBundle, relationshipNumber)
+                "오래 가려면 중요한 말은 미루지 말고, 다툰 뒤에는 결론보다 회복의 시간을 먼저 정해야 합니다."
             },
             longTermTip = consultation.longTermTip.ifBlank {
-                buildLongTermTipFallback(relationshipNumber, concernText)
+                "서로를 바꾸려 하기보다 반응 속도와 표현 방식을 맞추는 것이 관계를 살리는 핵심입니다."
             },
-            oneLineSummary = consultation.oneLineSummary.ifBlank {
-                "두 사람은 끌림은 분명하지만, 감정 확인을 대충 넘기면 좋은 궁합도 금방 피곤한 관계로 변할 수 있습니다."
-            }
+            oneLineSummary = consultation.oneLineSummary.ifBlank { fallbackSummary },
+            coverTitle = consultation.coverTitle.ifBlank { "수리 궁합 상담소" },
+            coverSubtitle = consultation.coverSubtitle.ifBlank { "두 사람 사이의 흐름을 읽어볼게요." }
         )
     }
 
-    private fun buildStrengthsFallback(
-        maleBundle: NumerologyResultBundle,
-        femaleBundle: NumerologyResultBundle,
-        relationshipNumber: Int
-    ): String {
-        return "남자 쪽의 ${maleBundle.content.destinyProfile.title} 기운과 여자 쪽의 ${femaleBundle.content.destinyProfile.title} 기운이 만나면 ${relationshipStrengthHint(relationshipNumber)} 예를 들어 둘이 같은 목표를 잡거나 여행, 이사, 돈 관리처럼 현실 주제를 함께 정리할 때 의외로 합이 살아납니다. 이 장점을 살리면 관계가 든든해지지만, 말로만 좋아하고 실제 룰을 안 만들면 금방 흐지부지해질 수 있습니다."
+    private fun parseAnswerCard(json: JSONObject?): ConsultationAnswerCard {
+        if (json == null) return ConsultationAnswerCard()
+        return ConsultationAnswerCard(
+            question = json.optString("question"),
+            shortAnswer = json.optString("shortAnswer"),
+            body = json.optJSONArray("body").toStringList()
+        )
     }
 
-    private fun buildFrictionFallback(
-        maleBundle: NumerologyResultBundle,
-        femaleBundle: NumerologyResultBundle,
-        relationshipNumber: Int
-    ): String {
-        val maleCaution = maleBundle.content.destinyProfile.cautionKeywords.firstOrNull() ?: "조급함"
-        val femaleCaution = femaleBundle.content.destinyProfile.cautionKeywords.firstOrNull() ?: "속앓이"
-        return "다만 남자 쪽의 $maleCaution 흐름과 여자 쪽의 $femaleCaution 흐름이 겹치면 ${relationshipFrictionHint(relationshipNumber)} 특히 답장 하나가 늦거나, 약속 시간을 바꾸거나, 돈 쓰는 기준이 달라지는 작은 장면에서 불씨가 커질 수 있습니다. 이걸 대충 넘기면 큰 문제도 아닌 일로 서로를 피곤하게 만들 수 있습니다."
-    }
-
-    private fun buildHomeToneFallback(
-        maleBundle: NumerologyResultBundle,
-        femaleBundle: NumerologyResultBundle,
-        relationshipNumber: Int
-    ): String {
-        val oddCount = listOf(
-            maleBundle.numbers.destiny,
-            femaleBundle.numbers.destiny,
-            relationshipNumber
-        ).count { it in listOf(1, 3, 5, 7, 9) }
-
-        return when {
-            relationshipNumber in listOf(5, 7, 9) || oddCount >= 2 ->
-                "양의 기운이 겹쳐 집 안의 분위기와 말의 세기가 비교적 크게 살아나는 편입니다. 좋을 때는 웃음, 계획, 추진력이 확 올라오지만, 예민할 때는 목소리와 주장도 같이 커집니다. 둘 다 지친 날에는 말 한마디가 생각보다 크게 꽂힐 수 있으니, 싸우는 중에는 결론보다 휴식 시간을 먼저 잡는 편이 낫습니다."
-            relationshipNumber in listOf(2, 4, 6, 8) ->
-                "관계의 온도는 비교적 차분하고 생활 리듬을 맞추는 쪽으로 흐르기 쉽습니다. 다만 겉으로 조용하다고 문제가 없는 건 아닙니다. 서운함을 속으로만 쌓으면 어느 순간 대화가 업무 보고처럼 말라버릴 수 있으니, 작은 감정 확인을 일부러 자주 해야 합니다."
-            else ->
-                "관계의 분위기는 유동적인 편이라 가까워질 때는 빠르게 가까워지고, 애매해질 때도 갑자기 흐려질 수 있습니다. 두 사람이 원하는 관계 이름과 속도를 분명히 맞춰두지 않으면, 좋은 감정이 있어도 생활 속에서는 불안정하게 흔들릴 수 있습니다."
+    private fun parseToc(array: JSONArray?): List<ConsultationTocItem> {
+        if (array == null) return emptyList()
+        return buildList {
+            for (index in 0 until array.length()) {
+                val item = array.optJSONObject(index) ?: continue
+                add(ConsultationTocItem(id = item.optString("id"), title = item.optString("title")))
+            }
         }
     }
 
-    private fun buildLongTermTipFallback(relationshipNumber: Int, concern: String?): String {
-        val concernAddon = concern?.let { " 특히 \"$it\" 같은 현실 질문이 있다면 결론을 서두르기보다 생활 리듬과 대화 방식부터 확인해보세요." }.orEmpty()
-        return when (relationshipNumber) {
-            0 -> "이번 주에는 관계 이름보다 서로 원하는 속도를 먼저 말하세요. 한 달 안에는 연락 빈도와 만나는 주기를 정하고, 장기적으로는 애매함을 오래 방치하지 않는 룰이 필요합니다. 이걸 미루면 가까운 듯 멀어지는 패턴 때문에 마음이 더 힘들어질 수 있습니다.$concernAddon"
-            1 -> "이번 주에는 누가 먼저 끌고 갈지보다 어떻게 같이 시작할지를 맞추세요. 한 달 안에는 데이트, 연락, 돈 쓰는 기준을 정하고, 장기적으로는 주도권 싸움이 생길 때 바로 멈추는 신호를 만들어야 합니다.$concernAddon"
-            2 -> "이번 주에는 짧게라도 감정 확인을 하세요. 한 달 안에는 서운함을 하루 이상 묵히지 않는 약속을 만들고, 장기적으로는 침묵을 배려로 착각하지 않는 게 중요합니다. 그냥 참으면 관계가 조용히 지칠 수 있습니다.$concernAddon"
-            3 -> "이번 주에는 말싸움에서 이기려는 표현을 줄이세요. 한 달 안에는 농담과 진심을 구분하는 대화 룰을 만들고, 장기적으로는 말맛이 독이 되지 않게 사과 속도를 빠르게 가져가야 합니다.$concernAddon"
-            4 -> "이번 주에는 원칙 하나와 예외 하나를 같이 정하세요. 한 달 안에는 생활 리듬을 맞추되 숨 쉴 틈을 남기고, 장기적으로는 답답함이 쌓이기 전에 일정과 감정을 같이 점검해야 합니다.$concernAddon"
-            5 -> "이번 주에는 설렘이 올라올수록 결정은 하루 늦추세요. 한 달 안에는 즉흥 약속과 중요한 결정을 나누고, 장기적으로는 흥분한 날의 약속을 다음 날 다시 확인하는 습관이 필요합니다.$concernAddon"
-            6 -> "이번 주에는 챙겨주는 행동 뒤에 원하는 감정을 직접 말하세요. 한 달 안에는 책임과 애정 표현을 분리하고, 장기적으로는 의무감이 사랑을 대신하지 않게 둘만의 휴식 시간을 지켜야 합니다.$concernAddon"
-            7 -> "이번 주에는 서로 몰아붙이는 말투를 줄이세요. 한 달 안에는 싸움이 커지기 전 멈춤 시간을 정하고, 장기적으로는 같이 밀고 가는 힘만큼 일부러 쉬는 시간을 넣어야 합니다.$concernAddon"
-            8 -> "이번 주에는 주변 사람보다 둘만의 약속을 먼저 챙기세요. 한 달 안에는 외부 일정과 둘만의 시간을 분리하고, 장기적으로는 관계의 중심을 밖에 빼앗기지 않는 룰이 필요합니다.$concernAddon"
-            else -> "이번 주에는 결론을 몰아붙이지 말고 서로에게 기대하는 관계의 끝그림을 말하세요. 한 달 안에는 정리해야 할 오해를 남기지 말고, 장기적으로는 큰 감정이 올라올 때 바로 결론 내리지 않는 습관이 필요합니다.$concernAddon"
+    private fun parsePages(array: JSONArray?): List<ConsultationPage> {
+        if (array == null) return emptyList()
+        return buildList {
+            for (index in 0 until array.length()) {
+                val item = array.optJSONObject(index) ?: continue
+                add(
+                    ConsultationPage(
+                        id = item.optString("id"),
+                        ribbon = item.optString("ribbon"),
+                        title = item.optString("title"),
+                        highlight = item.optString("highlight"),
+                        body = item.optJSONArray("body").toStringList(),
+                        copyText = item.optString("copyText")
+                    )
+                )
+            }
         }
     }
 
-    private fun relationshipStrengthHint(number: Int): String = when (number) {
-        0 -> "정해진 틀보다 새로운 방향을 같이 만들 수 있는 여백이 큽니다."
-        1 -> "끌림이 생기면 빠르게 시작하고 움직일 힘이 분명합니다."
-        2 -> "정서적 결을 잘 읽고 배려가 오가는 온도가 자연스럽게 만들어집니다."
-        3 -> "대화와 농담, 말맛이 살아나 친구처럼 잘 통하는 장점이 있습니다."
-        4 -> "생활과 규칙, 현실 기반을 함께 세우는 힘이 탄탄합니다."
-        5 -> "활기와 변화의 기운이 커서 함께 새로운 경험을 만들기 좋습니다."
-        6 -> "책임감과 생활력이 살아나 오래 가는 관계로 다져가기 좋습니다."
-        7 -> "목표를 함께 잡으면 강하게 밀고 나가는 집중력이 큽니다."
-        8 -> "사람과 기회를 끌어들이는 연결력이 좋아 외부 흐름이 살아납니다."
-        else -> "관계의 밀도가 빠르게 깊어지며 서로에게 큰 의미를 주기 쉽습니다."
+    private fun JSONArray?.toStringList(): List<String> {
+        if (this == null) return emptyList()
+        return buildList {
+            for (index in 0 until length()) {
+                optString(index).takeIf { it.isNotBlank() }?.let(::add)
+            }
+        }
     }
 
-    private fun relationshipFrictionHint(number: Int): String = when (number) {
-        0 -> "가까워졌다 멀어졌다 하는 흐름이 반복되며 중심이 흔들릴 수 있습니다."
-        1 -> "서로의 방식이 부딪히면 주도권 다툼이 빨라질 수 있습니다."
-        2 -> "서운함을 겉으로 못 내고 안에 쌓는 속앓이형 패턴으로 흐르기 쉽습니다."
-        3 -> "감정이 올라오면 말이 날카로워지고 해석 싸움이 생길 수 있습니다."
-        4 -> "기준이 강한 둘이 만나 답답함과 융통성 부족이 커질 수 있습니다."
-        5 -> "기세가 큰 만큼 좋을 때도 크고 흔들릴 때도 크게 흔들릴 수 있습니다."
-        6 -> "사랑이 책임으로만 굳어지면 무게감이 답답함으로 바뀔 수 있습니다."
-        7 -> "예민할 때는 말보다 기세가 먼저 나가 긴장감이 높아질 수 있습니다."
-        8 -> "주변 사람과 외부 일에 에너지를 많이 써서 둘만의 중심이 약해질 수 있습니다."
-        else -> "감정의 파동이 커서 정리와 결론을 너무 빨리 내려버릴 수 있습니다."
-    }
-
-    private fun relationshipMeaning(number: Int): String = when (number) {
-        0 -> "정해진 틀보다 열린 가능성이 큰 궁합입니다. 서로의 빈틈을 채우며 새 방향을 만들 수 있지만, 중심 합의가 약하면 가까워졌다 멀어졌다 하는 흐름도 생기기 쉽습니다."
-        1 -> "끌림이 생기면 빠르게 시작되는 궁합입니다. 주도권을 잡는 힘이 분명하지만, 서로의 방식이 강하면 부딪힘도 빨라질 수 있습니다."
-        2 -> "정서적 결을 잘 읽고 배려가 오가는 궁합입니다. 말보다 감정 확인의 질이 관계를 오래 안정시키는 편입니다."
-        3 -> "대화, 농담, 해석, 메시지의 흐름이 살아나는 궁합입니다. 잘 통하지만 감정이 올라오면 언어가 날카로워질 수 있습니다."
-        4 -> "생활, 규칙, 현실 기반을 함께 세우기 좋은 궁합입니다. 안정감이 크지만 답답함이 생기지 않도록 여유를 남겨야 합니다."
-        5 -> "움직임과 설렘, 변화가 큰 궁합입니다. 활기는 좋지만 흥분 뒤 검증이 꼭 필요한 관계입니다."
-        6 -> "생활력, 책임감, 현실 관리가 살아나는 궁합입니다. 오래 가는 힘이 있지만 돌봄과 의무의 균형이 중요합니다."
-        7 -> "둘이 목표 하나를 잡으면 강하게 밀고 나가는 궁합입니다. 몰입이 강한 만큼 멈춤과 여유도 의식적으로 필요합니다."
-        8 -> "대인관계, 매력, 외부 연결 운이 살아나는 궁합입니다. 다만 둘만의 중심과 경계선을 먼저 세워야 안정됩니다."
-        else -> "관계의 밀도와 결론성이 큰 궁합입니다. 서로에게 주는 영향이 큰 만큼 완성의 방식을 잘 잡는 것이 중요합니다."
+    private fun traitBrief(bundle: NumerologyResultBundle): String {
+        val profile = bundle.content.destinyProfile
+        val core = profile.coreKeywords.take(2).joinToString(", ").ifBlank { profile.title }
+        val caution = profile.cautionKeywords.take(2).joinToString(", ").ifBlank { "조급함" }
+        return "${profile.title} 기질은 $core 쪽이 강하고, 관계에서는 ${caution}이 과해질 수 있습니다."
     }
 
     private fun relationshipNumber(maleBundle: NumerologyResultBundle, femaleBundle: NumerologyResultBundle): Int {
@@ -315,9 +287,22 @@ class GenerateCompatibilityConsultationUseCase(
         return if (type == CalendarType.LUNAR) "음력" else "양력"
     }
 
+    private fun relationshipMeaning(number: Int): String = when (number) {
+        0 -> "관계의 모양이 쉽게 고정되지 않아, 서로에게 자유와 여백을 주어야 살아나는 흐름입니다."
+        1 -> "시작과 주도권의 기운이 강해 빠르게 가까워질 수 있지만, 한쪽의 속도가 너무 앞서면 균형이 흔들리는 흐름입니다."
+        2 -> "배려와 조율의 기운이 강해 마음을 천천히 맞추기 좋지만, 서운함을 숨기면 오해가 쌓이는 흐름입니다."
+        3 -> "대화와 표현의 기운이 강해 즐거움이 살아나지만, 말이 앞서면 감정이 쉽게 번지는 흐름입니다."
+        4 -> "생활 리듬과 약속을 맞추기 좋은 흐름이지만, 답답함과 규칙 싸움이 생기기 쉬운 흐름입니다."
+        5 -> "변화와 자극이 강해 끌림이 빠르게 생기지만, 안정감이 부족하면 쉽게 흔들리는 흐름입니다."
+        6 -> "책임과 돌봄의 기운이 강해 오래 갈 기반이 있으나, 부담이 사랑을 눌러버리지 않게 조심해야 하는 흐름입니다."
+        7 -> "깊이와 집중이 강해 함께 몰입하기 좋지만, 침묵과 거리감이 오해로 번지기 쉬운 흐름입니다."
+        8 -> "현실 감각과 추진력이 살아나는 흐름이지만, 관계가 성과나 역할로만 굳지 않게 조심해야 합니다."
+        else -> "마무리와 정리의 기운이 강해 깊은 결론에 닿기 쉽지만, 감정의 무게가 커질 수 있는 흐름입니다."
+    }
+
     companion object {
         private const val SYSTEM_PROMPT =
-            "You are a Korean premium numerology compatibility writer. Do not repeat each person's free reading; use it only as context for concrete relationship situations. Write detailed, situational, slightly provocative compatibility advice in polite Korean honorific style. Never call the user 선생님; use 당신 or omit the direct address. Return only valid JSON."
+            "You are a Korean premium numerology compatibility writer. Write mobile-friendly consultation pages, not a long report. Use concrete relationship scenes, warm Korean honorific style, and realistic warnings without curses or deterministic fear. Never call the user 선생님. Return only valid JSON."
         private const val OPENAI_MODEL = "gpt-5.1"
     }
 }

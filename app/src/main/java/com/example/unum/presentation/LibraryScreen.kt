@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
@@ -32,7 +31,7 @@ import com.example.unum.data.model.FortuneBookType
 import com.example.unum.ui.components.MascotArt
 import com.example.unum.ui.components.MascotGuideCard
 import com.example.unum.ui.components.MysticBackground
-import com.example.unum.ui.components.PremiumArchiveRow
+import com.example.unum.ui.components.InteractiveBookArchiveShelf
 import com.example.unum.ui.components.SurfaceCard
 import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.Border
@@ -112,16 +111,22 @@ fun LibraryScreen(viewModel: AppViewModel, onOpenBook: (FortuneBook) -> Unit) {
                         }
                     }
                 }
+            } else if (filteredBooks.isEmpty()) {
+                item {
+                    SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface2, contentPadding = 18) {
+                        androidx.compose.material3.Text("선택한 필터에 해당하는 책자가 아직 없어요.", color = TextSecondary)
+                    }
+                }
             } else {
-                items(filteredBooks, key = { it.bookId }) { book ->
-                    PremiumArchiveRow(
-                        book = book,
-                        selected = book.bookId == uiState.selectedBookId,
-                        onClick = {
+                item {
+                    InteractiveBookArchiveShelf(
+                        books = filteredBooks,
+                        selectedBookId = uiState.selectedBookId,
+                        onBookOpen = { book ->
                             viewModel.selectSavedBook(book)
                             onOpenBook(book)
                         },
-                        onBookmarkClick = { viewModel.toggleBookmark(book) }
+                        onBookmarkClick = { book -> viewModel.toggleBookmark(book) }
                     )
                 }
             }

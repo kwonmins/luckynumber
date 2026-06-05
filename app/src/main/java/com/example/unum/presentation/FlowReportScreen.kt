@@ -1,6 +1,5 @@
 package com.example.unum.presentation
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,10 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.data.model.NumerologyResultBundle
@@ -81,14 +77,17 @@ fun FlowReportScreen(
             item {
                 SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface, borderColor = Border, contentPadding = 18) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Text("인생 흐름 한눈에 보기", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
-                        FlowLegend()
-                        LifeCurveChart(bundle = bundle, selectedStage = selectedStage)
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            listOf("0세", "20세", "40세", "60세", "80세").forEach {
-                                Text(it, color = TextMuted, style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
+                        Text("시기별 역할 지도", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "높고 낮음을 비교하는 그래프가 아니라, 각 시기에 어떤 역할의 결이 강해지는지 보여줘요.",
+                            color = TextMuted,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        LifeRoleMap(
+                            bundle = bundle,
+                            selectedStage = selectedStage,
+                            onSelect = { selectedStage = it }
+                        )
                     }
                 }
             }
@@ -133,7 +132,7 @@ fun FlowReportScreen(
 
 @Composable
 private fun FlowTabs(selectedStage: Int, onSelect: (Int) -> Unit) {
-    val labels = listOf("전체 흐름", "초년", "중년", "말년")
+    val labels = listOf("모든 시기", "초년", "중년", "말년")
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -164,64 +163,66 @@ private fun FlowTabs(selectedStage: Int, onSelect: (Int) -> Unit) {
 }
 
 @Composable
-private fun FlowLegend() {
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-        LegendDot("종합", Accent)
-        LegendDot("안정", Mint)
-        LegendDot("주의", Rose)
-    }
-}
-
-@Composable
-private fun LegendDot(label: String, color: androidx.compose.ui.graphics.Color) {
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(7.dp).background(color, CircleShape))
-        Text(label, color = TextMuted, style = MaterialTheme.typography.bodySmall)
-    }
-}
-
-@Composable
-private fun LifeCurveChart(bundle: NumerologyResultBundle, selectedStage: Int) {
-    val values = listOf(bundle.numbers.early, bundle.numbers.middle, bundle.numbers.late)
-    val accent = Accent
-    val muted = Border
-    Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(128.dp)
-    ) {
-        val top = 12.dp.toPx()
-        val bottom = size.height - 18.dp.toPx()
-        val chartHeight = bottom - top
-        repeat(4) { index ->
-            val y = top + chartHeight * index / 3f
-            drawLine(muted, Offset(0f, y), Offset(size.width, y), strokeWidth = 1.dp.toPx())
-        }
-        val points = values.mapIndexed { index, value ->
-            val x = when (index) {
-                0 -> size.width * 0.08f
-                1 -> size.width * 0.50f
-                else -> size.width * 0.92f
-            }
-            val y = bottom - (((value.coerceIn(0, 9) + 1) / 10f) * chartHeight)
-            Offset(x, y)
-        }
-        val path = Path().apply {
-            moveTo(points[0].x, points[0].y)
-            cubicTo(size.width * 0.26f, top, size.width * 0.33f, bottom, points[1].x, points[1].y)
-            cubicTo(size.width * 0.67f, top, size.width * 0.74f, bottom, points[2].x, points[2].y)
-        }
-        drawPath(path = path, color = accent, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
-        points.forEachIndexed { index, point ->
-            val selected = selectedStage == 0 || selectedStage == index + 1
-            drawCircle(
-                color = if (selected) accent else TextMuted,
-                radius = if (selected) 5.dp.toPx() else 3.5.dp.toPx(),
-                center = point
+private fun LifeRoleMap(
+    bundle: NumerologyResultBundle,
+    selectedStage: Int,
+    onSelect: (Int) -> Unit
+) {
+    val phases = listOf(
+        FlowPhase("초년", "20~30세", bundle.numbers.early, "기초를 배우는 결", "관계, 습관, 기준을 처음 세우는 시기", Accent, 1),
+        FlowPhase("중년", "31~60세", bundle.numbers.middle, "확장과 조율의 결", "일, 책임, 선택의 폭이 넓어지는 시기", Mint, 2),
+        FlowPhase("말년", "61세 이후", bundle.numbers.late, "정리와 전승의 결", "내가 쌓은 방식을 삶의 언어로 남기는 시기", Rose, 3)
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        phases.forEach { phase ->
+            FlowRoleTile(
+                phase = phase,
+                selected = selectedStage == 0 || selectedStage == phase.index,
+                onClick = { onSelect(phase.index) }
             )
         }
     }
 }
+
+@Composable
+private fun FlowRoleTile(phase: FlowPhase, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (selected) phase.color.copy(alpha = 0.12f) else Surface2.copy(alpha = 0.72f))
+            .border(1.dp, if (selected) phase.color.copy(alpha = 0.34f) else Border, RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(13.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(phase.color.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("결 ${phase.number}", color = phase.color, style = MaterialTheme.typography.bodySmall)
+        }
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text("${phase.title} · ${phase.range}", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
+            Text(phase.role, color = phase.color, style = MaterialTheme.typography.bodySmall)
+            Text(phase.caption, color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+private data class FlowPhase(
+    val title: String,
+    val range: String,
+    val number: Int,
+    val role: String,
+    val caption: String,
+    val color: Color,
+    val index: Int
+)
 
 @Composable
 private fun StageCard(
@@ -251,7 +252,7 @@ private fun StageCard(
                 .background(Accent.copy(alpha = 0.10f)),
             contentAlignment = Alignment.Center
         ) {
-            Text(number.toString(), color = Accent, style = MaterialTheme.typography.titleMedium)
+            Text("결 $number", color = Accent, style = MaterialTheme.typography.bodySmall)
         }
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("$title ($range) · $subtitle", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
