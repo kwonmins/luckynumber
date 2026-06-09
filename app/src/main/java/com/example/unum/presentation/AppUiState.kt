@@ -1,6 +1,7 @@
 package com.example.unum.presentation
 
 import com.example.unum.data.model.FortuneBook
+import com.example.unum.data.model.AuthState
 import com.example.unum.data.model.CompatibilityConsultation
 import com.example.unum.data.model.CompatibilityFormState
 import com.example.unum.data.model.HomeFormState
@@ -10,6 +11,7 @@ import com.example.unum.data.model.PremiumConsultation
 import com.example.unum.data.model.PremiumTopic
 import com.example.unum.data.model.RecentSearch
 import com.example.unum.data.model.ReaderFontScale
+import com.example.unum.data.model.UserSyncState
 
 enum class PremiumFlowStep {
     FORM,
@@ -40,6 +42,8 @@ data class AppUiState(
     val isPremiumLoading: Boolean = false,
     val notificationsEnabled: Boolean = true,
     val readerFontScale: ReaderFontScale = ReaderFontScale.MEDIUM,
+    val authState: AuthState = AuthState.SignedOut,
+    val userSyncState: UserSyncState = UserSyncState.Idle,
     val inputError: String? = null,
     val isLoading: Boolean = false
 )

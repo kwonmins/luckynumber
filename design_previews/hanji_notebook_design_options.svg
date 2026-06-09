@@ -1,0 +1,254 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1800" viewBox="0 0 1800 1800">
+  <defs>
+    <filter id="softShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#1f2937" flood-opacity=".13"/>
+    </filter>
+    <filter id="paperLift" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="15" stdDeviation="14" flood-color="#3b2f22" flood-opacity=".16"/>
+    </filter>
+    <filter id="inkPress">
+      <feDropShadow dx="0" dy="1" stdDeviation=".6" flood-color="#ffffff" flood-opacity=".24"/>
+      <feDropShadow dx="0" dy="-1" stdDeviation=".8" flood-color="#000000" flood-opacity=".10"/>
+    </filter>
+
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#edf1f5"/>
+    </linearGradient>
+    <linearGradient id="hanjiWarm" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffaf0"/>
+      <stop offset=".52" stop-color="#f8f0df"/>
+      <stop offset="1" stop-color="#efe3cd"/>
+    </linearGradient>
+    <linearGradient id="hanjiWhite" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffdf8"/>
+      <stop offset=".56" stop-color="#f7f2e8"/>
+      <stop offset="1" stop-color="#eee4d2"/>
+    </linearGradient>
+    <linearGradient id="hanjiBlue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fbff"/>
+      <stop offset=".55" stop-color="#eef5fb"/>
+      <stop offset="1" stop-color="#dce8f0"/>
+    </linearGradient>
+    <linearGradient id="hanjiGreen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbfff7"/>
+      <stop offset=".54" stop-color="#eff7e9"/>
+      <stop offset="1" stop-color="#dfead4"/>
+    </linearGradient>
+    <linearGradient id="hanjiPlum" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff9fb"/>
+      <stop offset=".56" stop-color="#f7edf1"/>
+      <stop offset="1" stop-color="#ead7df"/>
+    </linearGradient>
+    <linearGradient id="inkWash" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#334155" stop-opacity=".10"/>
+      <stop offset=".45" stop-color="#0f172a" stop-opacity=".045"/>
+      <stop offset="1" stop-color="#0f172a" stop-opacity=".13"/>
+    </linearGradient>
+    <pattern id="hanjiFibers" width="52" height="52" patternUnits="userSpaceOnUse">
+      <rect width="52" height="52" fill="transparent"/>
+      <path d="M-8 15 C8 9 16 21 31 13 S52 9 60 18" stroke="#7c6f5c" stroke-opacity=".13" stroke-width=".8" fill="none"/>
+      <path d="M-5 38 C8 29 21 43 54 31" stroke="#ffffff" stroke-opacity=".45" stroke-width=".9" fill="none"/>
+      <path d="M5 6 L30 2" stroke="#7c6f5c" stroke-opacity=".08" stroke-width=".7"/>
+      <path d="M18 48 L47 42" stroke="#7c6f5c" stroke-opacity=".08" stroke-width=".7"/>
+      <circle cx="12" cy="27" r="1.1" fill="#8b7b66" opacity=".13"/>
+      <circle cx="39" cy="18" r=".9" fill="#8b7b66" opacity=".11"/>
+    </pattern>
+    <pattern id="pageRules" width="30" height="30" patternUnits="userSpaceOnUse">
+      <rect width="30" height="30" fill="transparent"/>
+      <line x1="0" y1="29" x2="30" y2="29" stroke="#d2c1a8" stroke-opacity=".22"/>
+    </pattern>
+
+    <style>
+      .title { font-family: "Noto Sans KR", "Inter", sans-serif; font-weight: 900; fill: #0f172a; letter-spacing: -.03em; }
+      .sub { font-family: "Noto Sans KR", "Inter", sans-serif; font-weight: 500; fill: #64748b; }
+      .label { font-family: "Inter", "Noto Sans KR", sans-serif; font-weight: 900; letter-spacing: .09em; }
+      .bookTitle { font-family: "Nanum Myeongjo", "Noto Serif KR", "Noto Sans KR", serif; font-weight: 900; letter-spacing: -.025em; }
+      .body { font-family: "Noto Sans KR", "Inter", sans-serif; font-weight: 600; fill: #475569; }
+      .tiny { font-size: 13px; }
+      .small { font-size: 16px; }
+      .deckle { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1800" fill="url(#bg)"/>
+  <text x="90" y="92" class="title" font-size="44">수리의 운세노트 · 모던 한지 책자 시안</text>
+  <text x="90" y="134" class="sub" font-size="21">한지 섬유, 먹색 타이포, 낙관/실매듭 포인트를 앱에 적용 가능한 UI 구성으로 정리했습니다.</text>
+
+  <!-- Main system -->
+  <g transform="translate(70,180)">
+    <rect width="1660" height="840" rx="34" fill="#ffffff" filter="url(#softShadow)"/>
+    <text x="44" y="62" class="title" font-size="32">Soft Hanji Edition</text>
+    <text x="44" y="98" class="sub" font-size="18">가죽보다 부드럽고 한국적인 고급감. 표지는 한지 커버, 내부는 여백이 넓은 상담형 속지.</text>
+
+    <!-- cover phone -->
+    <g transform="translate(60,135)">
+      <rect width="410" height="650" rx="46" fill="#0b0d12"/>
+      <rect x="14" y="14" width="382" height="622" rx="38" fill="#f8fafc"/>
+      <rect x="35" y="35" width="340" height="548" rx="23" fill="url(#hanjiWarm)" filter="url(#paperLift)"/>
+      <rect x="35" y="35" width="340" height="548" rx="23" fill="url(#hanjiFibers)"/>
+      <path class="deckle" d="M44 54 C51 48 57 61 66 54 C76 47 84 60 94 53 C106 45 113 60 124 53 C134 46 143 61 153 53 C164 46 172 59 183 53 C195 47 204 60 214 53 C225 45 234 60 245 53 C257 46 265 59 276 53 C289 45 297 60 310 53 C325 45 336 60 365 52" stroke="#d4c3a8" stroke-width="2.2" opacity=".50"/>
+      <path d="M76 66 V552" stroke="#d8c4a5" stroke-width="18" stroke-opacity=".45"/>
+      <path d="M88 90 V530" stroke="#334155" stroke-width="1.6" stroke-opacity=".26" stroke-dasharray="3 10"/>
+      <rect x="303" y="36" width="18" height="104" rx="8" fill="#1d4ed8"/>
+      <rect x="309" y="36" width="3" height="104" rx="2" fill="#93c5fd" opacity=".55"/>
+      <rect x="73" y="66" width="264" height="488" rx="15" fill="none" stroke="#bfa374" stroke-opacity=".58" stroke-width="1.8"/>
+      <rect x="89" y="82" width="232" height="456" rx="10" fill="none" stroke="#ffffff" stroke-opacity=".60"/>
+      <path d="M96 162 C158 128 235 186 308 150" stroke="#0f172a" stroke-opacity=".055" stroke-width="28" fill="none"/>
+      <text x="123" y="139" class="label" font-size="13" fill="#1d4ed8">SURI HANJI NOTE</text>
+      <text x="117" y="242" class="bookTitle" font-size="45" fill="#111827" filter="url(#inkPress)">수리의</text>
+      <text x="117" y="302" class="bookTitle" font-size="45" fill="#111827" filter="url(#inkPress)">운세노트</text>
+      <line x1="117" y1="338" x2="293" y2="338" stroke="#bfa374" stroke-width="2"/>
+      <text x="117" y="392" class="body small">연애 · 운명수 7</text>
+      <text x="117" y="420" class="body tiny">마음의 결을 읽는 해설서</text>
+      <circle cx="205" cy="500" r="42" fill="#fffaf0" stroke="#1d4ed8" stroke-opacity=".50" stroke-width="3"/>
+      <text x="194" y="516" class="title" font-size="36" fill="#1d4ed8">7</text>
+      <rect x="272" y="472" width="48" height="48" rx="7" fill="#dc2626" opacity=".92"/>
+      <text x="285" y="504" class="bookTitle" font-size="22" fill="#fff">수리</text>
+      <text x="112" y="622" class="sub" font-size="16">표지 · 한지 섬유 + 낙관</text>
+    </g>
+
+    <!-- toc phone -->
+    <g transform="translate(520,135)">
+      <rect width="410" height="650" rx="46" fill="#0b0d12"/>
+      <rect x="14" y="14" width="382" height="622" rx="38" fill="#f8fafc"/>
+      <rect x="30" y="34" width="350" height="550" rx="18" fill="#111827" filter="url(#paperLift)"/>
+      <rect x="48" y="52" width="314" height="514" rx="14" fill="url(#hanjiWhite)" stroke="#e2d4bd"/>
+      <rect x="48" y="52" width="314" height="514" rx="14" fill="url(#hanjiFibers)"/>
+      <rect x="48" y="52" width="314" height="514" rx="14" fill="url(#pageRules)" opacity=".72"/>
+      <path d="M48 52 C72 70 72 548 48 566" fill="#e3d4bd" opacity=".38"/>
+      <text x="182" y="104" class="title" font-size="26">목차</text>
+      <text x="130" y="134" class="label" font-size="13" fill="#1d4ed8">HANJI ROMANCE</text>
+      <g transform="translate(78,176)">
+        <rect width="254" height="52" rx="14" fill="#fffdf8" stroke="#e4d5be"/>
+        <circle cx="26" cy="26" r="15" fill="#eff6ff"/><text x="22" y="32" class="label" font-size="13" fill="#1d4ed8">1</text>
+        <text x="56" y="32" class="body small">지혜의 본질</text><text x="224" y="32" class="body tiny" fill="#1d4ed8">p.4</text>
+      </g>
+      <g transform="translate(78,242)">
+        <rect width="254" height="52" rx="14" fill="#f7fbff" stroke="#1d4ed8" stroke-opacity=".18"/>
+        <circle cx="26" cy="26" r="15" fill="#dbeafe"/><text x="22" y="32" class="label" font-size="13" fill="#1d4ed8">2</text>
+        <text x="56" y="32" class="body small">상황별 해석</text><text x="218" y="32" class="body tiny" fill="#1d4ed8">p.14</text>
+      </g>
+      <g transform="translate(78,308)">
+        <rect width="254" height="52" rx="14" fill="#fffdf8" stroke="#e4d5be"/>
+        <circle cx="26" cy="26" r="15" fill="#eff6ff"/><text x="22" y="32" class="label" font-size="13" fill="#1d4ed8">3</text>
+        <text x="56" y="32" class="body small">주의할 장면</text><text x="218" y="32" class="body tiny" fill="#1d4ed8">p.24</text>
+      </g>
+      <g transform="translate(78,374)">
+        <rect width="254" height="52" rx="14" fill="#fffdf8" stroke="#e4d5be"/>
+        <circle cx="26" cy="26" r="15" fill="#eff6ff"/><text x="22" y="32" class="label" font-size="13" fill="#1d4ed8">4</text>
+        <text x="56" y="32" class="body small">이번 달 행동 지침</text><text x="218" y="32" class="body tiny" fill="#1d4ed8">p.34</text>
+      </g>
+      <text x="196" y="536" class="body tiny" fill="#8b7b66">03</text>
+      <text x="125" y="622" class="sub" font-size="16">속지 · 넓은 여백</text>
+    </g>
+
+    <!-- detail phone -->
+    <g transform="translate(980,135)">
+      <rect width="410" height="650" rx="46" fill="#0b0d12"/>
+      <rect x="14" y="14" width="382" height="622" rx="38" fill="#f8fafc"/>
+      <rect x="30" y="34" width="350" height="550" rx="18" fill="#111827" filter="url(#paperLift)"/>
+      <rect x="48" y="52" width="314" height="514" rx="14" fill="url(#hanjiWhite)" stroke="#e2d4bd"/>
+      <rect x="48" y="52" width="314" height="514" rx="14" fill="url(#hanjiFibers)"/>
+      <path d="M48 52 C72 70 72 548 48 566" fill="#e3d4bd" opacity=".38"/>
+      <circle cx="82" cy="96" r="16" fill="#111827"/><text x="77" y="102" class="label" font-size="13" fill="#ffffff">2</text>
+      <text x="110" y="92" class="title" font-size="22">상황별 고민 해결 비책</text>
+      <text x="110" y="118" class="label" font-size="12" fill="#1d4ed8">SURI HANJI COUNSEL</text>
+      <g transform="translate(74,160)">
+        <rect width="262" height="82" rx="12" fill="#fffdf8" stroke="#dfd0b8"/>
+        <rect width="5" height="82" rx="3" fill="#b08a4a"/>
+        <text x="20" y="31" class="label" font-size="13" fill="#9a6b24">던지신 질문</text>
+        <text x="20" y="58" class="body tiny">연애 중인데 불안감을 줄이고 싶어요.</text>
+      </g>
+      <g transform="translate(74,264)">
+        <rect width="262" height="94" rx="12" fill="#fff8f8" stroke="#dc2626" stroke-opacity=".18"/>
+        <rect width="5" height="94" rx="3" fill="#dc2626"/>
+        <text x="20" y="31" class="label" font-size="13" fill="#dc2626">주의할 장면</text>
+        <text x="20" y="58" class="body tiny">상대의 반응보다 내 속도 조절이 먼저입니다.</text>
+      </g>
+      <g transform="translate(74,380)">
+        <rect width="262" height="100" rx="12" fill="#f8fbff" stroke="#1d4ed8" stroke-opacity=".20"/>
+        <rect width="5" height="100" rx="3" fill="#1d4ed8"/>
+        <text x="20" y="31" class="label" font-size="13" fill="#1d4ed8">이번 주 실천 지침</text>
+        <text x="20" y="58" class="body tiny">가장 크게 남는 고민을 한 문장으로 적기</text>
+        <text x="20" y="80" class="body tiny">바로 움직일 작은 선택 하나 정하기</text>
+      </g>
+      <text x="196" y="536" class="body tiny" fill="#8b7b66">15</text>
+      <text x="113" y="622" class="sub" font-size="16">상세 · 한지 카드</text>
+    </g>
+  </g>
+
+  <!-- category variants -->
+  <g transform="translate(70,1080)">
+    <rect width="1660" height="610" rx="34" fill="#ffffff" filter="url(#softShadow)"/>
+    <text x="44" y="62" class="title" font-size="32">카테고리별 한지 색감</text>
+    <text x="44" y="98" class="sub" font-size="18">한지 베이스는 유지하고, 책갈피/낙관/인장 색으로 분야별 아이덴티티를 만듭니다.</text>
+
+    <g transform="translate(72,145)">
+      <rect width="245" height="350" rx="20" fill="url(#hanjiPlum)" filter="url(#paperLift)"/>
+      <rect width="245" height="350" rx="20" fill="url(#hanjiFibers)"/>
+      <rect x="18" y="20" width="209" height="310" rx="14" fill="none" stroke="#bfa374" stroke-width="1.8"/>
+      <path d="M38 38 V312" stroke="#8b7b66" stroke-dasharray="3 10" stroke-opacity=".30"/>
+      <rect x="194" width="16" height="82" rx="7" fill="#dc2626"/>
+      <text x="58" y="84" class="label" font-size="12" fill="#dc2626">ROMANCE</text>
+      <text x="58" y="166" class="bookTitle" font-size="33" fill="#111827">연애</text>
+      <text x="58" y="209" class="bookTitle" font-size="33" fill="#111827">운세노트</text>
+      <circle cx="122" cy="282" r="34" fill="#fffdf8" stroke="#dc2626" stroke-width="3"/>
+      <text x="113" y="294" class="title" font-size="28" fill="#dc2626">7</text>
+      <rect x="164" y="260" width="38" height="38" rx="6" fill="#dc2626" opacity=".88"/>
+      <text x="78" y="396" class="title" font-size="19">연애</text>
+    </g>
+
+    <g transform="translate(390,145)">
+      <rect width="245" height="350" rx="20" fill="url(#hanjiBlue)" filter="url(#paperLift)"/>
+      <rect width="245" height="350" rx="20" fill="url(#hanjiFibers)"/>
+      <rect x="18" y="20" width="209" height="310" rx="14" fill="none" stroke="#9fb3c7" stroke-width="1.8"/>
+      <rect x="194" width="16" height="82" rx="7" fill="#1d4ed8"/>
+      <text x="58" y="84" class="label" font-size="12" fill="#1d4ed8">CAREER</text>
+      <text x="58" y="166" class="bookTitle" font-size="33" fill="#111827">일과</text>
+      <text x="58" y="209" class="bookTitle" font-size="33" fill="#111827">방향 노트</text>
+      <circle cx="122" cy="282" r="34" fill="#fffdf8" stroke="#1d4ed8" stroke-width="3"/>
+      <text x="113" y="294" class="title" font-size="28" fill="#1d4ed8">7</text>
+      <text x="69" y="396" class="title" font-size="19">일 &amp; 진로</text>
+    </g>
+
+    <g transform="translate(708,145)">
+      <rect width="245" height="350" rx="20" fill="url(#hanjiGreen)" filter="url(#paperLift)"/>
+      <rect width="245" height="350" rx="20" fill="url(#hanjiFibers)"/>
+      <rect x="18" y="20" width="209" height="310" rx="14" fill="none" stroke="#aabf98" stroke-width="1.8"/>
+      <rect x="194" width="16" height="82" rx="7" fill="#059669"/>
+      <text x="58" y="84" class="label" font-size="12" fill="#047857">MONEY</text>
+      <text x="58" y="166" class="bookTitle" font-size="33" fill="#111827">돈의</text>
+      <text x="58" y="209" class="bookTitle" font-size="33" fill="#111827">흐름 노트</text>
+      <circle cx="122" cy="282" r="34" fill="#fffdf8" stroke="#059669" stroke-width="3"/>
+      <text x="113" y="294" class="title" font-size="28" fill="#059669">7</text>
+      <text x="87" y="396" class="title" font-size="19">돈</text>
+    </g>
+
+    <g transform="translate(1026,145)">
+      <rect width="245" height="350" rx="20" fill="url(#hanjiWarm)" filter="url(#paperLift)"/>
+      <rect width="245" height="350" rx="20" fill="url(#hanjiFibers)"/>
+      <rect x="18" y="20" width="209" height="310" rx="14" fill="none" stroke="#bfa374" stroke-width="1.8"/>
+      <rect x="194" width="16" height="82" rx="7" fill="#a16207"/>
+      <text x="58" y="84" class="label" font-size="12" fill="#a16207">RELATION</text>
+      <text x="58" y="166" class="bookTitle" font-size="33" fill="#111827">관계</text>
+      <text x="58" y="209" class="bookTitle" font-size="33" fill="#111827">패턴 노트</text>
+      <circle cx="122" cy="282" r="34" fill="#fffdf8" stroke="#a16207" stroke-width="3"/>
+      <text x="113" y="294" class="title" font-size="28" fill="#a16207">7</text>
+      <text x="68" y="396" class="title" font-size="19">인간관계</text>
+    </g>
+
+    <g transform="translate(1344,145)">
+      <rect width="245" height="350" rx="20" fill="url(#hanjiWhite)" filter="url(#paperLift)"/>
+      <rect width="245" height="350" rx="20" fill="url(#hanjiFibers)"/>
+      <rect x="18" y="20" width="209" height="310" rx="14" fill="none" stroke="#c7bca8" stroke-width="1.8"/>
+      <rect x="194" width="16" height="82" rx="7" fill="#334155"/>
+      <text x="58" y="84" class="label" font-size="12" fill="#334155">SELF NOTE</text>
+      <text x="58" y="166" class="bookTitle" font-size="33" fill="#111827">자기</text>
+      <text x="58" y="209" class="bookTitle" font-size="33" fill="#111827">기준 노트</text>
+      <circle cx="122" cy="282" r="34" fill="#fffdf8" stroke="#334155" stroke-width="3"/>
+      <text x="113" y="294" class="title" font-size="28" fill="#334155">7</text>
+      <text x="76" y="396" class="title" font-size="19">나 자신</text>
+    </g>
+  </g>
+</svg>

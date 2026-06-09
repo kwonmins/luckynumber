@@ -1,0 +1,439 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3200" height="1700" viewBox="0 0 3200 1700">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#f8fafc"/>
+    <stop offset="1" stop-color="#fffdf8"/>
+  </linearGradient>
+</defs>
+<rect width="3200" height="1700" fill="url(#bg)"/>
+<circle cx="120" cy="60" r="600" fill="#dbeafe" opacity=".75"/>
+<circle cx="2940" cy="360" r="560" fill="#fef3c7" opacity=".76"/>
+<circle cx="1450" cy="1620" r="500" fill="#dcfce7" opacity=".62"/>
+<text x="54" y="88" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="56" font-weight="700" text-anchor="start">코드 기준 실제 반영 상태</text>
+<text x="54" y="136" fill="#64748b" font-family="Malgun Gothic, Inter, Arial" font-size="25" font-weight="400" text-anchor="start">Figma 커넥터 인증이 막혀서 만든 Figma import용 SVG 보드입니다. 파란 배지는 실제 코드 반영, 노란 배지는 부분 반영/추가 확인 대상입니다.</text>
+
+<rect x="2760" y="54" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="2821.0" y="75" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">BUILD SUCCESS</text>
+
+<text x="3146" y="78" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="end">:app:assembleDebug</text>
+<rect x="59" y="186" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="54" y="178" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="74" y="196" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="135.0" y="217" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="402" y="218" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">01</text>
+<text x="74" y="261" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">앱 시작 홈</text>
+<rect x="74" y="284" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+
+
+<rect x="142" y="302" width="194" height="224" rx="32" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="152" y="312" width="174" height="204" rx="24" fill="#f8fafc" stroke="#e2e8f0"/>
+
+<text x="239.0" y="339" fill="#64748b" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">your number room</text>
+<circle cx="239.0" cy="426" r="48" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="239.0" y="448" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="72" font-weight="700" text-anchor="middle">7</text>
+<circle cx="330" cy="468" r="34" fill="#fdebd2" stroke="#8b5e3c" stroke-width="2"/>
+<rect x="302" y="502" width="56" height="46" rx="12" fill="#1e293b"/>
+
+<text x="74" y="588" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="74" dy="0">홈 구조는 흰 배경의 수리 운세</tspan>
+<tspan x="74" dy="28.979999999999997">방으로 바뀌었습니다.</tspan>
+</text>
+<rect x="74" y="849" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="86" y="871" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">HomeScreen.kt</text>
+<rect x="447" y="186" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="442" y="178" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="462" y="196" width="122" height="30" rx="15" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+<text x="523.0" y="217" fill="#f59e0b" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">부분 반영</text>
+
+<text x="790" y="218" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">02</text>
+<text x="462" y="261" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">숫자 파동 배경</text>
+<rect x="462" y="284" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+<path d="M 486 348 Q 501.25 366 521.25 348 Q 536.5 336 556.5 348 Q 571.75 366 591.75 348 Q 607.0 336 627.0 348 Q 642.25 366 662.25 348 Q 677.5 336 697.5 348 Q 712.75 366 732.75 348 Q 748.0 336 768.0 348" fill="none" stroke="#2563eb" stroke-width="3" opacity=".72"/>
+<path d="M 486 390 Q 501.25 408 521.25 390 Q 536.5 378 556.5 390 Q 571.75 408 591.75 390 Q 607.0 378 627.0 390 Q 642.25 408 662.25 390 Q 677.5 378 697.5 390 Q 712.75 408 732.75 390 Q 748.0 378 768.0 390" fill="none" stroke="#2563eb" stroke-width="3" opacity=".72"/>
+<path d="M 486 432 Q 501.25 450 521.25 432 Q 536.5 420 556.5 432 Q 571.75 450 591.75 432 Q 607.0 420 627.0 432 Q 642.25 450 662.25 432 Q 677.5 420 697.5 432 Q 712.75 450 732.75 432 Q 748.0 420 768.0 432" fill="none" stroke="#2563eb" stroke-width="3" opacity=".72"/>
+<path d="M 486 474 Q 501.25 492 521.25 474 Q 536.5 462 556.5 474 Q 571.75 492 591.75 474 Q 607.0 462 627.0 474 Q 642.25 492 662.25 474 Q 677.5 462 697.5 474 Q 712.75 492 732.75 474 Q 748.0 462 768.0 474" fill="none" stroke="#2563eb" stroke-width="3" opacity=".72"/><text x="516" y="488" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">1</text><text x="560" y="508" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">3</text><text x="604" y="488" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">5</text><text x="648" y="508" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">7</text><text x="692" y="488" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">9</text><text x="736" y="508" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">11</text><text x="627.0" y="538" fill="#f59e0b" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">홈은 현재 OFF</text>
+<text x="462" y="588" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="462" dy="0">파동 코드는 있지만 홈에서는 꺼져</tspan>
+<tspan x="462" dy="28.979999999999997">있고 입력/온보딩에서 켜집니다.</tspan>
+</text>
+<rect x="462" y="849" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="474" y="871" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">CommonComponents.kt</text>
+<rect x="835" y="186" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="830" y="178" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="850" y="196" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="911.0" y="217" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="1178" y="218" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">03</text>
+<text x="850" y="261" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">방 메뉴 카드</text>
+<rect x="850" y="284" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+<rect x="872" y="316" width="82" height="198" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="880" y="326" width="66" height="96" rx="12" fill="#fecdd3"/>
+<circle cx="913" cy="368" r="24" fill="#fdebd2" stroke="#8b5e3c" stroke-width="2"/>
+<text x="913" y="452" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">연애</text>
+<text x="913" y="482" fill="#64748b" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">선택</text>
+<rect x="964" y="306" width="82" height="198" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="972" y="316" width="66" height="96" rx="12" fill="#dbeafe"/>
+<circle cx="1005" cy="358" r="24" fill="#fdebd2" stroke="#8b5e3c" stroke-width="2"/>
+<text x="1005" y="442" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">이직</text>
+<text x="1005" y="472" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">선택</text>
+<rect x="1056" y="316" width="82" height="198" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="1064" y="326" width="66" height="96" rx="12" fill="#dcfce7"/>
+<circle cx="1097" cy="368" r="24" fill="#fdebd2" stroke="#8b5e3c" stroke-width="2"/>
+<text x="1097" y="452" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">금전</text>
+<text x="1097" y="482" fill="#64748b" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">선택</text>
+<text x="850" y="588" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="850" dy="0">생년월일, 운세노트, 보관함 카드가</tspan>
+<tspan x="850" dy="28.979999999999997">가로 흐름으로 배치됩니다.</tspan>
+</text>
+<rect x="850" y="849" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="862" y="871" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">HomeScreen.kt</text>
+<rect x="1223" y="186" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="1218" y="178" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="1238" y="196" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="1299.0" y="217" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="1566" y="218" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">04</text>
+<text x="1238" y="261" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">숫자 카드 선택</text>
+<rect x="1238" y="284" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+<rect x="1260" y="316" width="82" height="198" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="1268" y="326" width="66" height="96" rx="12" fill="#fecdd3"/>
+<circle cx="1301" cy="368" r="24" fill="#fdebd2" stroke="#8b5e3c" stroke-width="2"/>
+<text x="1301" y="452" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">연애</text>
+<text x="1301" y="482" fill="#64748b" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">선택</text>
+<rect x="1352" y="306" width="82" height="198" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="1360" y="316" width="66" height="96" rx="12" fill="#dbeafe"/>
+<circle cx="1393" cy="358" r="24" fill="#fdebd2" stroke="#8b5e3c" stroke-width="2"/>
+<text x="1393" y="442" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">이직</text>
+<text x="1393" y="472" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">선택</text>
+<rect x="1444" y="316" width="82" height="198" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="1452" y="326" width="66" height="96" rx="12" fill="#dcfce7"/>
+<circle cx="1485" cy="368" r="24" fill="#fdebd2" stroke="#8b5e3c" stroke-width="2"/>
+<text x="1485" y="452" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">금전</text>
+<text x="1485" y="482" fill="#64748b" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">선택</text>
+<text x="1238" y="588" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="1238" dy="0">연애, 이직, 금전, 학업, 자아</tspan>
+<tspan x="1238" dy="28.979999999999997">카드가 실제 PNG와 연결됩니다.</tspan>
+</text>
+<rect x="1238" y="849" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="1250" y="871" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">HomeScreen.kt</text>
+<rect x="1611" y="186" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="1606" y="178" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="1626" y="196" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="1687.0" y="217" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="1954" y="218" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">05</text>
+<text x="1626" y="261" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">자기장 효과</text>
+<rect x="1626" y="284" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+<rect x="1648" y="316" width="82" height="198" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="1656" y="326" width="66" height="96" rx="12" fill="#fecdd3"/>
+<circle cx="1689" cy="368" r="24" fill="#fdebd2" stroke="#8b5e3c" stroke-width="2"/>
+<text x="1689" y="452" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">연애</text>
+<text x="1689" y="482" fill="#64748b" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">선택</text>
+<rect x="1740" y="306" width="82" height="198" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="1748" y="316" width="66" height="96" rx="12" fill="#dbeafe"/>
+<circle cx="1781" cy="358" r="24" fill="#fdebd2" stroke="#8b5e3c" stroke-width="2"/>
+<text x="1781" y="442" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">이직</text>
+<text x="1781" y="472" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">선택</text>
+<rect x="1832" y="316" width="82" height="198" rx="16" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<rect x="1840" y="326" width="66" height="96" rx="12" fill="#dcfce7"/>
+<circle cx="1873" cy="368" r="24" fill="#fdebd2" stroke="#8b5e3c" stroke-width="2"/>
+<text x="1873" y="452" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">금전</text>
+<text x="1873" y="482" fill="#64748b" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">선택</text>
+<text x="1626" y="588" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="1626" dy="0">중앙/선택 카드가 scale,</tspan>
+<tspan x="1626" dy="28.979999999999997">lift, shadow, alpha로</tspan>
+<tspan x="1626" dy="28.979999999999997">떠오릅니다.</tspan>
+</text>
+<rect x="1626" y="849" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="1638" y="871" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">HomeScreen.kt</text>
+<rect x="1999" y="186" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="1994" y="178" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="2014" y="196" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="2075.0" y="217" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="2342" y="218" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">06</text>
+<text x="2014" y="261" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">입력 조립</text>
+<rect x="2014" y="284" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+<rect x="2042" y="308" width="274" height="34" rx="9" fill="#dbeafe" stroke="#bfdbfe"/>
+<text x="2060" y="331" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="start">01</text>
+<text x="2110" y="331" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="start">기준</text>
+<rect x="2042" y="351" width="274" height="34" rx="9" fill="#dbeafe" stroke="#bfdbfe"/>
+<text x="2060" y="374" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="start">02</text>
+<text x="2110" y="374" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="start">성별</text>
+<rect x="2042" y="394" width="274" height="34" rx="9" fill="#dbeafe" stroke="#bfdbfe"/>
+<text x="2060" y="417" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="start">03</text>
+<text x="2110" y="417" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="start">생년</text>
+<rect x="2042" y="437" width="274" height="34" rx="9" fill="#dbeafe" stroke="#bfdbfe"/>
+<text x="2060" y="460" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="start">04</text>
+<text x="2110" y="460" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="start">월일</text>
+<rect x="2042" y="480" width="274" height="34" rx="9" fill="#fef3c7" stroke="#bfdbfe"/>
+<text x="2060" y="503" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="start">05</text>
+<text x="2110" y="503" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="start">조립</text>
+<rect x="2048" y="518" width="262" height="8" rx="4" fill="#2563eb"/>
+<text x="2014" y="588" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="2014" dy="0">입력값이 채워질수록 운세노트 재료</tspan>
+<tspan x="2014" dy="28.979999999999997">카드가 하나씩 완성됩니다.</tspan>
+</text>
+<rect x="2014" y="849" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="2026" y="871" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">InputScreen.kt</text>
+<rect x="2387" y="186" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="2382" y="178" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="2402" y="196" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="2463.0" y="217" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="2730" y="218" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">07</text>
+<text x="2402" y="261" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">질문 확인</text>
+<rect x="2402" y="284" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+
+<rect x="2436" y="322" width="262" height="84" rx="16" fill="#fff" stroke="#2563eb" stroke-width="2"/>
+<text x="2567.0" y="372" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="30" font-weight="700" text-anchor="middle">질문 확인</text>
+<text x="2567.0" y="440" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="middle">수리가 고민을 한 문장으로 압축</text>
+<rect x="2458" y="498" width="218" height="36" rx="18" fill="#2563eb"/>
+<text x="2567.0" y="522" fill="#fff" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">제책하기</text>
+
+<text x="2402" y="588" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="2402" dy="0">고민을 핵심 질문으로 압축해 확인하는</tspan>
+<tspan x="2402" dy="28.979999999999997">단계가 있습니다.</tspan>
+</text>
+<rect x="2402" y="849" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="2414" y="871" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">PremiumScreen.kt</text>
+<rect x="2775" y="186" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="2770" y="178" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="2790" y="196" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="2851.0" y="217" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="3118" y="218" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">08</text>
+<text x="2790" y="261" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">생성 중 연출</text>
+<rect x="2790" y="284" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+
+<rect x="2903.0" y="328" width="72" height="96" rx="8" fill="#fffdf8" stroke="#e6dac9" transform="rotate(-8 2939.0 376)"/>
+<rect x="2931.0" y="334" width="72" height="96" rx="8" fill="#fffdf8" stroke="#e6dac9" transform="rotate(6 2967.0 382)"/>
+<rect x="2919.0" y="346" width="72" height="96" rx="8" fill="#fffdf8" stroke="#e6dac9"/>
+<rect x="2832" y="454" width="246" height="26" rx="13" fill="#f1f5f9"/>
+<rect x="2832" y="488" width="246" height="26" rx="13" fill="#f1f5f9"/>
+<rect x="2832" y="522" width="246" height="26" rx="13" fill="#f1f5f9"/>
+<text x="2955.0" y="473" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">숫자 해석</text>
+<text x="2955.0" y="507" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">질문 정리</text>
+<text x="2955.0" y="541" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="middle">책자 제본</text>
+
+<text x="2790" y="588" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="2790" dy="0">숫자 해석, 질문 정리, 책자 제본</tspan>
+<tspan x="2790" dy="28.979999999999997">3단계 애니메이션입니다.</tspan>
+</text>
+<rect x="2790" y="849" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="2802" y="871" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">PremiumScreen.kt</text>
+<rect x="59" y="927" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="54" y="919" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="74" y="937" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="135.0" y="958" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="402" y="959" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">09</text>
+<text x="74" y="1002" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">표지 등장</text>
+<rect x="74" y="1025" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+
+<rect x="156" y="1043" width="166" height="224" rx="10" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+<rect x="170" y="1057" width="138" height="196" rx="8" fill="none" stroke="#f59e0b"/>
+<text x="239.0" y="1117" fill="#fde68a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">수리의</text>
+<text x="239.0" y="1161" fill="#fde68a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">운세노트</text>
+<circle cx="239.0" cy="1221" r="34" fill="none" stroke="#fde68a" stroke-width="2"/>
+
+<text x="74" y="1329" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="74" dy="0">표지가 scale, alpha, 금박</tspan>
+<tspan x="74" dy="28.979999999999997">라인으로 등장합니다.</tspan>
+</text>
+<rect x="74" y="1590" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="86" y="1612" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">PremiumScreen.kt</text>
+<rect x="447" y="927" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="442" y="919" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="462" y="937" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="523.0" y="958" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="790" y="959" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">10</text>
+<text x="462" y="1002" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">목차 이동</text>
+<rect x="462" y="1025" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+<rect x="516" y="1045" width="222" height="220" rx="10" fill="#fffdf8" stroke="#e6dac9" stroke-width="2"/>
+<text x="627.0" y="1083" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="30" font-weight="700" text-anchor="middle">목차</text>
+<rect x="538" y="1117" width="178" height="32" rx="8" fill="#fff" stroke="#e2e8f0"/>
+<text x="554" y="1139" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="start">지혜의 본질</text>
+<rect x="538" y="1159" width="178" height="32" rx="8" fill="#eff6ff" stroke="#e2e8f0"/>
+<text x="554" y="1181" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="start">상황별 해석</text>
+<rect x="538" y="1201" width="178" height="32" rx="8" fill="#fff" stroke="#e2e8f0"/>
+<text x="554" y="1223" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="start">주의할 장면</text>
+<rect x="538" y="1243" width="178" height="32" rx="8" fill="#fff" stroke="#e2e8f0"/>
+<text x="554" y="1265" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="start">행동 지침</text>
+<text x="462" y="1329" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="462" dy="0">목차 항목을 누르면 상세 해석으로</tspan>
+<tspan x="462" dy="28.979999999999997">이어집니다.</tspan>
+</text>
+<rect x="462" y="1590" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="474" y="1612" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">PremiumScreen.kt</text>
+<rect x="835" y="927" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="830" y="919" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="850" y="937" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="911.0" y="958" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="1178" y="959" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">11</text>
+<text x="850" y="1002" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">상세 해석</text>
+<rect x="850" y="1025" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+<rect x="894" y="1067" width="242" height="52" rx="12" fill="#fff" stroke="#e2e8f0"/>
+<rect x="894" y="1067" width="6" height="52" rx="3" fill="#2563eb"/>
+<text x="912" y="1099" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="start">던지신 질문</text>
+<rect x="894" y="1133" width="242" height="52" rx="12" fill="#fff" stroke="#e2e8f0"/>
+<rect x="894" y="1133" width="6" height="52" rx="3" fill="#ef4444"/>
+<text x="912" y="1165" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="start">주의할 장면</text>
+<rect x="894" y="1199" width="242" height="52" rx="12" fill="#fff" stroke="#e2e8f0"/>
+<rect x="894" y="1199" width="6" height="52" rx="3" fill="#f59e0b"/>
+<text x="912" y="1231" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="start">이번 주 실천</text>
+<text x="850" y="1329" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="850" dy="0">질문, 주의 장면, 실천 지침이 책</tspan>
+<tspan x="850" dy="28.979999999999997">페이지처럼 배치됩니다.</tspan>
+</text>
+<rect x="850" y="1590" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="862" y="1612" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">PremiumScreen.kt</text>
+<rect x="1223" y="927" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="1218" y="919" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="1238" y="937" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="1299.0" y="958" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="1566" y="959" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">12</text>
+<text x="1238" y="1002" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">책장 넘김</text>
+<rect x="1238" y="1025" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+
+<rect x="1286" y="1077" width="112" height="188" rx="12" fill="#fffdf8" stroke="#e6dac9" stroke-width="2"/>
+<rect x="1342" y="1063" width="112" height="204" rx="12" fill="#fffdf8" stroke="#e6dac9" stroke-width="2" opacity=".86"/>
+<rect x="1402" y="1077" width="112" height="188" rx="12" fill="#fffdf8" stroke="#e6dac9" stroke-width="2"/>
+<text x="1403.0" y="1285" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="700" text-anchor="middle">rotationY page flip</text>
+
+<text x="1238" y="1329" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="1238" dy="0">Reader는</tspan>
+<tspan x="1238" dy="28.979999999999997">HorizontalPager와</tspan>
+<tspan x="1238" dy="28.979999999999997">rotationY로 페이지를</tspan>
+<tspan x="1238" dy="28.979999999999997">넘깁니다.</tspan>
+</text>
+<rect x="1238" y="1590" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="1250" y="1612" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">PremiumComponents.kt</text>
+<rect x="1611" y="927" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="1606" y="919" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="1626" y="937" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="1687.0" y="958" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="1954" y="959" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">13</text>
+<text x="1626" y="1002" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">보관함 저장</text>
+<rect x="1626" y="1025" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+<rect x="1670" y="1057" width="242" height="52" rx="12" fill="#fff" stroke="#e2e8f0"/>
+<rect x="1684" y="1067" width="36" height="32" rx="6" fill="#1e293b" stroke="#f59e0b"/>
+<text x="1734" y="1089" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="start">연애 노트</text>
+<rect x="1670" y="1125" width="242" height="52" rx="12" fill="#fff" stroke="#e2e8f0"/>
+<rect x="1684" y="1135" width="36" height="32" rx="6" fill="#1e293b" stroke="#f59e0b"/>
+<text x="1734" y="1157" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="start">돈의 흐름</text>
+<rect x="1670" y="1193" width="242" height="52" rx="12" fill="#fff" stroke="#e2e8f0"/>
+<rect x="1684" y="1203" width="36" height="32" rx="6" fill="#1e293b" stroke="#f59e0b"/>
+<text x="1734" y="1225" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="400" text-anchor="start">나 자신</text>
+<text x="1626" y="1329" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="1626" dy="0">생성된 책자는 saveNewBook을</tspan>
+<tspan x="1626" dy="28.979999999999997">통해 보관함에 쌓입니다.</tspan>
+</text>
+<rect x="1626" y="1590" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="1638" y="1612" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">AppViewModel.kt</text>
+<rect x="1999" y="927" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="1994" y="919" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="2014" y="937" width="122" height="30" rx="15" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/>
+<text x="2075.0" y="958" fill="#2563eb" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실제 반영</text>
+
+<text x="2342" y="959" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">14</text>
+<text x="2014" y="1002" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">캐릭터 투명</text>
+<rect x="2014" y="1025" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+<rect x="2036" y="1047" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2036" y="1063" width="16" height="16" fill="#ffffff"/>
+<rect x="2036" y="1079" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2036" y="1095" width="16" height="16" fill="#ffffff"/>
+<rect x="2036" y="1111" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2052" y="1047" width="16" height="16" fill="#ffffff"/>
+<rect x="2052" y="1063" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2052" y="1079" width="16" height="16" fill="#ffffff"/>
+<rect x="2052" y="1095" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2052" y="1111" width="16" height="16" fill="#ffffff"/>
+<rect x="2068" y="1047" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2068" y="1063" width="16" height="16" fill="#ffffff"/>
+<rect x="2068" y="1079" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2068" y="1095" width="16" height="16" fill="#ffffff"/>
+<rect x="2068" y="1111" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2084" y="1047" width="16" height="16" fill="#ffffff"/>
+<rect x="2084" y="1063" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2084" y="1079" width="16" height="16" fill="#ffffff"/>
+<rect x="2084" y="1095" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2084" y="1111" width="16" height="16" fill="#ffffff"/>
+<rect x="2100" y="1047" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2100" y="1063" width="16" height="16" fill="#ffffff"/>
+<rect x="2100" y="1079" width="16" height="16" fill="#e5e7eb"/>
+<rect x="2100" y="1095" width="16" height="16" fill="#ffffff"/>
+<rect x="2100" y="1111" width="16" height="16" fill="#e5e7eb"/>
+<circle cx="2234" cy="1117" r="42" fill="#fdebd2" stroke="#8b5e3c" stroke-width="2"/>
+<rect x="2198" y="1159" width="72" height="78" rx="16" fill="#1e293b"/>
+<text x="2080" y="1163" fill="#10b981" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">alpha 0~255</text>
+
+<text x="2014" y="1329" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="2014" dy="0">새 numerology PNG들은</tspan>
+<tspan x="2014" dy="28.979999999999997">실제 alpha 투명 픽셀을</tspan>
+<tspan x="2014" dy="28.979999999999997">갖습니다.</tspan>
+</text>
+<rect x="2014" y="1590" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="2026" y="1612" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">drawable-nodpi</text>
+<rect x="2387" y="927" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="2382" y="919" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="2402" y="937" width="78" height="30" rx="15" fill="#f1f5f9" stroke="#64748b" stroke-width="1"/>
+<text x="2441.0" y="958" fill="#64748b" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">주의</text>
+
+<text x="2730" y="959" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">15</text>
+<text x="2402" y="1002" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">실제 캡처 여부</text>
+<rect x="2402" y="1025" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+
+<text x="2567.0" y="1103" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="26" font-weight="700" text-anchor="middle">8x2 이미지는</text>
+<text x="2567.0" y="1145" fill="#f59e0b" font-family="Malgun Gothic, Inter, Arial" font-size="26" font-weight="700" text-anchor="middle">실제 캡처가 아닌</text>
+<text x="2567.0" y="1187" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="26" font-weight="700" text-anchor="middle">코드 기준 설명도</text>
+<rect x="2456" y="1235" width="222" height="36" rx="18" fill="#fef3c7" stroke="#f59e0b"/>
+<text x="2567.0" y="1259" fill="#f59e0b" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">실앱 캡처는 별도 필요</text>
+
+<text x="2402" y="1329" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="2402" dy="0">지난 8x2는 실제 앱 화면 캡처가</tspan>
+<tspan x="2402" dy="28.979999999999997">아니라 구현 흐름 설명도입니다.</tspan>
+</text>
+<rect x="2402" y="1590" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="2414" y="1612" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">design_previews</text>
+<rect x="2775" y="927" width="370" height="723" rx="24" fill="#0f172a" opacity=".10"/>
+<rect x="2770" y="919" width="370" height="723" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+
+<rect x="2790" y="937" width="122" height="30" rx="15" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+<text x="2851.0" y="958" fill="#f59e0b" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="middle">부분 반영</text>
+
+<text x="3118" y="959" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="16" font-weight="700" text-anchor="end">16</text>
+<text x="2790" y="1002" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="start">남은 차이</text>
+<rect x="2790" y="1025" width="330" height="260" rx="18" fill="#f8fafc" stroke="#e2e8f0"/>
+<path d="M 2814 1089 Q 2829.25 1107 2849.25 1089 Q 2864.5 1077 2884.5 1089 Q 2899.75 1107 2919.75 1089 Q 2935.0 1077 2955.0 1089 Q 2970.25 1107 2990.25 1089 Q 3005.5 1077 3025.5 1089 Q 3040.75 1107 3060.75 1089 Q 3076.0 1077 3096.0 1089" fill="none" stroke="#2563eb" stroke-width="3" opacity=".72"/>
+<path d="M 2814 1131 Q 2829.25 1149 2849.25 1131 Q 2864.5 1119 2884.5 1131 Q 2899.75 1149 2919.75 1131 Q 2935.0 1119 2955.0 1131 Q 2970.25 1149 2990.25 1131 Q 3005.5 1119 3025.5 1131 Q 3040.75 1149 3060.75 1131 Q 3076.0 1119 3096.0 1131" fill="none" stroke="#2563eb" stroke-width="3" opacity=".72"/>
+<path d="M 2814 1173 Q 2829.25 1191 2849.25 1173 Q 2864.5 1161 2884.5 1173 Q 2899.75 1191 2919.75 1173 Q 2935.0 1161 2955.0 1173 Q 2970.25 1191 2990.25 1173 Q 3005.5 1161 3025.5 1173 Q 3040.75 1191 3060.75 1173 Q 3076.0 1161 3096.0 1173" fill="none" stroke="#2563eb" stroke-width="3" opacity=".72"/>
+<path d="M 2814 1215 Q 2829.25 1233 2849.25 1215 Q 2864.5 1203 2884.5 1215 Q 2899.75 1233 2919.75 1215 Q 2935.0 1203 2955.0 1215 Q 2970.25 1233 2990.25 1215 Q 3005.5 1203 3025.5 1215 Q 3040.75 1233 3060.75 1215 Q 3076.0 1203 3096.0 1215" fill="none" stroke="#2563eb" stroke-width="3" opacity=".72"/><text x="2844" y="1229" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">1</text><text x="2888" y="1249" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">3</text><text x="2932" y="1229" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">5</text><text x="2976" y="1249" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">7</text><text x="3020" y="1229" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">9</text><text x="3064" y="1249" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="28" font-weight="700" text-anchor="middle">11</text><text x="2955.0" y="1279" fill="#f59e0b" font-family="Malgun Gothic, Inter, Arial" font-size="18" font-weight="700" text-anchor="middle">홈은 현재 OFF</text>
+<text x="2790" y="1329" fill="#0f172a" font-family="Malgun Gothic, Inter, Arial" font-size="21" font-weight="400" text-anchor="start">
+<tspan x="2790" dy="0">홈 파동 ON, 실제 기기 캡처,</tspan>
+<tspan x="2790" dy="28.979999999999997">문장 순차등장은 추가 확인/보강</tspan>
+<tspan x="2790" dy="28.979999999999997">대상입니다.</tspan>
+</text>
+<rect x="2790" y="1590" width="330" height="34" rx="10" fill="#f1f5f9" stroke="#e2e8f0"/>
+<text x="2802" y="1612" fill="#94a3b8" font-family="Malgun Gothic, Inter, Arial" font-size="17" font-weight="400" text-anchor="start">next pass</text>
+</svg>

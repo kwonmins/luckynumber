@@ -36,7 +36,11 @@ import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
 
 @Composable
-fun OnboardingScreen(onFinished: () -> Unit) {
+fun OnboardingScreen(
+    isSigningIn: Boolean,
+    errorMessage: String?,
+    onStartWithKakao: () -> Unit
+) {
     MysticBackground(modifier = Modifier.fillMaxSize(), animatedWaves = true) {
         Column(
             modifier = Modifier
@@ -71,8 +75,21 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("첫 리포트는 생년월일만 입력하면 바로 만들 수 있어요.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
-                GradientButton("시작하기", onFinished, Modifier.fillMaxWidth())
+                Text("카카오 로그인 후 내 운세노트를 안전하게 시작할 수 있어요.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                if (!errorMessage.isNullOrBlank()) {
+                    Text(
+                        text = errorMessage,
+                        color = Accent,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                GradientButton(
+                    text = if (isSigningIn) "카카오 로그인 중..." else "카카오 로그인하고 시작하기",
+                    onClick = onStartWithKakao,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !isSigningIn
+                )
             }
         }
     }

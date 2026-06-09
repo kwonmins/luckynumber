@@ -30,6 +30,23 @@ android {
             "OPENAI_API_KEY",
             localProperties.getProperty("openai.api.key", "").asBuildConfigString()
         )
+        buildConfigField(
+            "String",
+            "KAKAO_NATIVE_APP_KEY",
+            localProperties.getProperty("kakao.native.app.key", "").asBuildConfigString()
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            localProperties.getProperty("supabase.url", "").trimEnd('/').asBuildConfigString()
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_ANON_KEY",
+            localProperties.getProperty("supabase.anon.key", "").asBuildConfigString()
+        )
+        manifestPlaceholders["kakaoRedirectScheme"] =
+            "kakao${localProperties.getProperty("kakao.native.app.key", "")}"
     }
 
     buildTypes {
@@ -73,6 +90,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:2.9.7")
+    implementation("com.kakao.sdk:v2-user:2.23.4")
 
     implementation("com.google.android.material:material:1.12.0")
     debugImplementation("androidx.compose.ui:ui-tooling")

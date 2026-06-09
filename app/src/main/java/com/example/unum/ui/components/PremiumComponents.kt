@@ -44,6 +44,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
+import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface as MaterialSurface
@@ -446,6 +447,7 @@ fun InteractiveBookArchiveShelf(
     selectedBookId: String?,
     onBookOpen: (FortuneBook) -> Unit,
     onBookmarkClick: (FortuneBook) -> Unit,
+    onDeleteClick: (FortuneBook) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (books.isEmpty()) return
@@ -578,15 +580,29 @@ fun InteractiveBookArchiveShelf(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-                Icon(
-                    imageVector = if (focusedBook.isBookmarked) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
-                    contentDescription = "북마크",
-                    tint = if (focusedBook.isBookmarked) PremiumTokens.Gold else PremiumTokens.TextMuted,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .clickable { onBookmarkClick(focusedBook) }
-                        .padding(9.dp)
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = if (focusedBook.isBookmarked) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
+                        contentDescription = "북마크",
+                        tint = if (focusedBook.isBookmarked) PremiumTokens.Gold else PremiumTokens.TextMuted,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .clickable { onBookmarkClick(focusedBook) }
+                            .padding(9.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Rounded.DeleteOutline,
+                        contentDescription = "책자 삭제",
+                        tint = PremiumTokens.TextMuted,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .clickable { onDeleteClick(focusedBook) }
+                            .padding(9.dp)
+                    )
+                }
             }
         }
     }

@@ -1,7 +1,9 @@
 package com.example.unum.presentation
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.unum.data.model.AuthState
 import com.example.unum.BuildConfig
 import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.CompatibilityFormState
@@ -16,6 +18,7 @@ import com.example.unum.data.model.PremiumTopic
 import com.example.unum.data.model.ReaderFontScale
 import com.example.unum.data.model.RecentSearch
 import com.example.unum.data.model.SuriSpeechScript
+import com.example.unum.data.model.UserSyncState
 import com.example.unum.domain.NumerologyCalculator
 import com.example.unum.domain.ServiceLocator
 import com.example.unum.domain.usecase.PremiumMonthPlanner
@@ -44,6 +47,8 @@ class AppViewModel : ViewModel() {
     private val generateCompatibilityConsultation = ServiceLocator.generateCompatibilityConsultationUseCase
     private val premiumAccessGate = ServiceLocator.premiumAccessGate
     private val fortuneBookStore = ServiceLocator.fortuneBookStore
+    private val authRepository = ServiceLocator.authRepository
+    private val userDataRepository = ServiceLocator.userDataRepository
 
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
@@ -56,6 +61,7 @@ class AppViewModel : ViewModel() {
         }
         _uiState.update { it.copy(savedBooks = books, selectedBookId = books.firstOrNull()?.bookId) }
         observeRecentSearches()
+        observeAuthState()
         calculateAndStore(isInitial = true)
     }
 
@@ -65,6 +71,45 @@ class AppViewModel : ViewModel() {
                 _uiState.update { it.copy(recentSearches = searches) }
             }
         }
+    }
+
+    private fun observeAuthState() {
+        viewModelScope.launch {
+            authRepository.authState.collect { authState ->
+                _uiState.update { it.copy(authState = authState) }
+                val user = (authState as? AuthState.SignedIn)?.user
+                if (user != null) {
+                    syncSignedInUser(user.id)
+                }
+            }
+        }
+    }
+
+    fun signInWithKakao(activity: Activity) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(userSyncState = UserSyncState.Syncing, inputError = null) }
+            authRepository.signInWithKakao(activity)
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            userSyncState = UserSyncState.Failed(error.message ?: "移댁뭅??濡쒓렇?몄뿉 ?ㅽ뙣?덉뒿?덈떎."),
+                            inputError = error.message
+                        )
+                    }
+                }
+        }
+    }
+
+    fun signOut() {
+        viewModelScope.launch {
+            authRepository.signOut()
+            _uiState.update { it.copy(userSyncState = UserSyncState.Idle) }
+        }
+    }
+
+    fun syncCurrentUserBooks() {
+        val userId = (_uiState.value.authState as? AuthState.SignedIn)?.user?.id ?: return
+        viewModelScope.launch { syncSignedInUser(userId) }
     }
 
     // Birth input and free report -------------------------------------------------
@@ -107,7 +152,7 @@ class AppViewModel : ViewModel() {
     fun calculateAndStore(isInitial: Boolean = false, onSuccess: (() -> Unit)? = null) {
         val userBirthInput = NumerologyCalculator.toBirthInput(_uiState.value.formState)
         if (userBirthInput == null) {
-            _uiState.update { it.copy(inputError = "생년월일을 다시 확인해주세요.") }
+            _uiState.update { it.copy(inputError = "?앸뀈?붿씪???ㅼ떆 ?뺤씤?댁＜?몄슂.") }
             return
         }
 
@@ -116,8 +161,8 @@ class AppViewModel : ViewModel() {
             runCatching {
                 val bundle = buildNumerologyResultBundle(userBirthInput)
                 val genderPrefix = when (userBirthInput.gender) {
-                    GenderOption.MALE -> "남성 · "
-                    GenderOption.FEMALE -> "여성 · "
+                    GenderOption.MALE -> "?⑥꽦 쨌 "
+                    GenderOption.FEMALE -> "?ъ꽦 쨌 "
                     GenderOption.NONE -> ""
                 }
                 val displaySolarInput = bundle.displayInput
@@ -130,7 +175,7 @@ class AppViewModel : ViewModel() {
                             displaySolarInput.month,
                             displaySolarInput.day
                         ),
-                        subtitle = "${genderPrefix}운명수 ${numbers.destiny} · 코드 ${numbers.code}",
+                        subtitle = "${genderPrefix}?대챸??${numbers.destiny} 쨌 肄붾뱶 ${numbers.code}",
                         gender = userBirthInput.gender,
                         inputCalendarType = userBirthInput.calendarType,
                         inputYear = userBirthInput.year,
@@ -152,7 +197,7 @@ class AppViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        inputError = error.message ?: "결과를 불러오지 못했습니다."
+                        inputError = error.message ?: "寃곌낵瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??"
                     )
                 }
             }
@@ -212,13 +257,13 @@ class AppViewModel : ViewModel() {
     fun preparePremiumQuestionConfirmation(): Boolean {
         val current = _uiState.value
         if (current.latestBundle == null) {
-            _uiState.update { it.copy(inputError = "먼저 생년월일 결과를 만든 뒤 프리미엄 책자를 신청해 주세요.") }
+            _uiState.update { it.copy(inputError = "癒쇱? ?앸뀈?붿씪 寃곌낵瑜?留뚮뱺 ???꾨━誘몄뾼 梨낆옄瑜??좎껌??二쇱꽭??") }
             return false
         }
 
         val normalizedConcern = current.premiumConcern.trim().replace(Regex("\\s+"), " ")
         if (normalizedConcern.length < 6) {
-            _uiState.update { it.copy(inputError = "수리가 질문의 본질을 잡을 수 있도록 고민을 한 문장 이상 적어주세요.") }
+            _uiState.update { it.copy(inputError = "?섎━媛 吏덈Ц??蹂몄쭏???≪쓣 ???덈룄濡?怨좊?????臾몄옣 ?댁긽 ?곸뼱二쇱꽭??") }
             return false
         }
 
@@ -287,7 +332,7 @@ class AppViewModel : ViewModel() {
     fun runPremiumConsultation() {
         val bundle = _uiState.value.latestBundle ?: return
         if (!premiumAccessGate.canUsePremiumForTest()) {
-            _uiState.update { it.copy(inputError = "프리미엄 이용 권한을 확인할 수 없습니다.") }
+            _uiState.update { it.copy(inputError = "?꾨━誘몄뾼 ?댁슜 沅뚰븳???뺤씤?????놁뒿?덈떎.") }
             return
         }
 
@@ -339,7 +384,7 @@ class AppViewModel : ViewModel() {
                     it.copy(
                         isPremiumLoading = false,
                         premiumFlowStep = PremiumFlowStep.FORM,
-                        inputError = error.message ?: "운세노트를 불러오지 못했습니다."
+                        inputError = error.message ?: "?댁꽭?명듃瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??"
                     )
                 }
             }
@@ -348,7 +393,7 @@ class AppViewModel : ViewModel() {
 
     fun runCompatibilityConsultation() {
         if (!premiumAccessGate.canUsePremiumForTest()) {
-            _uiState.update { it.copy(inputError = "프리미엄 이용 권한을 확인할 수 없습니다.") }
+            _uiState.update { it.copy(inputError = "?꾨━誘몄뾼 ?댁슜 沅뚰븳???뺤씤?????놁뒿?덈떎.") }
             return
         }
 
@@ -357,7 +402,7 @@ class AppViewModel : ViewModel() {
         val femaleInput = current.compatibilityForm.female.toBirthInput(GenderOption.FEMALE)
 
         if (maleInput == null || femaleInput == null) {
-            _uiState.update { it.copy(inputError = "남자와 여자 생년월일을 다시 확인해주세요.") }
+            _uiState.update { it.copy(inputError = "?⑥옄? ?ъ옄 ?앸뀈?붿씪???ㅼ떆 ?뺤씤?댁＜?몄슂.") }
             return
         }
 
@@ -402,7 +447,7 @@ class AppViewModel : ViewModel() {
                     it.copy(
                         isPremiumLoading = false,
                         premiumFlowStep = PremiumFlowStep.FORM,
-                        inputError = error.message ?: "궁합노트를 불러오지 못했습니다."
+                        inputError = error.message ?: "沅곹빀?명듃瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??"
                     )
                 }
             }
@@ -434,6 +479,38 @@ class AppViewModel : ViewModel() {
         )
         fortuneBookStore.saveBooks(nextBooks)
         _uiState.update { it.copy(savedBooks = nextBooks) }
+        pushBooksForCurrentUser(nextBooks)
+    }
+
+    fun deleteSavedBook(book: FortuneBook) {
+        val current = _uiState.value
+        val nextBooks = sortBooks(current.savedBooks.filterNot { it.bookId == book.bookId })
+        val nextSelectedBookId = if (current.selectedBookId == book.bookId) {
+            nextBooks.firstOrNull()?.bookId
+        } else {
+            current.selectedBookId
+        }
+
+        fortuneBookStore.saveBooks(nextBooks)
+        _uiState.update {
+            it.copy(
+                savedBooks = nextBooks,
+                selectedBookId = nextSelectedBookId,
+                userSyncState = UserSyncState.Synced("책자를 삭제했습니다.")
+            )
+        }
+
+        val userId = (current.authState as? AuthState.SignedIn)?.user?.id ?: return
+        if (!userDataRepository.isRemoteConfigured) return
+        viewModelScope.launch {
+            runCatching {
+                userDataRepository.deleteBook(userId, book.bookId)
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(userSyncState = UserSyncState.Failed(error.message ?: "책자 삭제 동기화에 실패했습니다."))
+                }
+            }
+        }
     }
 
     // Speech scene ---------------------------------------------------------------
@@ -478,9 +555,70 @@ class AppViewModel : ViewModel() {
     }
 
     private fun saveNewBook(book: FortuneBook): List<FortuneBook> {
-        val nextBooks = sortBooks(listOf(book) + _uiState.value.savedBooks)
+        val userId = (_uiState.value.authState as? AuthState.SignedIn)?.user?.id
+        val ownedBook = if (userId == null) book else book.copy(userId = userId)
+        val nextBooks = sortBooks(listOf(ownedBook) + _uiState.value.savedBooks)
         fortuneBookStore.saveBooks(nextBooks)
+        pushBooksForCurrentUser(nextBooks)
         return nextBooks
+    }
+
+    private suspend fun syncSignedInUser(userId: String) {
+        if (!userDataRepository.isRemoteConfigured) {
+            _uiState.update {
+                it.copy(userSyncState = UserSyncState.Synced("濡쒓렇?몃맖. Supabase ?ㅼ젙??異붽??섎㈃ 梨낆옄媛 怨꾩젙蹂꾨줈 ?숆린?붾맗?덈떎."))
+            }
+            return
+        }
+
+        _uiState.update { it.copy(userSyncState = UserSyncState.Syncing) }
+        runCatching {
+            val user = (_uiState.value.authState as? AuthState.SignedIn)?.user ?: return
+            userDataRepository.prepareUser(user)
+            val remoteBooks = userDataRepository.loadBooks(userId)
+            val localBooks = _uiState.value.savedBooks.map { it.copy(userId = userId) }
+            val mergedBooks = mergeBooks(localBooks, remoteBooks)
+            fortuneBookStore.saveBooks(mergedBooks)
+            userDataRepository.saveBooks(userId, mergedBooks)
+            mergedBooks
+        }.onSuccess { books ->
+            _uiState.update {
+                it.copy(
+                    savedBooks = books,
+                    selectedBookId = books.firstOrNull()?.bookId,
+                    userSyncState = UserSyncState.Synced("怨꾩젙 梨낆옄 ${books.size}媛쒕? ?숆린?뷀뻽?듬땲??")
+                )
+            }
+        }.onFailure { error ->
+            _uiState.update {
+                it.copy(userSyncState = UserSyncState.Failed(error.message ?: "怨꾩젙 ?숆린?붿뿉 ?ㅽ뙣?덉뒿?덈떎."))
+            }
+        }
+    }
+
+    private fun pushBooksForCurrentUser(books: List<FortuneBook>) {
+        val userId = (_uiState.value.authState as? AuthState.SignedIn)?.user?.id ?: return
+        if (!userDataRepository.isRemoteConfigured) return
+        viewModelScope.launch {
+            runCatching {
+                userDataRepository.saveBooks(userId, books.map { it.copy(userId = userId) })
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(userSyncState = UserSyncState.Failed(error.message ?: "梨낆옄 ?숆린?붿뿉 ?ㅽ뙣?덉뒿?덈떎."))
+                }
+            }
+        }
+    }
+
+    private fun mergeBooks(localBooks: List<FortuneBook>, remoteBooks: List<FortuneBook>): List<FortuneBook> {
+        val merged = linkedMapOf<String, FortuneBook>()
+        (remoteBooks + localBooks).forEach { book ->
+            val current = merged[book.bookId]
+            if (current == null || (book.lastOpenedAt ?: book.createdAt) >= (current.lastOpenedAt ?: current.createdAt)) {
+                merged[book.bookId] = book
+            }
+        }
+        return sortBooks(merged.values.toList())
     }
 
     private fun refreshStoredMonthInsights(book: FortuneBook): FortuneBook {
@@ -519,14 +657,14 @@ class AppViewModel : ViewModel() {
     ): String {
         val monthText = selection.toDisplayText()
         val base = when (topic) {
-            PremiumTopic.ROMANCE -> "${monthText}에는 마음을 새롭게 열고 관계의 온도를 다시 맞추기 좋습니다. 무거운 확인보다 구체적인 만남 제안이 흐름을 부드럽게 만듭니다."
-            PremiumTopic.CAREER -> "${monthText}에는 준비한 것을 실제 제안, 지원, 면담으로 옮기기 좋습니다. 조건과 역할을 선명하게 정리하면 기회가 더 분명해집니다."
-            PremiumTopic.MONEY -> "${monthText}에는 수입과 지출 구조를 다시 잡기 좋습니다. 큰 욕심보다 기준을 세우는 행동이 돈의 흐름을 안정시킵니다."
-            PremiumTopic.SELF_ESTEEM -> "${monthText}에는 스스로를 다시 세우는 힘이 살아납니다. 작은 약속을 지키는 경험을 반복하면 마음의 중심이 단단해집니다."
-            PremiumTopic.RELATIONSHIP -> "${monthText}에는 사람들과의 접점이 자연스럽게 열립니다. 오래 미뤄둔 대화나 관계 회복을 부드럽게 시작하기 좋습니다."
+            PremiumTopic.ROMANCE -> "${monthText}?먮뒗 留덉쓬???덈∼寃??닿퀬 愿怨꾩쓽 ?⑤룄瑜??ㅼ떆 留욎텛湲?醫뗭뒿?덈떎. 臾닿굅???뺤씤蹂대떎 援ъ껜?곸씤 留뚮궓 ?쒖븞???먮쫫??遺?쒕읇寃?留뚮벊?덈떎."
+            PremiumTopic.CAREER -> "${monthText}?먮뒗 以鍮꾪븳 寃껋쓣 ?ㅼ젣 ?쒖븞, 吏?? 硫대떞?쇰줈 ??린湲?醫뗭뒿?덈떎. 議곌굔怨???븷???좊챸?섍쾶 ?뺣━?섎㈃ 湲고쉶媛 ??遺꾨챸?댁쭛?덈떎."
+            PremiumTopic.MONEY -> "${monthText}?먮뒗 ?섏엯怨?吏異?援ъ“瑜??ㅼ떆 ?↔린 醫뗭뒿?덈떎. ???뺤떖蹂대떎 湲곗????몄슦???됰룞???덉쓽 ?먮쫫???덉젙?쒗궢?덈떎."
+            PremiumTopic.SELF_ESTEEM -> "${monthText}?먮뒗 ?ㅼ뒪濡쒕? ?ㅼ떆 ?몄슦???섏씠 ?댁븘?⑸땲?? ?묒? ?쎌냽??吏?ㅻ뒗 寃쏀뿕??諛섎났?섎㈃ 留덉쓬??以묒떖???⑤떒?댁쭛?덈떎."
+            PremiumTopic.RELATIONSHIP -> "${monthText}?먮뒗 ?щ엺?ㅺ낵???묒젏???먯뿰?ㅻ읇寃??대┰?덈떎. ?ㅻ옒 誘몃쨪????붾굹 愿怨??뚮났??遺?쒕읇寃??쒖옉?섍린 醫뗭뒿?덈떎."
         }
         val passedMonth = selection.replacedPastMonth ?: return base
-        return "올해 가장 추천 흐름이 강했던 ${passedMonth}월은 이미 지났습니다. 지금 이후에는 ${monthText}을 추천 구간으로 보고 움직여보세요. $base"
+        return "?ы빐 媛??異붿쿇 ?먮쫫??媛뺥뻽??${passedMonth}?붿? ?대? 吏?ъ뒿?덈떎. 吏湲??댄썑?먮뒗 ${monthText}??異붿쿇 援ш컙?쇰줈 蹂닿퀬 ?吏곸뿬蹂댁꽭?? $base"
     }
 
     private fun buildStoredRiskyMonthReason(
@@ -535,17 +673,17 @@ class AppViewModel : ViewModel() {
     ): String {
         val monthText = selection.toDisplayText()
         val base = when (topic) {
-            PremiumTopic.ROMANCE -> "${monthText}에는 마음이 앞서 결론을 재촉하기 쉽습니다. 상대의 속도와 여백을 각별히 조심하세요."
-            PremiumTopic.CAREER -> "${monthText}에는 변화 욕구가 커져 성급한 결정으로 흐르기 쉽습니다. 큰 선택은 한 번 더 검토한 뒤 움직이는 편이 안전합니다."
-            PremiumTopic.MONEY -> "${monthText}에는 빠른 이익을 좇는 마음이 강해질 수 있습니다. 확인되지 않은 제안과 충동 지출은 반드시 거리를 두세요."
-            PremiumTopic.SELF_ESTEEM -> "${monthText}에는 비교와 조급함이 커지기 쉽습니다. 몸과 마음의 리듬을 먼저 회복하는 데 집중하세요."
-            PremiumTopic.RELATIONSHIP -> "${monthText}에는 사람 사이의 오해가 빨리 번질 수 있습니다. 중요한 대화는 차분히 시간을 두는 편이 좋습니다."
+            PremiumTopic.ROMANCE -> "${monthText}?먮뒗 留덉쓬???욎꽌 寃곕줎???ъ큺?섍린 ?쎌뒿?덈떎. ?곷????띾룄? ?щ갚??媛곷퀎??議곗떖?섏꽭??"
+            PremiumTopic.CAREER -> "${monthText}?먮뒗 蹂???뺢뎄媛 而ㅼ졇 ?깃툒??寃곗젙?쇰줈 ?먮Ⅴ湲??쎌뒿?덈떎. ???좏깮? ??踰???寃?좏븳 ???吏곸씠???몄씠 ?덉쟾?⑸땲??"
+            PremiumTopic.MONEY -> "${monthText}?먮뒗 鍮좊Ⅸ ?댁씡??醫뉖뒗 留덉쓬??媛뺥빐吏????덉뒿?덈떎. ?뺤씤?섏? ?딆? ?쒖븞怨?異⑸룞 吏異쒖? 諛섎뱶??嫄곕━瑜??먯꽭??"
+            PremiumTopic.SELF_ESTEEM -> "${monthText}?먮뒗 鍮꾧탳? 議곌툒?⑥씠 而ㅼ?湲??쎌뒿?덈떎. 紐멸낵 留덉쓬??由щ벉??癒쇱? ?뚮났?섎뒗 ??吏묒쨷?섏꽭??"
+            PremiumTopic.RELATIONSHIP -> "${monthText}?먮뒗 ?щ엺 ?ъ씠???ㅽ빐媛 鍮⑤━ 踰덉쭏 ???덉뒿?덈떎. 以묒슂????붾뒗 李⑤텇???쒓컙???먮뒗 ?몄씠 醫뗭뒿?덈떎."
         }
         val passedMonth = selection.replacedPastMonth ?: return base
         return if (selection.isNextYear) {
-            "올해 가장 강하게 조심할 달인 ${passedMonth}월은 이미 지났고, 올해 남은 구간에는 같은 결이 약하게 지나갑니다. 그래서 다음 해 ${selection.month}월을 다음 주의 구간으로 봅니다. $base"
+            "?ы빐 媛??媛뺥븯寃?議곗떖???ъ씤 ${passedMonth}?붿? ?대? 吏?ш퀬, ?ы빐 ?⑥? 援ш컙?먮뒗 媛숈? 寃곗씠 ?쏀븯寃?吏?섍컩?덈떎. 洹몃옒???ㅼ쓬 ??${selection.month}?붿쓣 ?ㅼ쓬 二쇱쓽 援ш컙?쇰줈 遊낅땲?? $base"
         } else {
-            "올해 가장 강하게 조심할 달인 ${passedMonth}월은 이미 지났으니, 지금 이후에는 ${monthText}을 다음 주의 구간으로 보세요. $base"
+            "?ы빐 媛??媛뺥븯寃?議곗떖???ъ씤 ${passedMonth}?붿? ?대? 吏?ъ쑝?? 吏湲??댄썑?먮뒗 ${monthText}???ㅼ쓬 二쇱쓽 援ш컙?쇰줈 蹂댁꽭?? $base"
         }
     }
 
@@ -574,14 +712,14 @@ class AppViewModel : ViewModel() {
             ?: concern
         val shortened = firstSentence.take(72).trim()
         val topicHint = when (topic) {
-            PremiumTopic.ROMANCE -> "연애에서"
-            PremiumTopic.CAREER -> "일과 진로에서"
-            PremiumTopic.MONEY -> "돈의 흐름에서"
-            PremiumTopic.SELF_ESTEEM -> "나 자신을 대하는 방식에서"
+            PremiumTopic.ROMANCE -> "?곗븷?먯꽌"
+            PremiumTopic.CAREER -> "?쇨낵 吏꾨줈?먯꽌"
+            PremiumTopic.MONEY -> "?덉쓽 ?먮쫫?먯꽌"
+            PremiumTopic.SELF_ESTEEM -> "???먯떊????섎뒗 諛⑹떇?먯꽌"
             PremiumTopic.RELATIONSHIP -> "인간관계에서"
         }
         val sentence = if (shortened.endsWith("?")) shortened.dropLast(1) else shortened
-        return "$topicHint 내가 지금 가장 조정해야 할 핵심은 '$sentence'가 맞나요?"
+        return "$topicHint ?닿? 吏湲?媛??議곗젙?댁빞 ???듭떖? '$sentence'媛 留욌굹??"
     }
 
     private fun CompatibilityFormState.hasAnyInput(): Boolean {

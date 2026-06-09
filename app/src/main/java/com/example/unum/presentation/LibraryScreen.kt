@@ -15,7 +15,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,8 +54,10 @@ private enum class LibraryFilter(val label: String) {
 fun LibraryScreen(viewModel: AppViewModel, onOpenBook: (FortuneBook) -> Unit) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     var filter by rememberSaveable { mutableStateOf(LibraryFilter.ALL) }
+    var pendingDeleteBookId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val allBooks = uiState.savedBooks
+    val pendingDeleteBook = pendingDeleteBookId?.let { id -> allBooks.firstOrNull { it.bookId == id } }
     val filteredBooks = when (filter) {
         LibraryFilter.ALL -> allBooks
         LibraryFilter.PERSONAL -> allBooks.filter { it.bookType == FortuneBookType.PERSONAL }
@@ -126,11 +132,39 @@ fun LibraryScreen(viewModel: AppViewModel, onOpenBook: (FortuneBook) -> Unit) {
                             viewModel.selectSavedBook(book)
                             onOpenBook(book)
                         },
-                        onBookmarkClick = { book -> viewModel.toggleBookmark(book) }
+                        onBookmarkClick = { book -> viewModel.toggleBookmark(book) },
+                        onDeleteClick = { book -> pendingDeleteBookId = book.bookId }
                     )
                 }
             }
             item { Spacer(Modifier.height(90.dp)) }
+        }
+
+        if (pendingDeleteBook != null) {
+            AlertDialog(
+                onDismissRequest = { pendingDeleteBookId = null },
+                title = { Text("책자를 삭제할까요?") },
+                text = {
+                    Text(
+                        "${pendingDeleteBook.coverTitle} 책자가 이 기기와 로그인 계정 DB에서 함께 삭제됩니다."
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.deleteSavedBook(pendingDeleteBook)
+                            pendingDeleteBookId = null
+                        }
+                    ) {
+                        Text("삭제")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingDeleteBookId = null }) {
+                        Text("취소")
+                    }
+                }
+            )
         }
     }
 }

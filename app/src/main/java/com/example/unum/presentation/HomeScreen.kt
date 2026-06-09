@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.Bookmarks
 import androidx.compose.material.icons.rounded.EditCalendar
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -85,6 +86,7 @@ fun HomeScreen(
     onOpenResult: () -> Unit,
     onOpenPremium: () -> Unit,
     onOpenLibrary: () -> Unit,
+    onOpenSettings: () -> Unit,
     onOpenBook: (FortuneBook) -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -99,7 +101,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp),
             contentPadding = PaddingValues(top = 28.dp, bottom = 104.dp)
         ) {
-            item { RoomHeader() }
+            item { RoomHeader(onOpenSettings = onOpenSettings) }
             item {
                 TodayNumberCard(
                     bundle = latestBundle,
@@ -146,7 +148,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun RoomHeader() {
+private fun RoomHeader(onOpenSettings: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -161,15 +163,11 @@ private fun RoomHeader() {
                 .size(44.dp)
                 .clip(CircleShape)
                 .background(Surface2)
-                .border(1.dp, Border, CircleShape),
+                .border(1.dp, Border, CircleShape)
+                .clickable(onClick = onOpenSettings),
             contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(Rose)
-            )
+            Icon(Icons.Rounded.Settings, contentDescription = null, tint = Rose, modifier = Modifier.size(20.dp))
         }
     }
 }

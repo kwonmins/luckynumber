@@ -1,0 +1,269 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1800" viewBox="0 0 1800 1800">
+  <defs>
+    <filter id="ambient" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="24" stdDeviation="26" flood-color="#0f172a" flood-opacity=".18"/>
+    </filter>
+    <filter id="deepBook" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="28" stdDeviation="20" flood-color="#020617" flood-opacity=".34"/>
+    </filter>
+    <filter id="innerPress">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#ffffff" flood-opacity=".10"/>
+      <feDropShadow dx="0" dy="-1" stdDeviation="1.4" flood-color="#000000" flood-opacity=".40"/>
+    </filter>
+    <filter id="foilGlow">
+      <feGaussianBlur stdDeviation="0.45" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#eef2f7"/>
+    </linearGradient>
+    <linearGradient id="foilGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff5bf"/>
+      <stop offset=".18" stop-color="#d8ac45"/>
+      <stop offset=".42" stop-color="#fff0a0"/>
+      <stop offset=".68" stop-color="#bb8425"/>
+      <stop offset="1" stop-color="#f8df89"/>
+    </linearGradient>
+    <linearGradient id="pageWarm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffaf1"/>
+      <stop offset=".48" stop-color="#fffdf8"/>
+      <stop offset="1" stop-color="#f7efe1"/>
+    </linearGradient>
+    <linearGradient id="pageCool" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f9fafb"/>
+      <stop offset=".52" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef2f7"/>
+    </linearGradient>
+    <linearGradient id="coverBlack" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#222633"/>
+      <stop offset=".45" stop-color="#10131b"/>
+      <stop offset="1" stop-color="#05070c"/>
+    </linearGradient>
+    <linearGradient id="coverWine" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7d1f3c"/>
+      <stop offset=".48" stop-color="#4b0d22"/>
+      <stop offset="1" stop-color="#250611"/>
+    </linearGradient>
+    <linearGradient id="coverForest" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f5b4c"/>
+      <stop offset=".50" stop-color="#0e332c"/>
+      <stop offset="1" stop-color="#061c18"/>
+    </linearGradient>
+    <linearGradient id="coverCognac" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9c5d32"/>
+      <stop offset=".46" stop-color="#673719"/>
+      <stop offset="1" stop-color="#30170c"/>
+    </linearGradient>
+
+    <pattern id="pebbledLeather" width="42" height="42" patternUnits="userSpaceOnUse">
+      <rect width="42" height="42" fill="transparent"/>
+      <path d="M-8 14 C5 5 16 22 29 12 S48 8 52 20" stroke="#ffffff" stroke-opacity=".045" fill="none"/>
+      <path d="M-4 34 C9 23 22 43 44 30" stroke="#000000" stroke-opacity=".24" fill="none"/>
+      <circle cx="9" cy="25" r="1.1" fill="#ffffff" opacity=".04"/>
+      <circle cx="31" cy="10" r="1.3" fill="#000000" opacity=".19"/>
+    </pattern>
+    <pattern id="saffiano" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="20" height="20" fill="transparent"/>
+      <line x1="0" y1="5" x2="20" y2="5" stroke="#ffffff" stroke-opacity=".055"/>
+      <line x1="0" y1="13" x2="20" y2="13" stroke="#000000" stroke-opacity=".22"/>
+    </pattern>
+    <pattern id="pageLines" width="28" height="28" patternUnits="userSpaceOnUse">
+      <rect width="28" height="28" fill="transparent"/>
+      <line x1="0" y1="27" x2="28" y2="27" stroke="#d6c7b2" stroke-opacity=".20"/>
+    </pattern>
+
+    <style>
+      .title { font-family: "Noto Sans KR", "Inter", sans-serif; font-weight: 900; fill: #0f172a; letter-spacing: -.03em; }
+      .sub { font-family: "Noto Sans KR", "Inter", sans-serif; font-weight: 500; fill: #64748b; }
+      .label { font-family: "Inter", "Noto Sans KR", sans-serif; font-weight: 900; letter-spacing: .10em; }
+      .bookTitle { font-family: "Noto Sans KR", "Inter", sans-serif; font-weight: 900; letter-spacing: -.035em; }
+      .body { font-family: "Noto Sans KR", "Inter", sans-serif; font-weight: 600; fill: #475569; }
+      .stitch { fill: none; stroke-linecap: round; stroke-dasharray: 2 10; stroke-width: 2.2; }
+      .small { font-size: 16px; }
+      .tiny { font-size: 13px; }
+    </style>
+  </defs>
+
+  <rect width="1800" height="1800" fill="url(#bg)"/>
+  <text x="90" y="92" class="title" font-size="44">수리의 운세노트 · 고급 가죽 노트 최종 방향</text>
+  <text x="90" y="134" class="sub" font-size="21">두꺼운 가죽 커버, 스티치, 금박/음각, 속지 편집감을 모두 앱 화면에 적용 가능한 구조로 정리했습니다.</text>
+
+  <!-- Main option panel -->
+  <g transform="translate(70,180)">
+    <rect width="1660" height="840" rx="34" fill="#ffffff" filter="url(#ambient)"/>
+    <text x="44" y="62" class="title" font-size="32">Signature Noir Leather System</text>
+    <text x="44" y="98" class="sub" font-size="18">기본 유료 책자 추천안. 표지는 블랙 가죽, 내부 페이지는 따뜻한 고급 속지, 포인트는 카테고리 컬러로 변경.</text>
+
+    <!-- Phone 1 cover -->
+    <g transform="translate(60,135)">
+      <rect width="410" height="650" rx="46" fill="#0b0d12"/>
+      <rect x="14" y="14" width="382" height="622" rx="38" fill="#f8fafc"/>
+      <rect x="34" y="34" width="342" height="550" rx="24" fill="url(#coverBlack)" filter="url(#deepBook)"/>
+      <rect x="34" y="34" width="342" height="550" rx="24" fill="url(#pebbledLeather)"/>
+      <path d="M65 58 V560" stroke="#090b10" stroke-width="26" stroke-opacity=".55"/>
+      <path d="M82 78 V540" class="stitch" stroke="#f7d36d" stroke-opacity=".66"/>
+      <path d="M350 78 V540" class="stitch" stroke="#f7d36d" stroke-opacity=".44"/>
+      <rect x="74" y="66" width="272" height="500" rx="18" fill="none" stroke="url(#foilGold)" stroke-width="2.2"/>
+      <rect x="90" y="82" width="240" height="468" rx="12" fill="none" stroke="#fff3b0" stroke-opacity=".18"/>
+      <rect x="310" y="34" width="18" height="102" rx="8" fill="#2563eb"/>
+      <rect x="314" y="34" width="4" height="102" rx="2" fill="#93c5fd" opacity=".52"/>
+      <text x="118" y="132" class="label" font-size="14" fill="url(#foilGold)" filter="url(#foilGlow)">PREMIUM FORTUNE NOTE</text>
+      <text x="118" y="230" class="bookTitle" font-size="42" fill="#f8fafc" filter="url(#innerPress)">수리의</text>
+      <text x="118" y="286" class="bookTitle" font-size="42" fill="#f8fafc" filter="url(#innerPress)">운세노트</text>
+      <line x1="118" y1="326" x2="292" y2="326" stroke="url(#foilGold)" stroke-width="2.4"/>
+      <text x="118" y="384" class="body small" fill="#cbd5e1">연애 · 운명수 7</text>
+      <text x="118" y="414" class="body tiny" fill="#94a3b8">나만의 관계 흐름 해설서</text>
+      <circle cx="205" cy="493" r="46" fill="#10131b" stroke="url(#foilGold)" stroke-width="3.4"/>
+      <text x="192" y="510" class="bookTitle" font-size="39" fill="url(#foilGold)">7</text>
+      <text x="113" y="622" class="sub" font-size="16">표지 · 화면 90% 채움</text>
+    </g>
+
+    <!-- Phone 2 toc -->
+    <g transform="translate(520,135)">
+      <rect width="410" height="650" rx="46" fill="#0b0d12"/>
+      <rect x="14" y="14" width="382" height="622" rx="38" fill="#f8fafc"/>
+      <rect x="30" y="34" width="350" height="550" rx="18" fill="#111827" filter="url(#deepBook)"/>
+      <rect x="48" y="52" width="314" height="514" rx="14" fill="url(#pageWarm)" stroke="#e6dac9"/>
+      <rect x="48" y="52" width="314" height="514" rx="14" fill="url(#pageLines)" opacity=".65"/>
+      <path d="M48 52 C70 68 70 548 48 566" fill="#e8ddca" opacity=".50"/>
+      <text x="180" y="104" class="title" font-size="26">목차</text>
+      <text x="132" y="134" class="label" font-size="13" fill="#b8831e">ROMANCE EDITION</text>
+      <g transform="translate(78,176)">
+        <rect width="254" height="52" rx="14" fill="#fffdf8" stroke="#eadcc7"/>
+        <circle cx="26" cy="26" r="15" fill="#fff1f2"/><text x="22" y="32" class="label" font-size="13" fill="#e11d48">1</text>
+        <text x="56" y="32" class="body small">지혜의 본질</text><text x="224" y="32" class="body tiny" fill="#b8831e">p.4</text>
+      </g>
+      <g transform="translate(78,242)">
+        <rect width="254" height="52" rx="14" fill="#fff7f8" stroke="#e11d48" stroke-opacity=".18"/>
+        <circle cx="26" cy="26" r="15" fill="#ffe4ec"/><text x="22" y="32" class="label" font-size="13" fill="#e11d48">2</text>
+        <text x="56" y="32" class="body small">상황별 해석</text><text x="218" y="32" class="body tiny" fill="#b8831e">p.14</text>
+      </g>
+      <g transform="translate(78,308)">
+        <rect width="254" height="52" rx="14" fill="#fffdf8" stroke="#eadcc7"/>
+        <circle cx="26" cy="26" r="15" fill="#fff1f2"/><text x="22" y="32" class="label" font-size="13" fill="#e11d48">3</text>
+        <text x="56" y="32" class="body small">주의할 장면</text><text x="218" y="32" class="body tiny" fill="#b8831e">p.24</text>
+      </g>
+      <g transform="translate(78,374)">
+        <rect width="254" height="52" rx="14" fill="#fffdf8" stroke="#eadcc7"/>
+        <circle cx="26" cy="26" r="15" fill="#fff1f2"/><text x="22" y="32" class="label" font-size="13" fill="#e11d48">4</text>
+        <text x="56" y="32" class="body small">이번 달 행동 지침</text><text x="218" y="32" class="body tiny" fill="#b8831e">p.34</text>
+      </g>
+      <text x="196" y="536" class="body tiny" fill="#b8831e">03</text>
+      <text x="118" y="622" class="sub" font-size="16">속지 · 목차 편집</text>
+    </g>
+
+    <!-- Phone 3 detail -->
+    <g transform="translate(980,135)">
+      <rect width="410" height="650" rx="46" fill="#0b0d12"/>
+      <rect x="14" y="14" width="382" height="622" rx="38" fill="#f8fafc"/>
+      <rect x="30" y="34" width="350" height="550" rx="18" fill="#111827" filter="url(#deepBook)"/>
+      <rect x="48" y="52" width="314" height="514" rx="14" fill="url(#pageWarm)" stroke="#e6dac9"/>
+      <rect x="48" y="52" width="314" height="514" rx="14" fill="url(#pageLines)" opacity=".65"/>
+      <path d="M48 52 C70 68 70 548 48 566" fill="#e8ddca" opacity=".50"/>
+      <circle cx="82" cy="96" r="16" fill="#111827"/><text x="77" y="102" class="label" font-size="13" fill="#ffffff">2</text>
+      <text x="110" y="92" class="title" font-size="22">상황별 고민 해결 비책</text>
+      <text x="110" y="118" class="label" font-size="12" fill="#e11d48">ROMANCE COUNSEL</text>
+      <g transform="translate(74,160)">
+        <rect width="262" height="82" rx="12" fill="#fffaf1" stroke="#e6dac9"/>
+        <rect width="5" height="82" rx="3" fill="#b8831e"/>
+        <text x="20" y="31" class="label" font-size="13" fill="#b8831e">던지신 질문</text>
+        <text x="20" y="58" class="body tiny">연애 중인데 불안감을 줄이고 싶어요.</text>
+      </g>
+      <g transform="translate(74,264)">
+        <rect width="262" height="94" rx="12" fill="#fff7f8" stroke="#e11d48" stroke-opacity=".22"/>
+        <rect width="5" height="94" rx="3" fill="#e11d48"/>
+        <text x="20" y="31" class="label" font-size="13" fill="#e11d48">주의할 장면</text>
+        <text x="20" y="58" class="body tiny">상대의 반응보다 내 속도 조절이 먼저입니다.</text>
+      </g>
+      <g transform="translate(74,380)">
+        <rect width="262" height="100" rx="12" fill="#f8fafc" stroke="#2563eb" stroke-opacity=".22"/>
+        <rect width="5" height="100" rx="3" fill="#2563eb"/>
+        <text x="20" y="31" class="label" font-size="13" fill="#2563eb">이번 주 실천 지침</text>
+        <text x="20" y="58" class="body tiny">오늘 가장 크게 남는 고민을 한 문장으로 적기</text>
+        <text x="20" y="80" class="body tiny">바로 움직일 작은 선택 하나 정하기</text>
+      </g>
+      <text x="196" y="536" class="body tiny" fill="#b8831e">15</text>
+      <text x="118" y="622" class="sub" font-size="16">상세 · 상담형 속지</text>
+    </g>
+  </g>
+
+  <!-- Category variants -->
+  <g transform="translate(70,1080)">
+    <rect width="1660" height="610" rx="34" fill="#ffffff" filter="url(#ambient)"/>
+    <text x="44" y="62" class="title" font-size="32">카테고리별 가죽 커버 컬러 적용</text>
+    <text x="44" y="98" class="sub" font-size="18">같은 고급 가죽 노트 구조를 유지하고, 분야마다 커버 가죽과 책갈피 색만 바꿔 아이덴티티를 살립니다.</text>
+
+    <g transform="translate(72,145)">
+      <rect width="245" height="350" rx="20" fill="url(#coverWine)" filter="url(#deepBook)"/>
+      <rect width="245" height="350" rx="20" fill="url(#pebbledLeather)"/>
+      <rect x="18" y="20" width="209" height="310" rx="14" fill="none" stroke="url(#foilGold)" stroke-width="2"/>
+      <path d="M38 38 V312" class="stitch" stroke="#ffd5df" stroke-opacity=".54"/>
+      <rect x="194" width="16" height="80" rx="7" fill="#f472b6"/>
+      <text x="58" y="84" class="label" font-size="12" fill="#ffd6df">ROMANCE</text>
+      <text x="58" y="166" class="bookTitle" font-size="30" fill="#fff7fa">연애</text>
+      <text x="58" y="206" class="bookTitle" font-size="30" fill="#fff7fa">운세노트</text>
+      <circle cx="122" cy="282" r="34" fill="#4b0d22" stroke="#ffd6df" stroke-width="3"/>
+      <text x="113" y="294" class="bookTitle" font-size="28" fill="#fff7fa">7</text>
+      <text x="78" y="396" class="title" font-size="19">연애</text>
+    </g>
+
+    <g transform="translate(390,145)">
+      <rect width="245" height="350" rx="20" fill="url(#coverBlack)" filter="url(#deepBook)"/>
+      <rect width="245" height="350" rx="20" fill="url(#pebbledLeather)"/>
+      <rect x="18" y="20" width="209" height="310" rx="14" fill="none" stroke="url(#foilGold)" stroke-width="2"/>
+      <path d="M38 38 V312" class="stitch" stroke="#f7d36d" stroke-opacity=".58"/>
+      <rect x="194" width="16" height="80" rx="7" fill="#2563eb"/>
+      <text x="58" y="84" class="label" font-size="12" fill="#f7d36d">CAREER</text>
+      <text x="58" y="166" class="bookTitle" font-size="30" fill="#f8fafc">일과</text>
+      <text x="58" y="206" class="bookTitle" font-size="30" fill="#f8fafc">방향 노트</text>
+      <circle cx="122" cy="282" r="34" fill="#10131b" stroke="#f7d36d" stroke-width="3"/>
+      <text x="113" y="294" class="bookTitle" font-size="28" fill="#f7d36d">7</text>
+      <text x="69" y="396" class="title" font-size="19">일 &amp; 진로</text>
+    </g>
+
+    <g transform="translate(708,145)">
+      <rect width="245" height="350" rx="20" fill="url(#coverForest)" filter="url(#deepBook)"/>
+      <rect width="245" height="350" rx="20" fill="url(#saffiano)"/>
+      <rect x="18" y="20" width="209" height="310" rx="14" fill="none" stroke="url(#foilGold)" stroke-width="2"/>
+      <rect x="194" width="16" height="80" rx="7" fill="#10b981"/>
+      <text x="58" y="84" class="label" font-size="12" fill="#f7d36d">MONEY</text>
+      <text x="58" y="166" class="bookTitle" font-size="30" fill="#f8fafc">돈의</text>
+      <text x="58" y="206" class="bookTitle" font-size="30" fill="#f8fafc">흐름 노트</text>
+      <circle cx="122" cy="282" r="34" fill="#0e332c" stroke="#f7d36d" stroke-width="3"/>
+      <text x="113" y="294" class="bookTitle" font-size="28" fill="#f7d36d">7</text>
+      <text x="87" y="396" class="title" font-size="19">돈</text>
+    </g>
+
+    <g transform="translate(1026,145)">
+      <rect width="245" height="350" rx="20" fill="url(#coverCognac)" filter="url(#deepBook)"/>
+      <rect width="245" height="350" rx="20" fill="url(#pebbledLeather)"/>
+      <rect x="18" y="20" width="209" height="310" rx="14" fill="none" stroke="url(#foilGold)" stroke-width="2"/>
+      <path d="M38 38 V312" class="stitch" stroke="#f8e3b0" stroke-opacity=".58"/>
+      <rect x="194" width="16" height="80" rx="7" fill="#f59e0b"/>
+      <text x="58" y="84" class="label" font-size="12" fill="#fff4ba">RELATION</text>
+      <text x="58" y="166" class="bookTitle" font-size="30" fill="#fffaf0">관계</text>
+      <text x="58" y="206" class="bookTitle" font-size="30" fill="#fffaf0">패턴 노트</text>
+      <circle cx="122" cy="282" r="34" fill="#673719" stroke="#f7d36d" stroke-width="3"/>
+      <text x="113" y="294" class="bookTitle" font-size="28" fill="#fff4ba">7</text>
+      <text x="68" y="396" class="title" font-size="19">인간관계</text>
+    </g>
+
+    <g transform="translate(1344,145)">
+      <rect width="245" height="350" rx="20" fill="#151827" filter="url(#deepBook)"/>
+      <rect width="245" height="350" rx="20" fill="url(#saffiano)" opacity=".8"/>
+      <rect x="18" y="20" width="209" height="310" rx="14" fill="none" stroke="url(#foilGold)" stroke-width="2"/>
+      <rect x="194" width="16" height="80" rx="7" fill="#7c3aed"/>
+      <text x="58" y="84" class="label" font-size="12" fill="#f7d36d">SELF NOTE</text>
+      <text x="58" y="166" class="bookTitle" font-size="30" fill="#f8fafc">자기</text>
+      <text x="58" y="206" class="bookTitle" font-size="30" fill="#f8fafc">기준 노트</text>
+      <circle cx="122" cy="282" r="34" fill="#151827" stroke="#f7d36d" stroke-width="3"/>
+      <text x="113" y="294" class="bookTitle" font-size="28" fill="#f7d36d">7</text>
+      <text x="76" y="396" class="title" font-size="19">나 자신</text>
+    </g>
+  </g>
+</svg>

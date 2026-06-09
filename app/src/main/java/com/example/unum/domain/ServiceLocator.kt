@@ -1,9 +1,14 @@
 package com.example.unum.domain
 
 import android.content.Context
+import com.example.unum.BuildConfig
 import com.example.unum.data.repository.FortuneBookStore
 import com.example.unum.data.repository.LocalAssetNumerologyRepository
 import com.example.unum.data.repository.NumerologyRepository
+import com.example.unum.data.repository.auth.AuthRepository
+import com.example.unum.data.repository.auth.SocialAuthRepository
+import com.example.unum.data.repository.user.SupabaseRestUserDatabase
+import com.example.unum.data.repository.user.UserDataRepository
 import com.example.unum.domain.usecase.BuildPremiumDummyConsultationUseCase
 import com.example.unum.domain.usecase.BuildFortuneBookUseCase
 import com.example.unum.domain.usecase.BuildNumerologyResultBundleUseCase
@@ -27,6 +32,20 @@ object ServiceLocator {
     val fortuneBookStore: FortuneBookStore by lazy {
         check(::appContext.isInitialized) { "ServiceLocator.init(context) must be called first." }
         FortuneBookStore(appContext)
+    }
+
+    val authRepository: AuthRepository by lazy {
+        check(::appContext.isInitialized) { "ServiceLocator.init(context) must be called first." }
+        SocialAuthRepository(appContext)
+    }
+
+    val userDataRepository: UserDataRepository by lazy {
+        UserDataRepository(
+            SupabaseRestUserDatabase(
+                supabaseUrl = BuildConfig.SUPABASE_URL,
+                anonKey = BuildConfig.SUPABASE_ANON_KEY
+            )
+        )
     }
 
     val calculateNumerologyUseCase: CalculateNumerologyUseCase by lazy { CalculateNumerologyUseCase() }

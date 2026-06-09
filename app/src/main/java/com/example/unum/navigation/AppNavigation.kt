@@ -100,6 +100,7 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                     onOpenResult = { navController.navigate(AppRoute.Fortune.route) },
                     onOpenPremium = { navController.navigate(AppRoute.Premium.route) },
                     onOpenLibrary = { navController.navigate(AppRoute.Library.route) },
+                    onOpenSettings = { navController.navigate(AppRoute.Settings.route) },
                     onOpenBook = { book -> navController.navigateToBook(viewModel, book) }
                 )
             }

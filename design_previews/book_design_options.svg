@@ -1,0 +1,180 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1480" viewBox="0 0 1600 1480">
+  <defs>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.10"/>
+    </filter>
+    <filter id="paperShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#3b2f22" flood-opacity="0.12"/>
+    </filter>
+    <linearGradient id="rosePaper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff7f4"/>
+      <stop offset="1" stop-color="#fffdf9"/>
+    </linearGradient>
+    <linearGradient id="bluePaper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f5f8ff"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="greenPaper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4fbf4"/>
+      <stop offset="1" stop-color="#fffdf7"/>
+    </linearGradient>
+    <linearGradient id="violetPaper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#faf7ff"/>
+      <stop offset="1" stop-color="#fffaf7"/>
+    </linearGradient>
+    <style>
+      .title { font-family: "Noto Sans KR", "Inter", sans-serif; font-weight: 900; fill: #0f172a; }
+      .sub { font-family: "Noto Sans KR", "Inter", sans-serif; font-weight: 500; fill: #64748b; }
+      .label { font-family: "Inter", "Noto Sans KR", sans-serif; font-weight: 800; letter-spacing: .08em; }
+      .body { font-family: "Noto Sans KR", "Inter", sans-serif; font-weight: 500; fill: #475569; }
+      .small { font-size: 15px; }
+      .tiny { font-size: 12px; }
+      .paperLine { stroke-width: 1; opacity: .28; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1480" fill="#f8fafc"/>
+  <text x="80" y="92" class="title" font-size="42">수리의 운세노트 책자 디자인 시안</text>
+  <text x="80" y="132" class="sub" font-size="20">앱 적용 가능한 4가지 편집 스타일. 각 시안은 표지, 목차, 상세 해석 페이지의 컬러 아이덴티티를 한 세트로 설계했습니다.</text>
+
+  <!-- Option A -->
+  <g transform="translate(70,180)">
+    <rect width="705" height="560" rx="28" fill="#ffffff" filter="url(#softShadow)"/>
+    <text x="34" y="52" class="title" font-size="25">A. Editorial Romance</text>
+    <text x="34" y="82" class="sub" font-size="16">연애 운세노트 · 로즈/크림 · 가장 따뜻한 감성형</text>
+    <rect x="34" y="112" width="290" height="400" rx="12" fill="url(#rosePaper)" stroke="#f1d9ce" filter="url(#paperShadow)"/>
+    <path d="M58 128 V496" stroke="#e11d48" stroke-width="12" stroke-linecap="round"/>
+    <rect x="272" y="112" width="14" height="84" rx="6" fill="#e11d48"/>
+    <rect x="58" y="136" width="242" height="352" rx="8" fill="none" stroke="#e11d48" stroke-opacity=".18"/>
+    <rect x="66" y="144" width="226" height="336" rx="6" fill="none" stroke="#f59e0b" stroke-opacity=".35"/>
+    <rect x="112" y="164" width="136" height="32" rx="16" fill="#fff1f2" stroke="#e11d48" stroke-opacity=".16"/>
+    <circle cx="129" cy="180" r="4" fill="#e11d48"/>
+    <text x="145" y="186" class="label" font-size="12" fill="#9f1239">ROMANCE EDITION</text>
+    <text x="92" y="250" class="title" font-size="32">연애</text>
+    <text x="92" y="292" class="title" font-size="32">운세노트</text>
+    <text x="118" y="326" class="body small">수리의 운세노트</text>
+    <text x="104" y="400" class="body small">운명수 7 · 집중형</text>
+    <circle cx="178" cy="442" r="34" fill="#ffffff" stroke="#e11d48" stroke-opacity=".45" stroke-width="3"/>
+    <text x="168" y="454" class="title" font-size="30" fill="#e11d48">7</text>
+
+    <rect x="360" y="130" width="300" height="165" rx="12" fill="url(#rosePaper)" stroke="#f1d9ce"/>
+    <text x="488" y="166" class="title" font-size="22">목차</text>
+    <text x="426" y="192" class="label" font-size="12" fill="#9f1239">ROMANCE EDITION</text>
+    <circle cx="392" cy="224" r="14" fill="#fff1f2"/><text x="388" y="230" class="title" font-size="13" fill="#e11d48">1</text>
+    <text x="416" y="230" class="body small">지혜의 본질</text><text x="620" y="230" class="body tiny" fill="#e11d48">p.4</text>
+    <circle cx="392" cy="260" r="14" fill="#fff1f2"/><text x="388" y="266" class="title" font-size="13" fill="#e11d48">2</text>
+    <text x="416" y="266" class="body small">상황별 해석</text><text x="614" y="266" class="body tiny" fill="#e11d48">p.14</text>
+
+    <rect x="360" y="324" width="300" height="188" rx="12" fill="url(#rosePaper)" stroke="#f1d9ce"/>
+    <circle cx="390" cy="358" r="14" fill="#e11d48"/><text x="386" y="364" font-family="Inter" font-weight="800" font-size="13" fill="#fff">2</text>
+    <text x="414" y="364" class="title" font-size="19">상황별 고민 해결 비책</text>
+    <rect x="384" y="392" width="246" height="42" rx="8" fill="#fff" stroke="#e11d48" stroke-opacity=".18"/>
+    <rect x="384" y="392" width="4" height="42" rx="2" fill="#e11d48"/>
+    <text x="398" y="416" class="label" font-size="12" fill="#9f1239">던지신 질문</text>
+    <rect x="384" y="448" width="246" height="42" rx="8" fill="#fff" stroke="#ef4444" stroke-opacity=".18"/>
+    <rect x="384" y="448" width="4" height="42" rx="2" fill="#ef4444"/>
+    <text x="398" y="472" class="label" font-size="12" fill="#ef4444">주의할 장면</text>
+  </g>
+
+  <!-- Option B -->
+  <g transform="translate(825,180)">
+    <rect width="705" height="560" rx="28" fill="#ffffff" filter="url(#softShadow)"/>
+    <text x="34" y="52" class="title" font-size="25">B. Modern Career Ledger</text>
+    <text x="34" y="82" class="sub" font-size="16">일 &amp; 진로 · 블루/네이비 · 가장 신뢰감 있는 리포트형</text>
+    <rect x="34" y="112" width="290" height="400" rx="12" fill="url(#bluePaper)" stroke="#d9e5f7" filter="url(#paperShadow)"/>
+    <path d="M58 130 V494" stroke="#2563eb" stroke-width="11" stroke-linecap="round"/>
+    <rect x="76" y="144" width="208" height="18" rx="9" fill="#dbeafe"/>
+    <rect x="76" y="176" width="110" height="8" rx="4" fill="#bfdbfe"/>
+    <text x="78" y="228" class="label" font-size="13" fill="#1e3a8a">CAREER EDITION</text>
+    <text x="78" y="282" class="title" font-size="35">일과 방향</text>
+    <text x="78" y="326" class="title" font-size="35">노트</text>
+    <line x1="78" y1="354" x2="282" y2="354" stroke="#2563eb" stroke-opacity=".22" stroke-width="2"/>
+    <text x="78" y="400" class="body small">실행 계획과 흐름 정리</text>
+    <circle cx="247" cy="438" r="36" fill="#eff6ff" stroke="#2563eb" stroke-opacity=".45" stroke-width="3"/>
+    <text x="237" y="450" class="title" font-size="30" fill="#2563eb">7</text>
+
+    <rect x="360" y="130" width="300" height="165" rx="12" fill="url(#bluePaper)" stroke="#d9e5f7"/>
+    <text x="488" y="166" class="title" font-size="22">목차</text>
+    <rect x="386" y="202" width="240" height="1" fill="#dbeafe"/>
+    <rect x="386" y="222" width="8" height="26" rx="4" fill="#2563eb"/>
+    <text x="408" y="240" class="body small">지혜의 본질</text><text x="620" y="240" class="body tiny" fill="#2563eb">p.4</text>
+    <rect x="386" y="260" width="8" height="26" rx="4" fill="#93c5fd"/>
+    <text x="408" y="278" class="body small">상황별 해석</text><text x="614" y="278" class="body tiny" fill="#2563eb">p.14</text>
+
+    <rect x="360" y="324" width="300" height="188" rx="12" fill="url(#bluePaper)" stroke="#d9e5f7"/>
+    <text x="386" y="362" class="title" font-size="19">상황별 고민 해결 비책</text>
+    <text x="386" y="386" class="label" font-size="12" fill="#2563eb">CAREER COUNSEL</text>
+    <rect x="386" y="406" width="244" height="1" fill="#dbeafe"/>
+    <rect x="386" y="426" width="244" height="46" rx="8" fill="#ffffff" stroke="#2563eb" stroke-opacity=".16"/>
+    <text x="402" y="454" class="label" font-size="12" fill="#1e3a8a">이번 주 실행 지침</text>
+  </g>
+
+  <!-- Option C -->
+  <g transform="translate(70,800)">
+    <rect width="705" height="560" rx="28" fill="#ffffff" filter="url(#softShadow)"/>
+    <text x="34" y="52" class="title" font-size="25">C. Quiet Money Note</text>
+    <text x="34" y="82" class="sub" font-size="16">돈 &amp; 경제 · 에메랄드/골드 · 차분한 프리미엄 재정 노트</text>
+    <rect x="34" y="112" width="290" height="400" rx="12" fill="url(#greenPaper)" stroke="#dcebd2" filter="url(#paperShadow)"/>
+    <rect x="58" y="136" width="242" height="352" rx="12" fill="none" stroke="#059669" stroke-opacity=".18"/>
+    <path d="M58 420 C112 378 162 480 300 400" stroke="#059669" stroke-opacity=".16" stroke-width="18" fill="none" stroke-linecap="round"/>
+    <path d="M58 130 V496" stroke="#059669" stroke-width="10" stroke-linecap="round"/>
+    <rect x="104" y="164" width="150" height="32" rx="16" fill="#ecfdf5" stroke="#059669" stroke-opacity=".16"/>
+    <text x="122" y="186" class="label" font-size="12" fill="#065f46">MONEY EDITION</text>
+    <text x="84" y="254" class="title" font-size="34">돈의 흐름</text>
+    <text x="132" y="298" class="title" font-size="34">노트</text>
+    <text x="96" y="392" class="body small">수입 · 소비 · 선택의 리듬</text>
+    <circle cx="178" cy="442" r="34" fill="#ffffff" stroke="#059669" stroke-opacity=".42" stroke-width="3"/>
+    <text x="168" y="454" class="title" font-size="30" fill="#059669">7</text>
+
+    <rect x="360" y="130" width="300" height="165" rx="12" fill="url(#greenPaper)" stroke="#dcebd2"/>
+    <text x="488" y="166" class="title" font-size="22">목차</text>
+    <circle cx="392" cy="224" r="14" fill="#ecfdf5"/><text x="388" y="230" class="title" font-size="13" fill="#059669">1</text>
+    <text x="416" y="230" class="body small">지혜의 본질</text><text x="620" y="230" class="body tiny" fill="#059669">p.4</text>
+    <rect x="382" y="252" width="252" height="36" rx="8" fill="#ecfdf5" opacity=".64"/>
+    <circle cx="392" cy="270" r="14" fill="#ffffff"/><text x="388" y="276" class="title" font-size="13" fill="#059669">2</text>
+    <text x="416" y="276" class="body small">상황별 해석</text><text x="614" y="276" class="body tiny" fill="#059669">p.14</text>
+
+    <rect x="360" y="324" width="300" height="188" rx="12" fill="url(#greenPaper)" stroke="#dcebd2"/>
+    <text x="386" y="362" class="title" font-size="19">상황별 고민 해결 비책</text>
+    <rect x="386" y="392" width="244" height="42" rx="8" fill="#ffffff" stroke="#059669" stroke-opacity=".14"/>
+    <rect x="386" y="392" width="4" height="42" rx="2" fill="#059669"/>
+    <text x="402" y="416" class="label" font-size="12" fill="#065f46">던지신 질문</text>
+    <rect x="386" y="448" width="244" height="42" rx="8" fill="#fffaf0" stroke="#f59e0b" stroke-opacity=".22"/>
+    <rect x="386" y="448" width="4" height="42" rx="2" fill="#f59e0b"/>
+    <text x="402" y="472" class="label" font-size="12" fill="#b45309">돈의 흐름 포인트</text>
+  </g>
+
+  <!-- Option D -->
+  <g transform="translate(825,800)">
+    <rect width="705" height="560" rx="28" fill="#ffffff" filter="url(#softShadow)"/>
+    <text x="34" y="52" class="title" font-size="25">D. Relationship Archive</text>
+    <text x="34" y="82" class="sub" font-size="16">인간관계 · 바이올렛/웜 페이퍼 · 가장 고급스러운 상담형</text>
+    <rect x="34" y="112" width="290" height="400" rx="12" fill="url(#violetPaper)" stroke="#e8def7" filter="url(#paperShadow)"/>
+    <rect x="58" y="136" width="242" height="352" rx="10" fill="none" stroke="#7c3aed" stroke-opacity=".18"/>
+    <path d="M58 130 V496" stroke="#7c3aed" stroke-width="10" stroke-linecap="round"/>
+    <rect x="272" y="112" width="14" height="84" rx="6" fill="#7c3aed"/>
+    <circle cx="178" cy="236" r="74" fill="#f5f3ff" stroke="#7c3aed" stroke-opacity=".10"/>
+    <text x="86" y="254" class="title" font-size="31">관계 패턴</text>
+    <text x="132" y="296" class="title" font-size="31">노트</text>
+    <text x="112" y="350" class="body small">거리감과 신뢰의 지도</text>
+    <text x="100" y="400" class="label" font-size="12" fill="#4c1d95">RELATIONSHIP EDITION</text>
+    <circle cx="178" cy="442" r="34" fill="#ffffff" stroke="#7c3aed" stroke-opacity=".42" stroke-width="3"/>
+    <text x="168" y="454" class="title" font-size="30" fill="#7c3aed">7</text>
+
+    <rect x="360" y="130" width="300" height="165" rx="12" fill="url(#violetPaper)" stroke="#e8def7"/>
+    <text x="488" y="166" class="title" font-size="22">목차</text>
+    <rect x="384" y="212" width="246" height="34" rx="17" fill="#f5f3ff"/>
+    <circle cx="402" cy="229" r="11" fill="#7c3aed"/><text x="399" y="234" class="title" font-size="11" fill="#fff">1</text>
+    <text x="424" y="235" class="body small">지혜의 본질</text><text x="612" y="235" class="body tiny" fill="#7c3aed">p.4</text>
+    <circle cx="402" cy="270" r="11" fill="#ede9fe"/><text x="399" y="275" class="title" font-size="11" fill="#7c3aed">2</text>
+    <text x="424" y="276" class="body small">상황별 해석</text><text x="606" y="276" class="body tiny" fill="#7c3aed">p.14</text>
+
+    <rect x="360" y="324" width="300" height="188" rx="12" fill="url(#violetPaper)" stroke="#e8def7"/>
+    <text x="386" y="362" class="title" font-size="19">상황별 고민 해결 비책</text>
+    <text x="386" y="386" class="label" font-size="12" fill="#4c1d95">RELATIONSHIP COUNSEL</text>
+    <rect x="386" y="410" width="244" height="64" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-opacity=".14"/>
+    <rect x="386" y="410" width="4" height="64" rx="2" fill="#7c3aed"/>
+    <text x="402" y="438" class="label" font-size="12" fill="#4c1d95">거리감 조절</text>
+    <text x="402" y="462" class="body tiny">관계를 정의하기보다 호흡을 먼저 맞추기</text>
+  </g>
+</svg>
