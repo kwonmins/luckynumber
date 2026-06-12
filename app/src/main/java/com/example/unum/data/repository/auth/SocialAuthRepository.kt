@@ -31,7 +31,12 @@ class SocialAuthRepository(
             val user = fetchKakaoUser()
             saveSession(user)
             user
-        }
+        }.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { error ->
+                Result.failure(IllegalStateException(error.toKakaoLoginMessage(), error))
+            }
+        )
     }
 
     override suspend fun signOut() {
@@ -44,18 +49,44 @@ class SocialAuthRepository(
 
     private suspend fun loginWithKakao(activity: Activity): OAuthToken {
         return suspendCancellableCoroutine { continuation ->
-            val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
-                when {
-                    error != null -> continuation.resumeWith(Result.failure(error))
-                    token != null -> continuation.resume(token)
-                    else -> continuation.resumeWith(Result.failure(IllegalStateException("카카오 로그인 토큰을 받지 못했습니다.")))
+            var resolved = false
+
+            fun resumeSuccess(token: OAuthToken) {
+                if (!resolved) {
+                    resolved = true
+                    continuation.resume(token)
                 }
             }
 
+            fun resumeFailure(error: Throwable) {
+                if (!resolved) {
+                    resolved = true
+                    continuation.resumeWith(Result.failure(error))
+                }
+            }
+
+            val accountCallback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
+                when {
+                    token != null -> resumeSuccess(token)
+                    error != null -> resumeFailure(error)
+                    else -> resumeFailure(IllegalStateException("카카오 로그인 토큰을 받지 못했습니다."))
+                }
+            }
+
+            val talkCallback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
+                when {
+                    token != null -> resumeSuccess(token)
+                    error != null && error.isUserCancelled() -> resumeFailure(error)
+                    else -> UserApiClient.instance.loginWithKakaoAccount(activity, callback = accountCallback)
+                }
+            }
+
+            continuation.invokeOnCancellation { resolved = true }
+
             if (UserApiClient.instance.isKakaoTalkLoginAvailable(activity)) {
-                UserApiClient.instance.loginWithKakaoTalk(activity, callback = callback)
+                UserApiClient.instance.loginWithKakaoTalk(activity, callback = talkCallback)
             } else {
-                UserApiClient.instance.loginWithKakaoAccount(activity, callback = callback)
+                UserApiClient.instance.loginWithKakaoAccount(activity, callback = accountCallback)
             }
         }
     }
@@ -117,6 +148,33 @@ class SocialAuthRepository(
 
     private fun stableUserId(providerUserId: String): String {
         return "${AuthProvider.KAKAO.name.lowercase()}:$providerUserId"
+    }
+
+    private fun Throwable.isUserCancelled(): Boolean {
+        val text = listOfNotNull(this::class.simpleName, message).joinToString(" ")
+        return text.contains("cancel", ignoreCase = true) ||
+            text.contains("cancelled", ignoreCase = true) ||
+            text.contains("사용자 취소", ignoreCase = true)
+    }
+
+    private fun Throwable.toKakaoLoginMessage(): String {
+        val raw = generateSequence(this) { it.cause }
+            .mapNotNull { it.message }
+            .joinToString(" / ")
+            .ifBlank { this::class.simpleName.orEmpty() }
+
+        return when {
+            raw.contains("KOE006", ignoreCase = true) || raw.contains("redirect", ignoreCase = true) ->
+                "카카오 로그인 리다이렉트 설정이 맞지 않습니다. 카카오 Developers의 Android 패키지명, 키 해시, 네이티브 앱 키를 확인해주세요. 원인: $raw"
+            raw.contains("key hash", ignoreCase = true) || raw.contains("package", ignoreCase = true) ->
+                "카카오 Android 플랫폼 설정이 맞지 않습니다. 패키지명 com.example.unum 과 키 해시 RY4drQdBbWHDzQJCe4/mMexIgRI= 등록을 확인해주세요. 원인: $raw"
+            raw.contains("invalid_client", ignoreCase = true) || raw.contains("KOE101", ignoreCase = true) ->
+                "카카오 네이티브 앱 키가 현재 앱과 맞지 않습니다. local.properties의 kakao.native.app.key 값을 확인해주세요. 원인: $raw"
+            raw.contains("cancel", ignoreCase = true) ->
+                "카카오 로그인이 취소되었습니다."
+            else ->
+                "카카오 로그인에 실패했습니다. 원인: $raw"
+        }
     }
 
     private companion object {
