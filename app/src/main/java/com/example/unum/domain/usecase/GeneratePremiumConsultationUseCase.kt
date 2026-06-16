@@ -286,7 +286,11 @@ class GeneratePremiumConsultationUseCase(
         val json = JSONObject(jsonText)
         if (json.has("pages") || json.has("answerCard")) {
             val answerCard = parseAnswerCard(json.optJSONObject("answerCard"))
-            val pages = parsePages(json.optJSONArray("pages"))
+            val pages = normalizePersonalPages(
+                pages = parsePages(json.optJSONArray("pages")),
+                answerCard = answerCard,
+                topic = topic
+            )
             val toc = parseToc(json.optJSONArray("toc"))
             val cautionPage = pages.firstOrNull { it.id == "caution" }
             val actionPage = pages.firstOrNull { it.id == "action" }
@@ -366,6 +370,58 @@ class GeneratePremiumConsultationUseCase(
                 )
             }
         }
+    }
+
+    private fun normalizePersonalPages(
+        pages: List<ConsultationPage>,
+        answerCard: ConsultationAnswerCard,
+        topic: PremiumTopic
+    ): List<ConsultationPage> {
+        val byId = pages.associateBy { it.id }
+        val topicLabel = topic.label
+        return listOf(
+            byId["timing"] ?: ConsultationPage(
+                id = "timing",
+                ribbon = "언제 움직일까",
+                title = "흐름이 열리는 시기",
+                highlight = answerCard.shortAnswer.ifBlank { "$topicLabel 고민은 속도보다 타이밍을 맞추는 쪽이 중요합니다." },
+                body = listOf(
+                    "지금은 결론을 재촉하기보다 움직일 수 있는 구간을 차분히 고르는 편이 좋습니다.",
+                    "추천 월에는 작게라도 행동을 만들고, 주의 월에는 충동적인 선택을 하루 늦추는 쪽이 안전합니다."
+                )
+            ),
+            byId["person"] ?: ConsultationPage(
+                id = "person",
+                ribbon = "어떤 결일까",
+                title = "끌리는 흐름의 모양",
+                highlight = "$topicLabel 안에서 반복되는 선택의 결을 먼저 봐야 합니다.",
+                body = listOf(
+                    "당장 좋아 보이는 조건보다 실제로 마음이 편해지는 장면을 기준으로 보는 편이 좋습니다.",
+                    "겉으로 드러난 말보다 반복되는 행동, 약속을 지키는 방식, 부담을 다루는 태도를 살펴보세요."
+                )
+            ),
+            byId["caution"] ?: ConsultationPage(
+                id = "caution",
+                ribbon = "주의사항",
+                title = "흐름을 망치는 습관",
+                highlight = "혼자 결론을 내리고 급하게 움직이면 좋은 흐름도 쉽게 꼬일 수 있습니다.",
+                body = listOf(
+                    "확인하고 싶은 마음이 커질수록 말투가 강해지거나 선택이 급해질 수 있습니다.",
+                    "이때 바로 밀어붙이면 상대나 상황이 닫힐 수 있으니, 하루 정도 여백을 두고 다시 보는 편이 좋습니다."
+                )
+            ),
+            byId["action"] ?: ConsultationPage(
+                id = "action",
+                ribbon = "오늘의 처방",
+                title = "지금 바로 할 일",
+                highlight = "오늘은 큰 결론보다 작은 행동 하나가 더 중요합니다.",
+                body = listOf(
+                    "오늘은 감정과 사실을 따로 적어보세요.",
+                    "이번 주에는 가장 부담이 작은 행동 하나만 실행하세요.",
+                    "이번 달에는 반복되는 패턴 하나를 줄이는 데 집중하세요."
+                )
+            )
+        )
     }
 
     private fun JSONArray?.toStringList(): List<String> {

@@ -668,8 +668,7 @@ fun FortuneBookReader(
     onBookmarkClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val hasMonthPages = book.bookType == FortuneBookType.PERSONAL &&
-        book.coverTheme != "romance" &&
+    val hasMonthPages =
         book.bestMonth.isNotBlank() &&
         book.riskyMonth.isNotBlank()
     val pageCount = book.chapters.size + 2 + if (hasMonthPages) 2 else 0
@@ -823,7 +822,7 @@ private fun OverviewPage(book: FortuneBook, onBookmarkClick: () -> Unit) {
         NotebookGuideCard(
             title = "읽는 순서",
             body = if (book.bookType == FortuneBookType.COMPATIBILITY) {
-                "목차를 먼저 보고, 남자 성향과 여자 성향을 차례로 읽은 뒤 궁합수와 생활 흐름을 넘겨보세요."
+                "목차를 먼저 보고, 두 사람의 끌림과 엇갈림을 한 장씩 읽은 뒤 추천 월과 주의 월을 확인하세요."
             } else {
                 "목차를 먼저 보고, 필요한 섹션부터 한 장씩 넘겨 읽어보세요. 추천할 월과 주의할 월은 뒤쪽에서 다시 정리합니다."
             }
@@ -1336,7 +1335,7 @@ private fun PagerDots(pageCount: Int, currentPage: Int) {
 }
 
 private fun readerPageTitle(book: FortuneBook, page: Int): String {
-    val hasMonthPages = book.bookType == FortuneBookType.PERSONAL
+    val hasMonthPages = book.bestMonth.isNotBlank() && book.riskyMonth.isNotBlank()
     val bestMonthPage = if (hasMonthPages) book.chapters.size + 2 else -1
     val riskyMonthPage = if (hasMonthPages) bestMonthPage + 1 else -1
     return when {

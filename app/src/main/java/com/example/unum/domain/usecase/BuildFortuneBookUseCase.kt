@@ -96,6 +96,10 @@ class BuildFortuneBookUseCase {
             femaleDestiny = femaleBundle.numbers.destiny,
             maleCode = maleBundle.numbers.code,
             femaleCode = femaleBundle.numbers.code,
+            bestMonth = consultation.bestMonth,
+            bestMonthReason = consultation.bestMonthReason,
+            riskyMonth = consultation.riskyMonth,
+            riskyMonthReason = consultation.riskyMonthReason,
             chapters = chapters,
             createdAt = now,
             lastOpenedAt = now,
@@ -109,7 +113,17 @@ class BuildFortuneBookUseCase {
         pages: List<ConsultationPage>,
         closingAdvice: String
     ): List<FortuneBookChapter> {
-        val answerChapter = if (answerCard.hasContent()) {
+        val pageChapters = pages.map { page ->
+            FortuneBookChapter(
+                title = page.title.ifBlank { page.ribbon.ifBlank { "상담 페이지" } },
+                lead = page.ribbon,
+                body = page.body.take(3),
+                highlightQuote = page.highlight,
+                actionTip = listOfNotNull(page.copyText.takeIf { it.isNotBlank() })
+            )
+        }
+
+        val fallbackAnswerChapter = if (pageChapters.isEmpty() && answerCard.hasContent()) {
             listOf(
                 FortuneBookChapter(
                     title = answerCard.question.ifBlank { "상담소의 첫 답변" },
@@ -123,29 +137,7 @@ class BuildFortuneBookUseCase {
             emptyList()
         }
 
-        val pageChapters = pages.map { page ->
-            FortuneBookChapter(
-                title = page.title.ifBlank { page.ribbon.ifBlank { "상담 페이지" } },
-                lead = page.ribbon,
-                body = page.body.take(3),
-                highlightQuote = page.highlight,
-                actionTip = listOfNotNull(page.copyText.takeIf { it.isNotBlank() })
-            )
-        }
-
-        val closingChapter = closingAdvice.takeIf { it.isNotBlank() }?.let {
-            listOf(
-                FortuneBookChapter(
-                    title = "마지막 조언",
-                    lead = "다시 읽는 문장",
-                    body = listOf(it),
-                    highlightQuote = it,
-                    actionTip = emptyList()
-                )
-            )
-        } ?: emptyList()
-
-        return answerChapter + pageChapters + closingChapter
+        return pageChapters.ifEmpty { fallbackAnswerChapter }
     }
 
     private fun buildPersonalFallbackChapters(consultation: PremiumConsultation): List<FortuneBookChapter> {

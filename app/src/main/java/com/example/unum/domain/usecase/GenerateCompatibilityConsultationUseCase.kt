@@ -5,7 +5,9 @@ import com.example.unum.data.model.CompatibilityConsultation
 import com.example.unum.data.model.ConsultationAnswerCard
 import com.example.unum.data.model.ConsultationPage
 import com.example.unum.data.model.ConsultationTocItem
+import com.example.unum.data.model.NumerologyNumbers
 import com.example.unum.data.model.NumerologyResultBundle
+import com.example.unum.data.model.PremiumTopic
 import com.example.unum.domain.NumerologyCalculator
 import com.example.unum.domain.service.OpenAiChatClient
 import kotlinx.coroutines.Dispatchers
@@ -49,6 +51,10 @@ class GenerateCompatibilityConsultationUseCase(
         val femaleInput = femaleBundle.displayInput
         val concernText = concern.ifBlank { "두 사람의 관계가 잘 이어질 수 있을지 궁금합니다." }
         val createdYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+        val currentMonth = PremiumMonthPlanner.currentMonth()
+        val relationshipNumbers = relationshipNumbers(maleBundle, femaleBundle, relationshipNumber)
+        val bestMonth = PremiumMonthPlanner.pickBestMonth(PremiumTopic.ROMANCE, relationshipNumbers, currentMonth).toDisplayText()
+        val riskyMonth = PremiumMonthPlanner.pickRiskyMonth(PremiumTopic.ROMANCE, relationshipNumbers, currentMonth).toDisplayText()
         val maleTrait = traitBrief(maleBundle)
         val femaleTrait = traitBrief(femaleBundle)
         val cautionKeywords = listOf(
@@ -89,6 +95,9 @@ class GenerateCompatibilityConsultationUseCase(
             - 관계수: $relationshipNumber
             - 관계수 해석 참고: ${relationshipMeaning(relationshipNumber)}
             - 주의 키워드: $cautionKeywords
+            - 상담 생성 시점: 올해 ${currentMonth}월 기준
+            - 추천 흐름 월: $bestMonth
+            - 조심할 흐름 월: $riskyMonth
 
             [궁합 결과 페이지 구성]
             1. cover
@@ -130,6 +139,10 @@ class GenerateCompatibilityConsultationUseCase(
             {
               "coverTitle": "",
               "coverSubtitle": "",
+              "bestMonth": "추천 월, 예: 4월",
+              "bestMonthReason": "두 사람이 그 달에 어떤 방식으로 가까워지면 좋은지",
+              "riskyMonth": "주의 월, 예: 11월",
+              "riskyMonthReason": "그 달에 어떤 관계 습관을 조심해야 하는지",
               "answerCard": {
                 "question": "",
                 "shortAnswer": "",
@@ -169,7 +182,11 @@ class GenerateCompatibilityConsultationUseCase(
             .let { "{$it}" }
         val json = JSONObject(jsonText)
         val answerCard = parseAnswerCard(json.optJSONObject("answerCard"))
-        val pages = parsePages(json.optJSONArray("pages"))
+        val pages = normalizeCompatibilityPages(
+            pages = parsePages(json.optJSONArray("pages")),
+            answerCard = answerCard,
+            relationshipNumber = relationshipNumber
+        )
         val toc = parseToc(json.optJSONArray("toc"))
         val attraction = pages.firstOrNull { it.id == "attraction" }
         val friction = pages.firstOrNull { it.id == "friction" }
@@ -186,6 +203,10 @@ class GenerateCompatibilityConsultationUseCase(
             homeTone = action?.body?.joinToString("\n\n").orEmpty(),
             longTermTip = action?.highlight.orEmpty(),
             oneLineSummary = answerCard.shortAnswer.ifBlank { closingAdvice },
+            bestMonth = json.optString("bestMonth"),
+            bestMonthReason = json.optString("bestMonthReason"),
+            riskyMonth = json.optString("riskyMonth"),
+            riskyMonthReason = json.optString("riskyMonthReason"),
             coverTitle = json.optString("coverTitle"),
             coverSubtitle = json.optString("coverSubtitle"),
             answerCard = answerCard,
@@ -205,6 +226,12 @@ class GenerateCompatibilityConsultationUseCase(
     ): CompatibilityConsultation {
         val concernText = concern.takeIf { it.isNotBlank() } ?: "두 사람의 관계"
         val fallbackSummary = "두 사람은 ${relationshipMeaning(relationshipNumber)} 다만 $concernText 안에서는 속도와 표현 방식을 맞추지 않으면 작은 오해가 오래 갈 수 있습니다."
+        val relationshipNumbers = relationshipNumbers(maleBundle, femaleBundle, relationshipNumber)
+        val currentMonth = PremiumMonthPlanner.currentMonth()
+        val bestSelection = PremiumMonthPlanner.pickBestMonth(PremiumTopic.ROMANCE, relationshipNumbers, currentMonth)
+        val riskySelection = PremiumMonthPlanner.pickRiskyMonth(PremiumTopic.ROMANCE, relationshipNumbers, currentMonth)
+        val bestMonth = bestSelection.toDisplayText()
+        val riskyMonth = riskySelection.toDisplayText()
         return consultation.copy(
             relationshipFlow = consultation.relationshipFlow.ifBlank { fallbackSummary },
             strengths = consultation.strengths.ifBlank {
@@ -220,6 +247,12 @@ class GenerateCompatibilityConsultationUseCase(
                 "서로를 바꾸려 하기보다 반응 속도와 표현 방식을 맞추는 것이 관계를 살리는 핵심입니다."
             },
             oneLineSummary = consultation.oneLineSummary.ifBlank { fallbackSummary },
+            bestMonth = bestMonth,
+            bestMonthReason = consultation.bestMonthReason.takeIf { consultation.bestMonth == bestMonth && it.isNotBlank() }
+                ?: buildCompatibilityBestMonthReason(bestMonth, bestSelection),
+            riskyMonth = riskyMonth,
+            riskyMonthReason = consultation.riskyMonthReason.takeIf { consultation.riskyMonth == riskyMonth && it.isNotBlank() }
+                ?: buildCompatibilityRiskyMonthReason(riskyMonth, riskySelection),
             coverTitle = consultation.coverTitle.ifBlank { "수리 궁합 상담소" },
             coverSubtitle = consultation.coverSubtitle.ifBlank { "두 사람 사이의 흐름을 읽어볼게요." }
         )
@@ -263,6 +296,57 @@ class GenerateCompatibilityConsultationUseCase(
         }
     }
 
+    private fun normalizeCompatibilityPages(
+        pages: List<ConsultationPage>,
+        answerCard: ConsultationAnswerCard,
+        relationshipNumber: Int
+    ): List<ConsultationPage> {
+        val byId = pages.associateBy { it.id }
+        return listOf(
+            byId["attraction"] ?: ConsultationPage(
+                id = "attraction",
+                ribbon = "서로 끌리는 이유",
+                title = "맞닿는 지점",
+                highlight = answerCard.shortAnswer.ifBlank { "두 사람은 서로 다른 속도 안에서 필요한 균형을 줄 수 있습니다." },
+                body = listOf(
+                    "관계수 $relationshipNumber 흐름은 두 사람이 같은 방식으로 움직인다기보다, 서로의 빈틈을 건드리며 가까워지는 결에 가깝습니다.",
+                    "말투, 반응 속도, 생활 리듬이 완전히 같지 않아도 상대에게서 낯선 안정감이나 자극을 느낄 수 있습니다."
+                )
+            ),
+            byId["friction"] ?: ConsultationPage(
+                id = "friction",
+                ribbon = "주의사항",
+                title = "엇갈리는 방식",
+                highlight = "감정 확인 속도가 어긋나면 작은 말도 크게 번질 수 있습니다.",
+                body = listOf(
+                    "한쪽은 바로 확인하고 싶고, 다른 한쪽은 시간을 두고 정리하고 싶어질 수 있습니다.",
+                    "이 차이를 성의 부족으로 단정하면 관계가 차갑게 굳을 수 있으니, 대화 전 숨을 고르는 시간이 필요합니다."
+                )
+            ),
+            byId["view"] ?: ConsultationPage(
+                id = "view",
+                ribbon = "상대가 보는 나",
+                title = "상대의 눈에 비친 모습",
+                highlight = "상대는 당신에게 끌리면서도 때로는 속도나 표현의 압박을 느낄 수 있습니다.",
+                body = listOf(
+                    "당신의 진심은 장점이지만, 확인이 잦아지면 상대에게는 부담으로 읽힐 수 있습니다.",
+                    "좋아하는 마음을 증명하려 하기보다 편안한 반복을 보여주는 쪽이 더 오래 남습니다."
+                )
+            ),
+            byId["action"] ?: ConsultationPage(
+                id = "action",
+                ribbon = "오래 가려면",
+                title = "관계를 살리는 습관",
+                highlight = "좋은 관계는 맞는 사람을 찾는 것보다 맞춰가는 방식을 잃지 않는 데서 오래 갑니다.",
+                body = listOf(
+                    "중요한 말은 문자보다 직접 대화로 짧게 확인하세요.",
+                    "서운함이 생기면 바로 결론 내리지 말고 감정과 요청을 나눠 말하세요.",
+                    "다툰 뒤에는 누가 맞았는지보다 어떻게 회복할지부터 정하세요."
+                )
+            )
+        )
+    }
+
     private fun JSONArray?.toStringList(): List<String> {
         if (this == null) return emptyList()
         return buildList {
@@ -282,6 +366,48 @@ class GenerateCompatibilityConsultationUseCase(
     private fun relationshipNumber(maleBundle: NumerologyResultBundle, femaleBundle: NumerologyResultBundle): Int {
         return (maleBundle.numbers.destiny + femaleBundle.numbers.destiny) % 10
     }
+
+    private fun relationshipNumbers(
+        maleBundle: NumerologyResultBundle,
+        femaleBundle: NumerologyResultBundle,
+        relationshipNumber: Int
+    ): NumerologyNumbers {
+        return NumerologyNumbers(
+            destiny = relationshipNumber,
+            early = (maleBundle.numbers.early + femaleBundle.numbers.early).floorMod(10),
+            middle = (maleBundle.numbers.middle + femaleBundle.numbers.middle).floorMod(10),
+            late = (maleBundle.numbers.late + femaleBundle.numbers.late).floorMod(10),
+            code = "${maleBundle.numbers.code}${femaleBundle.numbers.code}"
+        )
+    }
+
+    private fun buildCompatibilityBestMonthReason(
+        monthText: String,
+        selection: PremiumMonthPlanner.MonthSelection
+    ): String {
+        val base = "${monthText}에는 두 사람의 대화와 만남 리듬을 새로 맞추기 좋은 흐름이 강합니다. 고백, 관계 정리, 만남 약속처럼 마음을 실제 행동으로 옮기면 서로의 온도를 확인하기 좋습니다."
+        val passedMonth = selection.replacedPastMonth ?: return base
+        return if (selection.isNextYear) {
+            "올해 가장 추천 흐름이 강했던 ${passedMonth}월은 이미 지났습니다. 그래서 다음 해 ${selection.month}월을 다음 추천 구간으로 보세요. $base"
+        } else {
+            "올해 가장 추천 흐름이 강했던 ${passedMonth}월은 이미 지났습니다. 지금 이후에는 ${monthText}을 추천 구간으로 보세요. $base"
+        }
+    }
+
+    private fun buildCompatibilityRiskyMonthReason(
+        monthText: String,
+        selection: PremiumMonthPlanner.MonthSelection
+    ): String {
+        val base = "${monthText}에는 감정 확인 욕구와 서운함이 커지기 쉽습니다. 이때 상대를 몰아붙이거나 혼자 결론을 내리면 관계가 생각보다 깊게 틀어질 수 있으니, 중요한 말은 시간을 두고 나누는 편이 안전합니다."
+        val passedMonth = selection.replacedPastMonth ?: return base
+        return if (selection.isNextYear) {
+            "올해 가장 강하게 조심할 달인 ${passedMonth}월은 이미 지났고, 다음 해 ${selection.month}월에 비슷한 주의 흐름이 먼저 돌아옵니다. $base"
+        } else {
+            "올해 가장 강하게 조심할 달인 ${passedMonth}월은 이미 지났으니, 지금 이후에는 ${monthText}을 다음 주의 구간으로 보세요. $base"
+        }
+    }
+
+    private fun Int.floorMod(divisor: Int): Int = ((this % divisor) + divisor) % divisor
 
     private fun calendarTypeLabel(type: CalendarType): String {
         return if (type == CalendarType.LUNAR) "음력" else "양력"

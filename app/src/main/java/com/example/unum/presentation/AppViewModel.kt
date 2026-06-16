@@ -58,7 +58,6 @@ class AppViewModel : ViewModel() {
         _uiState.update { it.copy(savedBooks = emptyList(), selectedBookId = null) }
         observeRecentSearches()
         observeAuthState()
-        calculateAndStore(isInitial = true)
     }
 
     private fun observeRecentSearches() {

@@ -56,13 +56,13 @@ fun OnboardingScreen(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(
-                    text = "내 숫자로 보는\n성향 리포트",
+                    text = "카카오 로그인 후\n운세노트 시작",
                     color = TextPrimary,
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.displayLarge
                 )
                 Text(
-                    text = "수리가 생년월일의 흐름을 정리해\n오늘부터 더 나은 선택을 도와드려요.",
+                    text = "내 운세노트와 프리미엄 책자를\n계정별로 안전하게 불러옵니다.",
                     color = TextSecondary,
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium
@@ -75,7 +75,7 @@ fun OnboardingScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("카카오 로그인 후 내 운세노트를 안전하게 시작할 수 있어요.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                Text("로그인하지 않으면 앱을 시작할 수 없어요.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
                 if (!errorMessage.isNullOrBlank()) {
                     Text(
                         text = errorMessage,
@@ -85,7 +85,7 @@ fun OnboardingScreen(
                     )
                 }
                 GradientButton(
-                    text = if (isSigningIn) "카카오 로그인 중..." else "카카오 로그인하고 시작하기",
+                    text = if (isSigningIn) "카카오 로그인 중..." else "카카오로 로그인하고 앱 시작하기",
                     onClick = onStartWithKakao,
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isSigningIn

@@ -1,0 +1,182 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2200" viewBox="0 0 1600 2200">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fffaf1"/>
+      <stop offset="52%" stop-color="#fffdf8"/>
+      <stop offset="100%" stop-color="#f6efe0"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d8aa55"/>
+      <stop offset="100%" stop-color="#8d6428"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#3c2c1c" flood-opacity="0.16"/>
+    </filter>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#3c2c1c" flood-opacity="0.12"/>
+    </filter>
+    <pattern id="grain" width="72" height="72" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="18" r="1.2" fill="#b08d5f" opacity="0.15"/>
+      <circle cx="45" cy="10" r="1" fill="#5f4a32" opacity="0.12"/>
+      <circle cx="58" cy="53" r="1.3" fill="#b08d5f" opacity="0.11"/>
+      <circle cx="25" cy="60" r="0.9" fill="#5f4a32" opacity="0.08"/>
+    </pattern>
+    <style>
+      .title { font: 800 64px "Pretendard", "Noto Sans KR", sans-serif; fill: #2c2117; letter-spacing: -1px; }
+      .subtitle { font: 500 30px "Pretendard", "Noto Sans KR", sans-serif; fill: #766859; letter-spacing: -0.2px; }
+      .section { font: 800 36px "Pretendard", "Noto Sans KR", sans-serif; fill: #2c2117; letter-spacing: -0.4px; }
+      .body { font: 500 25px "Pretendard", "Noto Sans KR", sans-serif; fill: #665b50; letter-spacing: -0.3px; }
+      .tiny { font: 600 20px "Pretendard", "Noto Sans KR", sans-serif; fill: #857667; letter-spacing: -0.2px; }
+      .phoneTitle { font: 800 22px "Pretendard", "Noto Sans KR", sans-serif; fill: #2b2119; letter-spacing: -0.2px; }
+      .phoneText { font: 500 17px "Pretendard", "Noto Sans KR", sans-serif; fill: #6f6255; letter-spacing: -0.2px; }
+      .labelWhite { font: 800 23px "Pretendard", "Noto Sans KR", sans-serif; fill: #fffaf1; letter-spacing: -0.2px; }
+      .stepNo { font: 900 26px "Pretendard", "Noto Sans KR", sans-serif; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="2200" fill="url(#paper)"/>
+  <rect width="1600" height="2200" fill="url(#grain)" opacity="0.75"/>
+
+  <circle cx="110" cy="138" r="70" fill="#f2d7b6" opacity="0.5"/>
+  <circle cx="1420" cy="230" r="130" fill="#e9d0d7" opacity="0.42"/>
+  <circle cx="220" cy="2060" r="170" fill="#d7e5d5" opacity="0.4"/>
+
+  <g transform="translate(94 78)">
+    <rect x="0" y="0" width="1252" height="250" rx="42" fill="#ffffff" opacity="0.76" filter="url(#softShadow)"/>
+    <rect x="34" y="34" width="1184" height="182" rx="34" fill="#fffaf1" stroke="#dfc99c" stroke-width="2"/>
+    <text x="82" y="105" class="tiny">첫 실행 안내 이미지 예시</text>
+    <text x="82" y="176" class="title">수리의 운세노트 사용설명서</text>
+    <text x="82" y="222" class="subtitle">처음 로그인한 사용자가 오늘 운세부터 프리미엄 책자 읽기까지 자연스럽게 따라오도록 안내합니다.</text>
+
+    <g transform="translate(1030 38)">
+      <circle cx="75" cy="75" r="75" fill="#f7ead8" stroke="#caa56a" stroke-width="3"/>
+      <circle cx="75" cy="56" r="35" fill="#ffe7cb" stroke="#5d3b26" stroke-width="4"/>
+      <path d="M33 104 C38 80 56 70 75 70 C94 70 112 80 117 104 L117 136 L33 136 Z" fill="#24354c" stroke="#5d3b26" stroke-width="4"/>
+      <circle cx="62" cy="55" r="4" fill="#543322"/>
+      <circle cx="88" cy="55" r="4" fill="#543322"/>
+      <path d="M66 69 Q75 77 84 69" fill="none" stroke="#543322" stroke-width="4" stroke-linecap="round"/>
+      <rect x="52" y="96" width="46" height="28" rx="6" fill="#fff2cb" stroke="#a57231" stroke-width="3"/>
+      <text x="63" y="117" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="900" font-size="20" fill="#9b6a2e">8</text>
+    </g>
+  </g>
+
+  <g transform="translate(94 398)">
+    <rect x="0" y="0" width="1252" height="1536" rx="48" fill="#ffffff" opacity="0.66" filter="url(#shadow)"/>
+    <rect x="42" y="42" width="1168" height="1452" rx="38" fill="#fffaf5" stroke="#e3cda0" stroke-width="2"/>
+
+    <g transform="translate(86 88)">
+      <line x1="174" y1="236" x2="454" y2="236" stroke="#d7b56f" stroke-width="5" stroke-dasharray="12 16" stroke-linecap="round"/>
+      <line x1="718" y1="236" x2="998" y2="236" stroke="#d7b56f" stroke-width="5" stroke-dasharray="12 16" stroke-linecap="round"/>
+      <line x1="174" y1="706" x2="454" y2="706" stroke="#d7b56f" stroke-width="5" stroke-dasharray="12 16" stroke-linecap="round"/>
+      <line x1="718" y1="706" x2="998" y2="706" stroke="#d7b56f" stroke-width="5" stroke-dasharray="12 16" stroke-linecap="round"/>
+      <line x1="174" y1="1176" x2="454" y2="1176" stroke="#d7b56f" stroke-width="5" stroke-dasharray="12 16" stroke-linecap="round"/>
+      <line x1="718" y1="1176" x2="998" y2="1176" stroke="#d7b56f" stroke-width="5" stroke-dasharray="12 16" stroke-linecap="round"/>
+
+      <g transform="translate(0 0)">
+        <rect x="0" y="0" width="360" height="356" rx="36" fill="#fffdf8" stroke="#d8be8b" stroke-width="3"/>
+        <circle cx="52" cy="54" r="30" fill="url(#gold)"/>
+        <text x="43" y="64" class="stepNo">1</text>
+        <text x="96" y="58" class="section">카카오로 시작</text>
+        <text x="32" y="112" class="body">계정별로 책자가 따로 저장돼요.</text>
+        <text x="32" y="148" class="body">처음 로그인한 계정은 빈 상태에서 시작합니다.</text>
+        <g transform="translate(104 188)">
+          <rect x="0" y="0" width="152" height="94" rx="24" fill="#fee500" stroke="#d1b200" stroke-width="3"/>
+          <text x="33" y="57" font-family="Pretendard, Noto Sans KR, sans-serif" font-size="24" font-weight="900" fill="#241f1f">Kakao</text>
+        </g>
+      </g>
+
+      <g transform="translate(454 0)">
+        <rect x="0" y="0" width="360" height="356" rx="36" fill="#fffdf8" stroke="#d8be8b" stroke-width="3"/>
+        <circle cx="52" cy="54" r="30" fill="url(#gold)"/>
+        <text x="43" y="64" class="stepNo">2</text>
+        <text x="96" y="58" class="section">생년월일 입력</text>
+        <text x="32" y="112" class="body">오늘 운세는 내 생년월일이 있어야 열려요.</text>
+        <text x="32" y="148" class="body">입력 전에는 안내 카드만 보여줍니다.</text>
+        <g transform="translate(42 194)">
+          <rect x="0" y="0" width="276" height="44" rx="16" fill="#f4ead9" stroke="#d2b684" stroke-width="2"/>
+          <text x="22" y="29" class="phoneText">1997년</text>
+          <rect x="0" y="58" width="128" height="44" rx="16" fill="#f4ead9" stroke="#d2b684" stroke-width="2"/>
+          <text x="22" y="87" class="phoneText">6월</text>
+          <rect x="148" y="58" width="128" height="44" rx="16" fill="#f4ead9" stroke="#d2b684" stroke-width="2"/>
+          <text x="170" y="87" class="phoneText">16일</text>
+        </g>
+      </g>
+
+      <g transform="translate(908 0)">
+        <rect x="0" y="0" width="360" height="356" rx="36" fill="#fffdf8" stroke="#d8be8b" stroke-width="3"/>
+        <circle cx="52" cy="54" r="30" fill="url(#gold)"/>
+        <text x="43" y="64" class="stepNo">3</text>
+        <text x="96" y="58" class="section">오늘의 운세</text>
+        <text x="32" y="112" class="body">오늘 날짜와 내 숫자로 매일 바뀝니다.</text>
+        <text x="32" y="148" class="body">분야별 카드는 좌우로 넘겨 확인해요.</text>
+        <g transform="translate(34 188)">
+          <rect x="0" y="0" width="86" height="108" rx="22" fill="#fde2e8"/>
+          <rect x="102" y="-12" width="112" height="132" rx="26" fill="#fff0c8" stroke="#d4a94b" stroke-width="3"/>
+          <rect x="230" y="0" width="86" height="108" rx="22" fill="#dff0eb"/>
+          <text x="126" y="40" class="phoneTitle">핵심수</text>
+          <text x="148" y="92" font-family="Pretendard, Noto Sans KR, sans-serif" font-size="48" font-weight="900" fill="#8a642c">7</text>
+          <text x="28" y="145" class="tiny">좌우 스와이프</text>
+        </g>
+      </g>
+
+      <g transform="translate(0 470)">
+        <rect x="0" y="0" width="360" height="356" rx="36" fill="#fffdf8" stroke="#d8be8b" stroke-width="3"/>
+        <circle cx="52" cy="54" r="30" fill="url(#gold)"/>
+        <text x="43" y="64" class="stepNo">4</text>
+        <text x="96" y="58" class="section">프리미엄 운세</text>
+        <text x="32" y="112" class="body">연애, 일, 돈, 자아, 궁합 중 선택해요.</text>
+        <text x="32" y="148" class="body">고민을 적으면 상담소형 책자가 만들어집니다.</text>
+        <g transform="translate(38 198)">
+          <rect x="0" y="0" width="284" height="92" rx="28" fill="#fbf0dc" stroke="#d8be8b" stroke-width="3"/>
+          <text x="24" y="38" class="phoneTitle">연애 상담소</text>
+          <text x="24" y="67" class="phoneText">고민을 한 문장으로 정리</text>
+          <circle cx="240" cy="46" r="22" fill="#cf6e83"/>
+        </g>
+      </g>
+
+      <g transform="translate(454 470)">
+        <rect x="0" y="0" width="360" height="356" rx="36" fill="#fffdf8" stroke="#d8be8b" stroke-width="3"/>
+        <circle cx="52" cy="54" r="30" fill="url(#gold)"/>
+        <text x="43" y="64" class="stepNo">5</text>
+        <text x="96" y="58" class="section">책자 읽기</text>
+        <text x="32" y="112" class="body">한 페이지에 하나의 메시지만 보여줘요.</text>
+        <text x="32" y="148" class="body">좌우 스와이프나 화살표로 넘겨 읽습니다.</text>
+        <g transform="translate(72 185)">
+          <rect x="0" y="0" width="216" height="130" rx="18" fill="#f8eddb" stroke="#a88a54" stroke-width="3"/>
+          <line x1="108" y1="0" x2="108" y2="130" stroke="#d7c1a0" stroke-width="3"/>
+          <path d="M132 26 H186" stroke="#b18a46" stroke-width="8" stroke-linecap="round"/>
+          <path d="M132 54 H178" stroke="#6b5a49" stroke-width="4" stroke-linecap="round"/>
+          <path d="M132 78 H188" stroke="#6b5a49" stroke-width="4" stroke-linecap="round"/>
+          <path d="M84 66 L52 38 M84 66 L52 94" stroke="#9a7040" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M132 66 L164 38 M132 66 L164 94" stroke="#9a7040" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+      </g>
+
+      <g transform="translate(908 470)">
+        <rect x="0" y="0" width="360" height="356" rx="36" fill="#fffdf8" stroke="#d8be8b" stroke-width="3"/>
+        <circle cx="52" cy="54" r="30" fill="url(#gold)"/>
+        <text x="43" y="64" class="stepNo">6</text>
+        <text x="96" y="58" class="section">저장함 관리</text>
+        <text x="32" y="112" class="body">만든 책자는 내 계정에 저장됩니다.</text>
+        <text x="32" y="148" class="body">필요 없는 책자는 삭제할 수 있어요.</text>
+        <g transform="translate(40 194)">
+          <rect x="0" y="0" width="280" height="54" rx="18" fill="#f8eddb" stroke="#d8be8b" stroke-width="2"/>
+          <text x="20" y="36" class="phoneText">2026 연애 상담소</text>
+          <rect x="0" y="68" width="280" height="54" rx="18" fill="#f8eddb" stroke="#d8be8b" stroke-width="2"/>
+          <text x="20" y="104" class="phoneText">수리 궁합 상담소</text>
+        </g>
+      </g>
+
+      <g transform="translate(0 940)">
+        <rect x="0" y="0" width="1268" height="360" rx="38" fill="#2e3d55" opacity="0.96" filter="url(#softShadow)"/>
+        <rect x="32" y="32" width="1204" height="296" rx="28" fill="none" stroke="#dfc99c" stroke-width="2"/>
+        <text x="68" y="92" class="labelWhite">앱 안 적용 방식 제안</text>
+        <text x="68" y="150" font-family="Pretendard, Noto Sans KR, sans-serif" font-size="30" font-weight="800" fill="#fffaf1">처음 실행 시 4장 온보딩 카드로 보여주기</text>
+        <text x="68" y="205" font-family="Pretendard, Noto Sans KR, sans-serif" font-size="25" font-weight="500" fill="#eadcc5">1. 계정별 저장 안내  2. 오늘 운세 보는 법  3. 분야별 카드 스와이프  4. 프리미엄 책자 읽기</text>
+        <text x="68" y="256" font-family="Pretendard, Noto Sans KR, sans-serif" font-size="25" font-weight="500" fill="#eadcc5">하단에는 “다시 보지 않기”와 “시작하기”를 두고, 설정 화면에는 “사용설명서 다시 보기”를 남깁니다.</text>
+      </g>
+    </g>
+  </g>
+
+  <text x="800" y="2076" text-anchor="middle" class="tiny">예시 이미지 · 실제 적용 시 앱 화면 캡처와 수리 캐릭터 스프라이트를 더해 완성도를 높일 수 있습니다.</text>
+</svg>
