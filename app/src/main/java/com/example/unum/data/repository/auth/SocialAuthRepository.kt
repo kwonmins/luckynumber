@@ -7,6 +7,7 @@ import com.example.unum.data.model.AuthProvider
 import com.example.unum.data.model.AuthState
 import com.example.unum.data.model.AuthUser
 import com.kakao.sdk.auth.model.OAuthToken
+import com.kakao.sdk.common.util.Utility
 import com.kakao.sdk.user.UserApiClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 class SocialAuthRepository(
-    context: Context
+    private val context: Context
 ) : AuthRepository {
 
     private val prefs = context.getSharedPreferences("auth_session", Context.MODE_PRIVATE)
@@ -99,6 +100,7 @@ class SocialAuthRepository(
                     kakaoUser == null || kakaoUser.id == null -> {
                         continuation.resumeWith(Result.failure(IllegalStateException("카카오 사용자 정보를 받지 못했습니다.")))
                     }
+
                     else -> {
                         val account = kakaoUser.kakaoAccount
                         val profile = account?.profile
@@ -162,18 +164,27 @@ class SocialAuthRepository(
             .mapNotNull { it.message }
             .joinToString(" / ")
             .ifBlank { this::class.simpleName.orEmpty() }
+        val runtimeKeyHash = runCatching { Utility.getKeyHash(context) }.getOrDefault("확인 불가")
+        val consoleHint = "카카오 Developers > 내 애플리케이션 > 앱 설정 > 플랫폼 > Android에 패키지명 com.example.unum 과 키 해시 $runtimeKeyHash 를 등록해주세요."
 
         return when {
             raw.contains("KOE006", ignoreCase = true) || raw.contains("redirect", ignoreCase = true) ->
-                "카카오 로그인 리다이렉트 설정이 맞지 않습니다. 카카오 Developers의 Android 패키지명, 키 해시, 네이티브 앱 키를 확인해주세요. 원인: $raw"
-            raw.contains("key hash", ignoreCase = true) || raw.contains("package", ignoreCase = true) ->
-                "카카오 Android 플랫폼 설정이 맞지 않습니다. 패키지명 com.example.unum 과 키 해시 RY4drQdBbWHDzQJCe4/mMexIgRI= 등록을 확인해주세요. 원인: $raw"
+                "카카오 로그인 리다이렉트 설정이 맞지 않습니다. $consoleHint 원인: $raw"
+
+            raw.contains("keyhash", ignoreCase = true) ||
+                raw.contains("key hash", ignoreCase = true) ||
+                raw.contains("android keyhash validation failed", ignoreCase = true) ||
+                raw.contains("package", ignoreCase = true) ->
+                "카카오 Android 키 해시 검증에 실패했습니다. $consoleHint 원인: $raw"
+
             raw.contains("invalid_client", ignoreCase = true) || raw.contains("KOE101", ignoreCase = true) ->
                 "카카오 네이티브 앱 키가 현재 앱과 맞지 않습니다. local.properties의 kakao.native.app.key 값을 확인해주세요. 원인: $raw"
+
             raw.contains("cancel", ignoreCase = true) ->
                 "카카오 로그인이 취소되었습니다."
+
             else ->
-                "카카오 로그인에 실패했습니다. 원인: $raw"
+                "카카오 로그인에 실패했습니다. 현재 앱 키 해시는 $runtimeKeyHash 입니다. 원인: $raw"
         }
     }
 

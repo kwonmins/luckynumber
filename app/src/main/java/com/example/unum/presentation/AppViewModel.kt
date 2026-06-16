@@ -54,12 +54,8 @@ class AppViewModel : ViewModel() {
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
 
     init {
-        val loadedBooks = fortuneBookStore.loadBooks()
-        val books = sortBooks(loadedBooks.map(::refreshStoredMonthInsights))
-        if (books != loadedBooks) {
-            fortuneBookStore.saveBooks(books)
-        }
-        _uiState.update { it.copy(savedBooks = books, selectedBookId = books.firstOrNull()?.bookId) }
+        fortuneBookStore.saveBooks(emptyList())
+        _uiState.update { it.copy(savedBooks = emptyList(), selectedBookId = null) }
         observeRecentSearches()
         observeAuthState()
         calculateAndStore(isInitial = true)
@@ -103,7 +99,14 @@ class AppViewModel : ViewModel() {
     fun signOut() {
         viewModelScope.launch {
             authRepository.signOut()
-            _uiState.update { it.copy(userSyncState = UserSyncState.Idle) }
+            fortuneBookStore.saveBooks(emptyList())
+            _uiState.update {
+                it.copy(
+                    savedBooks = emptyList(),
+                    selectedBookId = null,
+                    userSyncState = UserSyncState.Idle
+                )
+            }
         }
     }
 
@@ -575,12 +578,11 @@ class AppViewModel : ViewModel() {
         runCatching {
             val user = (_uiState.value.authState as? AuthState.SignedIn)?.user ?: return
             userDataRepository.prepareUser(user)
-            val remoteBooks = userDataRepository.loadBooks(userId)
-            val localBooks = _uiState.value.savedBooks.map { it.copy(userId = userId) }
-            val mergedBooks = mergeBooks(localBooks, remoteBooks)
-            fortuneBookStore.saveBooks(mergedBooks)
-            userDataRepository.saveBooks(userId, mergedBooks)
-            mergedBooks
+            val remoteBooks = sortBooks(userDataRepository.loadBooks(userId).map {
+                refreshStoredMonthInsights(it.copy(userId = userId))
+            })
+            fortuneBookStore.saveBooks(remoteBooks)
+            remoteBooks
         }.onSuccess { books ->
             _uiState.update {
                 it.copy(
