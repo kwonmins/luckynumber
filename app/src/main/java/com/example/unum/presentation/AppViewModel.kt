@@ -98,14 +98,13 @@ class AppViewModel : ViewModel() {
     fun signOut() {
         viewModelScope.launch {
             authRepository.signOut()
+            userDataRepository.clearLocalSession()
             fortuneBookStore.saveBooks(emptyList())
-            _uiState.update {
-                it.copy(
-                    savedBooks = emptyList(),
-                    selectedBookId = null,
-                    userSyncState = UserSyncState.Idle
-                )
-            }
+            _uiState.value = AppUiState(
+                readerFontScale = _uiState.value.readerFontScale,
+                notificationsEnabled = _uiState.value.notificationsEnabled,
+                authState = AuthState.SignedOut
+            )
         }
     }
 

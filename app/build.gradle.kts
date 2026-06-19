@@ -13,6 +13,16 @@ val localProperties = Properties().apply {
 
 fun String.asBuildConfigString(): String = "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
+val admobAppId = localProperties.getProperty(
+    "admob.app.id",
+    "ca-app-pub-3914006572487084~7933303244"
+)
+val admobRewardedAdUnitId = localProperties.getProperty(
+    "admob.rewarded.ad.unit.id",
+    "ca-app-pub-3914006572487084/3237515345"
+)
+val useRealAdsInDebug = localProperties.getProperty("admob.use.real.ads.in.debug", "false").toBoolean()
+
 android {
     namespace = "com.example.unum"
     compileSdk = 35
@@ -45,11 +55,32 @@ android {
             "SUPABASE_ANON_KEY",
             localProperties.getProperty("supabase.anon.key", "").asBuildConfigString()
         )
+        buildConfigField(
+            "String",
+            "ADMOB_APP_ID",
+            admobAppId.asBuildConfigString()
+        )
+        buildConfigField(
+            "String",
+            "ADMOB_REWARDED_AD_UNIT_ID",
+            admobRewardedAdUnitId.asBuildConfigString()
+        )
+        buildConfigField(
+            "Boolean",
+            "ADMOB_USE_REAL_ADS_IN_DEBUG",
+            useRealAdsInDebug.toString()
+        )
         manifestPlaceholders["kakaoRedirectScheme"] =
             "kakao${localProperties.getProperty("kakao.native.app.key", "")}"
+        manifestPlaceholders["adMobApplicationId"] = admobAppId
     }
 
     buildTypes {
+        debug {
+            if (!useRealAdsInDebug) {
+                manifestPlaceholders["adMobApplicationId"] = "ca-app-pub-3940256099942544~3347511713"
+            }
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -91,6 +122,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.navigation:navigation-compose:2.9.7")
     implementation("com.kakao.sdk:v2-user:2.23.4")
+    implementation("com.google.android.gms:play-services-ads:25.3.0")
 
     implementation("com.google.android.material:material:1.12.0")
     debugImplementation("androidx.compose.ui:ui-tooling")

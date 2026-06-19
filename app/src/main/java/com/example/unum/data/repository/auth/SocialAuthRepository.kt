@@ -3,6 +3,7 @@ package com.example.unum.data.repository.auth
 import android.app.Activity
 import android.content.Context
 import com.example.unum.BuildConfig
+import com.kakao.sdk.auth.TokenManager
 import com.example.unum.data.model.AuthProvider
 import com.example.unum.data.model.AuthState
 import com.example.unum.data.model.AuthUser
@@ -28,8 +29,8 @@ class SocialAuthRepository(
         }
 
         return runCatching {
-            loginWithKakao(activity)
-            val user = fetchKakaoUser()
+            val token = loginWithKakao(activity)
+            val user = fetchKakaoUser().copy(accessToken = token.accessToken)
             saveSession(user)
             user
         }.fold(
@@ -46,6 +47,24 @@ class SocialAuthRepository(
         }
         prefs.edit().clear().apply()
         _authState.value = AuthState.SignedOut
+    }
+
+    override suspend fun refreshKakaoSession(): Result<AuthUser> {
+        if (BuildConfig.KAKAO_NATIVE_APP_KEY.isBlank()) {
+            return Result.failure(IllegalStateException("카카오 네이티브 앱 키가 local.properties에 없습니다."))
+        }
+
+        return runCatching {
+            val user = fetchKakaoUser()
+            val accessToken = TokenManager.instance.getToken()?.accessToken
+                ?: error("저장된 카카오 세션을 확인할 수 없습니다. 카카오로 다시 로그인해주세요.")
+            user.copy(accessToken = accessToken)
+        }.fold(
+            onSuccess = { Result.success(it) },
+            onFailure = { error ->
+                Result.failure(IllegalStateException(error.toKakaoLoginMessage(), error))
+            }
+        )
     }
 
     private suspend fun loginWithKakao(activity: Activity): OAuthToken {

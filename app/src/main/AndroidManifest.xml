@@ -11,6 +11,10 @@
         android:roundIcon="@drawable/mascot_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.Unum">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${adMobApplicationId}" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -31,6 +35,15 @@
                     android:scheme="${kakaoRedirectScheme}" />
             </intent-filter>
         </activity>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

@@ -71,6 +71,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -121,6 +122,16 @@ private object PremiumTokens {
     val TextMuted = Color(0xFF8A7B65)
     val TextDim = Color(0xFF5A4F3F)
 }
+
+private fun scaledTextStyle(
+    base: TextStyle,
+    fontScale: ReaderFontScale,
+    fontSize: Float,
+    lineHeight: Float
+): TextStyle = base.copy(
+    fontSize = (fontSize * fontScale.multiplier).sp,
+    lineHeight = (lineHeight * fontScale.multiplier).sp
+)
 
 @Composable
 fun MiniNumerologySummary(destiny: Int, early: Int, middle: Int, late: Int, modifier: Modifier = Modifier) {
@@ -689,12 +700,12 @@ fun FortuneBookReader(
             Text(
                 readerPageTitle(book, pagerState.currentPage),
                 color = TextPrimary,
-                style = MaterialTheme.typography.titleMedium
+                style = scaledTextStyle(MaterialTheme.typography.titleMedium, fontScale, 18f, 24f)
             )
             Text(
                 "${pagerState.currentPage + 1} / $pageCount",
                 color = TextMuted,
-                style = MaterialTheme.typography.bodySmall
+                style = scaledTextStyle(MaterialTheme.typography.bodySmall, fontScale, 13f, 18f)
             )
         }
         HorizontalPager(
@@ -724,9 +735,10 @@ fun FortuneBookReader(
                     }
             ) {
                 when {
-                    page == 0 -> OverviewPage(book = book, onBookmarkClick = onBookmarkClick)
+                    page == 0 -> OverviewPage(book = book, fontScale = fontScale, onBookmarkClick = onBookmarkClick)
                     page == 1 -> ContentsPage(
                         book = book,
+                        fontScale = fontScale,
                         onChapterClick = { chapterIndex ->
                             scope.launch { pagerState.animateScrollToPage(chapterStartPage + chapterIndex) }
                         }
@@ -741,13 +753,15 @@ fun FortuneBookReader(
                         title = "올해 추천 월",
                         month = book.bestMonth.ifBlank { "-" },
                         reason = book.bestMonthReason.ifBlank { "리듬을 부드럽게 타기 좋은 시기예요." },
-                        color = Mint
+                        color = Mint,
+                        fontScale = fontScale
                     )
                     hasMonthPages && page == riskyMonthPage -> MonthPage(
                         title = "다음 주의 월",
                         month = book.riskyMonth.ifBlank { "-" },
                         reason = book.riskyMonthReason.ifBlank { "속도를 조금 낮추고 다시 확인하면 좋아요." },
-                        color = Rose
+                        color = Rose,
+                        fontScale = fontScale
                     )
                     else -> Spacer(modifier = Modifier.fillMaxSize())
                 }
@@ -810,7 +824,7 @@ private fun PageCornerFold(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun OverviewPage(book: FortuneBook, onBookmarkClick: () -> Unit) {
+private fun OverviewPage(book: FortuneBook, fontScale: ReaderFontScale, onBookmarkClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -825,17 +839,19 @@ private fun OverviewPage(book: FortuneBook, onBookmarkClick: () -> Unit) {
                 "목차를 먼저 보고, 두 사람의 끌림과 엇갈림을 한 장씩 읽은 뒤 추천 월과 주의 월을 확인하세요."
             } else {
                 "목차를 먼저 보고, 필요한 섹션부터 한 장씩 넘겨 읽어보세요. 추천할 월과 주의할 월은 뒤쪽에서 다시 정리합니다."
-            }
+            },
+            fontScale = fontScale
         )
         NotebookSummaryCardLight(
             summaryText = book.summary,
-            oneLineAdvice = book.chapters.firstOrNull()?.highlightQuote ?: "지금 가장 마음에 남는 문장부터 천천히 읽어보세요."
+            oneLineAdvice = book.chapters.firstOrNull()?.highlightQuote ?: "지금 가장 마음에 남는 문장부터 천천히 읽어보세요.",
+            fontScale = fontScale
         )
     }
 }
 
 @Composable
-private fun NotebookGuideCard(title: String, body: String, modifier: Modifier = Modifier) {
+private fun NotebookGuideCard(title: String, body: String, fontScale: ReaderFontScale, modifier: Modifier = Modifier) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
         tonalColor = Color(0xFFFBF6EA),
@@ -843,14 +859,14 @@ private fun NotebookGuideCard(title: String, body: String, modifier: Modifier = 
         contentPadding = 16
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(title, color = TextPrimary, style = MaterialTheme.typography.titleMedium)
-            Text(body, color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+            Text(title, color = TextPrimary, style = scaledTextStyle(MaterialTheme.typography.titleMedium, fontScale, 18f, 24f))
+            Text(body, color = TextSecondary, style = scaledTextStyle(MaterialTheme.typography.bodyMedium, fontScale, 15f, 23f))
         }
     }
 }
 
 @Composable
-private fun NotebookSummaryCardLight(summaryText: String, oneLineAdvice: String, modifier: Modifier = Modifier) {
+private fun NotebookSummaryCardLight(summaryText: String, oneLineAdvice: String, fontScale: ReaderFontScale, modifier: Modifier = Modifier) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
         tonalColor = Color(0xFFFFFAEF),
@@ -858,9 +874,9 @@ private fun NotebookSummaryCardLight(summaryText: String, oneLineAdvice: String,
         contentPadding = 16
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("첫 답변", color = PremiumTokens.GoldDeep, style = MaterialTheme.typography.labelLarge)
-            Text(summaryText, color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
-            Text(oneLineAdvice, color = TextMuted, style = MaterialTheme.typography.bodySmall)
+            Text("첫 답변", color = PremiumTokens.GoldDeep, style = scaledTextStyle(MaterialTheme.typography.labelLarge, fontScale, 14f, 19f))
+            Text(summaryText, color = TextPrimary, style = scaledTextStyle(MaterialTheme.typography.bodyMedium, fontScale, 15f, 23f))
+            Text(oneLineAdvice, color = TextMuted, style = scaledTextStyle(MaterialTheme.typography.bodySmall, fontScale, 13f, 19f))
         }
     }
 }
@@ -886,7 +902,8 @@ private fun MonthPage(
     title: String,
     month: String,
     reason: String,
-    color: Color
+    color: Color,
+    fontScale: ReaderFontScale
 ) {
     Column(
         modifier = Modifier
@@ -899,11 +916,13 @@ private fun MonthPage(
             month = month,
             reason = reason,
             color = color,
+            fontScale = fontScale,
             modifier = Modifier.fillMaxWidth()
         )
         NotebookGuideCard(
             title = "이 페이지를 읽는 법",
-            body = "월별 흐름은 확정된 결과가 아니라 움직임의 온도입니다. 좋은 달에는 작은 행동을 만들고, 주의 달에는 충동을 하루 늦추는 쪽이 좋습니다."
+            body = "월별 흐름은 확정된 결과가 아니라 움직임의 온도입니다. 좋은 달에는 작은 행동을 만들고, 주의 달에는 충동을 하루 늦추는 쪽이 좋습니다.",
+            fontScale = fontScale
         )
     }
 }
@@ -914,6 +933,7 @@ private fun MonthHighlightCard(
     month: String,
     reason: String,
     color: Color,
+    fontScale: ReaderFontScale,
     modifier: Modifier = Modifier
 ) {
     SurfaceCard(
@@ -929,16 +949,16 @@ private fun MonthHighlightCard(
                         .size(10.dp)
                         .background(color, CircleShape)
                 )
-                Text(title, color = PremiumTokens.TextCream, style = MaterialTheme.typography.titleMedium)
+                Text(title, color = PremiumTokens.TextCream, style = scaledTextStyle(MaterialTheme.typography.titleMedium, fontScale, 18f, 24f))
             }
-            Text(month, color = color, style = MaterialTheme.typography.displayMedium)
-            Text(reason, color = PremiumTokens.TextMuted, style = MaterialTheme.typography.bodySmall)
+            Text(month, color = color, style = scaledTextStyle(MaterialTheme.typography.displayMedium, fontScale, 42f, 50f))
+            Text(reason, color = PremiumTokens.TextMuted, style = scaledTextStyle(MaterialTheme.typography.bodySmall, fontScale, 14f, 22f))
         }
     }
 }
 
 @Composable
-private fun ContentsCard(book: FortuneBook, onChapterClick: (Int) -> Unit = {}) {
+private fun ContentsCard(book: FortuneBook, fontScale: ReaderFontScale, onChapterClick: (Int) -> Unit = {}) {
     SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
         tonalColor = Color(0xFFFBF6EA),
@@ -952,11 +972,11 @@ private fun ContentsCard(book: FortuneBook, onChapterClick: (Int) -> Unit = {}) 
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(Icons.AutoMirrored.Rounded.MenuBook, contentDescription = null, tint = PremiumTokens.GoldDeep)
-                Text("목차", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
+                Text("목차", color = TextPrimary, style = scaledTextStyle(MaterialTheme.typography.titleLarge, fontScale, 22f, 28f))
                 Text(
                     if (book.bookType == FortuneBookType.COMPATIBILITY) "PREMIUM MATCH NOTE" else "PREMIUM FORTUNE NOTE",
                     color = PremiumTokens.GoldDeep,
-                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.1.sp, fontWeight = FontWeight.SemiBold)
+                    style = scaledTextStyle(MaterialTheme.typography.labelSmall, fontScale, 10f, 14f).copy(letterSpacing = 1.1.sp, fontWeight = FontWeight.SemiBold)
                 )
             }
             book.chapters.forEachIndexed { index, chapter ->
@@ -987,13 +1007,13 @@ private fun ContentsCard(book: FortuneBook, onChapterClick: (Int) -> Unit = {}) 
                             .border(1.dp, PremiumTokens.Gold.copy(alpha = 0.22f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("${index + 1}", color = PremiumTokens.GoldDeep, style = MaterialTheme.typography.labelLarge)
+                        Text("${index + 1}", color = PremiumTokens.GoldDeep, style = scaledTextStyle(MaterialTheme.typography.labelLarge, fontScale, 14f, 18f))
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
-                        Text(chapter.title, color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
-                        Text(chapter.lead, color = TextMuted, style = MaterialTheme.typography.bodySmall)
+                        Text(chapter.title, color = TextPrimary, style = scaledTextStyle(MaterialTheme.typography.bodyMedium, fontScale, 15f, 21f))
+                        Text(chapter.lead, color = TextMuted, style = scaledTextStyle(MaterialTheme.typography.bodySmall, fontScale, 12f, 18f))
                     }
-                    Text("p.${14 + index * 6}", color = PremiumTokens.TextMuted, style = MaterialTheme.typography.bodySmall)
+                    Text("p.${14 + index * 6}", color = PremiumTokens.TextMuted, style = scaledTextStyle(MaterialTheme.typography.bodySmall, fontScale, 12f, 18f))
                 }
             }
         }
@@ -1001,14 +1021,14 @@ private fun ContentsCard(book: FortuneBook, onChapterClick: (Int) -> Unit = {}) 
 }
 
 @Composable
-private fun ContentsPage(book: FortuneBook, onChapterClick: (Int) -> Unit = {}) {
+private fun ContentsPage(book: FortuneBook, fontScale: ReaderFontScale, onChapterClick: (Int) -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        ContentsCard(book, onChapterClick)
+        ContentsCard(book, fontScale, onChapterClick)
     }
 }
 
@@ -1041,10 +1061,7 @@ private fun SalonChapterCard(
     fontScale: ReaderFontScale,
     coverTheme: String
 ) {
-    val bodyStyle = MaterialTheme.typography.bodyMedium.copy(
-        fontSize = (17f * fontScale.multiplier).sp,
-        lineHeight = (31f * fontScale.multiplier).sp
-    )
+    val bodyStyle = scaledTextStyle(MaterialTheme.typography.bodyMedium, fontScale, 17f, 31f)
     val palette = bookCoverPalette(coverTheme)
     val accentColor = noteAccentColor(coverTheme)
     val ribbonColor = if (chapter.lead.contains("주의")) Rose else accentColor
@@ -1073,7 +1090,8 @@ private fun SalonChapterCard(
                         Text(
                             chapter.lead,
                             color = Color.White,
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                            style = scaledTextStyle(MaterialTheme.typography.labelLarge, fontScale, 14f, 19f)
+                                .copy(fontWeight = FontWeight.SemiBold)
                         )
                     }
                 }
@@ -1086,7 +1104,8 @@ private fun SalonChapterCard(
                     .padding(horizontal = 12.dp),
                 color = TextPrimary,
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                style = scaledTextStyle(MaterialTheme.typography.headlineSmall, fontScale, 24f, 32f)
+                    .copy(fontWeight = FontWeight.Bold)
             )
 
             Image(
@@ -1116,9 +1135,8 @@ private fun SalonChapterCard(
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp),
                     color = ribbonColor,
-                    style = MaterialTheme.typography.titleLarge.copy(
+                    style = scaledTextStyle(MaterialTheme.typography.titleLarge, fontScale, 22f, 32f).copy(
                         fontWeight = FontWeight.Bold,
-                        lineHeight = 32.sp
                     )
                 )
             }
@@ -1138,9 +1156,9 @@ private fun SalonChapterCard(
                         .padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("복사하기 좋은 문장", color = ribbonColor, style = MaterialTheme.typography.labelLarge)
+                    Text("복사하기 좋은 문장", color = ribbonColor, style = scaledTextStyle(MaterialTheme.typography.labelLarge, fontScale, 14f, 19f))
                     chapter.actionTip.forEach { tip ->
-                        Text(tip, color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
+                        Text(tip, color = TextPrimary, style = scaledTextStyle(MaterialTheme.typography.bodyMedium, fontScale, 15f, 23f))
                     }
                 }
             }

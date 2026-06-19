@@ -114,9 +114,9 @@ data class CompatibilityFormState(
 )
 
 enum class ReaderFontScale(val label: String, val multiplier: Float) {
-    SMALL("작게", 0.94f),
+    SMALL("작게", 0.86f),
     MEDIUM("보통", 1.0f),
-    LARGE("크게", 1.08f)
+    LARGE("크게", 1.18f)
 }
 
 data class PremiumConsultation(
@@ -223,6 +223,39 @@ data class FortuneBookChapter(
     val highlightQuote: String,
     val actionTip: List<String>
 )
+
+data class StarWallet(
+    val userId: String? = null,
+    val balance: Int = 0,
+    val lifetimeEarned: Int = 0,
+    val signupBonusClaimed: Boolean = false,
+    val lastAttendanceDate: String = "",
+    val attendanceStreak: Int = 0,
+    val lastAdRewardDate: String = "",
+    val dailyAdRewardCount: Int = 0,
+    val lastAdRewardAt: Long = 0L,
+    val lastPremiumUseDate: String = "",
+    val dailyPremiumUseCount: Int = 0,
+    val referralCode: String = "",
+    val referredBy: String? = null,
+    val referralBonusClaimed: Boolean = false,
+    val betaFeedbackRewardClaimed: Boolean = false,
+    val shareRewardCount: Int = 0
+) {
+    val starsToPremium: Int
+        get() = (PREMIUM_COST - balance).coerceAtLeast(0)
+
+    companion object {
+        const val SIGNUP_BONUS = 100
+        const val ATTENDANCE_REWARD = 1
+        const val WEEKLY_STREAK_BONUS = 5
+        const val AD_REWARD = 1
+        const val DAILY_AD_LIMIT = 20
+        const val PREMIUM_COST = 100
+        const val DAILY_PREMIUM_LIMIT = 1
+        const val AD_COOLDOWN_MS = 3 * 60 * 1000L
+    }
+}
 
 data class NumerologyResultBundle(
     val input: BirthInput,

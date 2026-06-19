@@ -47,8 +47,10 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.Inventory2
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -111,6 +113,7 @@ fun PremiumScreen(
     onOpenLibrary: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val shareBook = rememberFortuneBookShareHandler()
     val activeBookType = if (uiState.premiumMode == PremiumMode.COMPATIBILITY) {
         FortuneBookType.COMPATIBILITY
     } else {
@@ -231,6 +234,7 @@ fun PremiumScreen(
                     uiState.premiumEssentialQuestion.ifBlank { uiState.premiumConcern }
                 },
                 onBack = { viewModel.setPremiumFlowStep(PremiumFlowStep.TOC) },
+                onShare = { book -> shareBook(book) },
                 onArchive = { currentBook?.let(onOpenBook) ?: onOpenLibrary() },
                 flipModifier = flipModifier
             )
@@ -1080,6 +1084,7 @@ private fun BookDetailScreen(
     book: FortuneBook?,
     concern: String,
     onBack: () -> Unit,
+    onShare: (FortuneBook) -> Unit,
     onArchive: () -> Unit,
     flipModifier: Modifier
 ) {
@@ -1095,11 +1100,15 @@ private fun BookDetailScreen(
                 .bookTurnGestures(onPrevious = onBack, onNext = null)
                 .then(flipModifier)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Box(Modifier.size(24.dp).background(identity.accent, CircleShape), contentAlignment = Alignment.Center) {
                     Text("2", color = Color.White, style = MaterialTheme.typography.bodySmall)
                 }
-                Column {
+                Column(Modifier.weight(1f)) {
                     Text(
                         if (isCompatibility) "두 사람 궁합 해석 비책" else "상황별 고민 해결 비책",
                         color = TextPrimary,
@@ -1110,6 +1119,9 @@ private fun BookDetailScreen(
                         color = identity.accent,
                         style = MaterialTheme.typography.bodySmall
                     )
+                }
+                IconButton(onClick = { book?.let(onShare) }) {
+                    Icon(Icons.Rounded.Share, contentDescription = "공유", tint = identity.accent)
                 }
             }
             DetailBox(

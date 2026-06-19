@@ -5,6 +5,8 @@ import com.example.unum.BuildConfig
 import com.example.unum.data.repository.FortuneBookStore
 import com.example.unum.data.repository.LocalAssetNumerologyRepository
 import com.example.unum.data.repository.NumerologyRepository
+import com.example.unum.data.repository.ReaderSettingsStore
+import com.example.unum.data.repository.StarWalletStore
 import com.example.unum.data.repository.auth.AuthRepository
 import com.example.unum.data.repository.auth.SocialAuthRepository
 import com.example.unum.data.repository.user.SupabaseRestUserDatabase
@@ -34,6 +36,16 @@ object ServiceLocator {
         FortuneBookStore(appContext)
     }
 
+    val readerSettingsStore: ReaderSettingsStore by lazy {
+        check(::appContext.isInitialized) { "ServiceLocator.init(context) must be called first." }
+        ReaderSettingsStore(appContext)
+    }
+
+    val starWalletStore: StarWalletStore by lazy {
+        check(::appContext.isInitialized) { "ServiceLocator.init(context) must be called first." }
+        StarWalletStore(appContext)
+    }
+
     val authRepository: AuthRepository by lazy {
         check(::appContext.isInitialized) { "ServiceLocator.init(context) must be called first." }
         SocialAuthRepository(appContext)
@@ -42,6 +54,7 @@ object ServiceLocator {
     val userDataRepository: UserDataRepository by lazy {
         UserDataRepository(
             SupabaseRestUserDatabase(
+                context = appContext,
                 supabaseUrl = BuildConfig.SUPABASE_URL,
                 anonKey = BuildConfig.SUPABASE_ANON_KEY
             )

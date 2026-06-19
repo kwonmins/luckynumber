@@ -2,6 +2,7 @@ package com.example.unum.data.repository.user
 
 import com.example.unum.data.model.AuthUser
 import com.example.unum.data.model.FortuneBook
+import com.example.unum.data.model.StarWallet
 
 class UserDataRepository(
     private val remoteDatabase: RemoteUserDatabase
@@ -22,5 +23,17 @@ class UserDataRepository(
 
     suspend fun deleteBook(userId: String, bookId: String) {
         remoteDatabase.deleteFortuneBook(userId, bookId)
+    }
+
+    suspend fun loadStarWallet(userId: String): StarWallet? {
+        return remoteDatabase.loadStarWallet(userId)
+    }
+
+    suspend fun saveStarWallet(userId: String, wallet: StarWallet) {
+        remoteDatabase.upsertStarWallet(userId, wallet.copy(userId = userId))
+    }
+
+    suspend fun clearLocalSession() {
+        remoteDatabase.clearLocalSession()
     }
 }

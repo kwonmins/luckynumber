@@ -11,6 +11,7 @@ import com.example.unum.data.model.PremiumConsultation
 import com.example.unum.data.model.PremiumTopic
 import com.example.unum.data.model.RecentSearch
 import com.example.unum.data.model.ReaderFontScale
+import com.example.unum.data.model.StarWallet
 import com.example.unum.data.model.UserSyncState
 
 enum class PremiumFlowStep {
@@ -42,6 +43,7 @@ data class AppUiState(
     val isPremiumLoading: Boolean = false,
     val notificationsEnabled: Boolean = true,
     val readerFontScale: ReaderFontScale = ReaderFontScale.MEDIUM,
+    val starWallet: StarWallet = StarWallet(),
     val authState: AuthState = AuthState.SignedOut,
     val userSyncState: UserSyncState = UserSyncState.Idle,
     val inputError: String? = null,

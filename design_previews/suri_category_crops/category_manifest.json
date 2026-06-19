@@ -1,0 +1,44 @@
+[
+  {
+    "category": "01_love_romance",
+    "selected_cuts": 8,
+    "original_sprites": 10,
+    "note": "사랑/연애: 설렘, 칭찬, 위로, 조심스러운 조언 중심"
+  },
+  {
+    "category": "02_study_career",
+    "selected_cuts": 8,
+    "original_sprites": 11,
+    "note": "공부/커리어: 쓰기, 집중, 분석, 단호한 피드백, 응원 중심"
+  },
+  {
+    "category": "03_money",
+    "selected_cuts": 8,
+    "original_sprites": 6,
+    "note": "돈/재물: 계산, 점검, 절제, 주의, 실행 조언 중심"
+  },
+  {
+    "category": "04_self_esteem",
+    "selected_cuts": 8,
+    "original_sprites": 10,
+    "note": "자아/자존감: 칭찬, 위로, 자신감 회복, 차분한 응원 중심"
+  },
+  {
+    "category": "05_relationship",
+    "selected_cuts": 8,
+    "original_sprites": 10,
+    "note": "인간관계/궁합: 경청, 중재, 걱정, 부드러운 조언 중심"
+  },
+  {
+    "category": "06_warning_caution",
+    "selected_cuts": 8,
+    "original_sprites": 6,
+    "note": "주의/경고: 진지, 단호, 걱정, 잠깐 멈춤 중심"
+  },
+  {
+    "category": "07_common_ui",
+    "selected_cuts": 8,
+    "original_sprites": 8,
+    "note": "공통 UI: 홈, 결과, 보관함, 안내, 로딩 등에 쓰는 범용 컷"
+  }
+]

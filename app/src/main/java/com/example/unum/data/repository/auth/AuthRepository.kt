@@ -9,5 +9,6 @@ interface AuthRepository {
     val authState: StateFlow<AuthState>
 
     suspend fun signInWithKakao(activity: Activity): Result<AuthUser>
+    suspend fun refreshKakaoSession(): Result<AuthUser>
     suspend fun signOut()
 }

@@ -1,5 +1,6 @@
 # Local secrets
 local.properties
+web/config.local.js
 *.jks
 *.keystore
 

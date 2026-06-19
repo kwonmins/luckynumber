@@ -5,3 +5,7 @@ kakao.native.app.key=
 
 supabase.url=https://ifepzudwchzohnxzijtd.supabase.co
 supabase.anon.key=
+
+admob.app.id=ca-app-pub-3914006572487084~7933303244
+admob.rewarded.ad.unit.id=ca-app-pub-3914006572487084/3237515345
+admob.use.real.ads.in.debug=false
