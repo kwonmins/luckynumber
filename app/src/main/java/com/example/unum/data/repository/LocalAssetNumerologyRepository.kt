@@ -37,10 +37,10 @@ class LocalAssetNumerologyRepository(
             "올바른 4자리 code 형식이 아닙니다: $code"
         }
 
-        val variant = DatasetVariant.from(gender)
-        ensureDestinyProfilesLoaded(variant)
-        val record = getLifeRecord(code, variant)
-        val destiny = destinyProfilesByVariant[variant]
+        val profileVariant = DatasetVariant.from(gender)
+        ensureDestinyProfilesLoaded(profileVariant)
+        val record = getLifeRecord(code)
+        val destiny = destinyProfilesByVariant[profileVariant]
             ?.get(record.destinyProfileKey)
             ?: error("운명수 프로필이 없습니다: ${record.destinyProfileKey}")
 
@@ -99,7 +99,8 @@ class LocalAssetNumerologyRepository(
                             polarity = obj.getString("polarity"),
                             coreKeywords = obj.getJSONArray("coreKeywords").toStringList(),
                             cautionKeywords = obj.getJSONArray("cautionKeywords").toStringList(),
-                            destinyText = obj.getString("destinyText"),
+                            destinyText = obj.optString("destinyText")
+                                .ifBlank { obj.composedDestinyText() },
                             oneLineAdvice = obj.getString("oneLineAdvice")
                         )
                         put(profile.destiny, profile)
@@ -111,9 +112,9 @@ class LocalAssetNumerologyRepository(
         }
     }
 
-    private suspend fun getLifeRecord(code: String, variant: DatasetVariant): LifeRecord {
+    private suspend fun getLifeRecord(code: String): LifeRecord {
         val chunkKey = chunkKeyFor(code)
-        val cacheKey = "${variant.key}:$chunkKey"
+        val cacheKey = "life:$chunkKey"
 
         chunkCache[cacheKey]?.let { cachedChunk ->
             return cachedChunk[code] ?: error("chunk $cacheKey 에 code=$code 가 없습니다.")
@@ -121,7 +122,7 @@ class LocalAssetNumerologyRepository(
 
         val loadedChunk = mutex.withLock {
             chunkCache[cacheKey] ?: withContext(Dispatchers.IO) {
-                val parsed = loadChunkFromAssets(chunkKey, variant)
+                val parsed = loadChunkFromAssets(chunkKey)
                 chunkCache[cacheKey] = parsed
                 trimChunkCacheIfNeeded()
                 parsed
@@ -131,8 +132,8 @@ class LocalAssetNumerologyRepository(
         return loadedChunk[code] ?: error("로컬 데이터셋에 code=$code 가 없습니다.")
     }
 
-    private fun loadChunkFromAssets(chunkKey: Int, variant: DatasetVariant): Map<String, LifeRecord> {
-        val fileName = chunkFileName(chunkKey, variant)
+    private fun loadChunkFromAssets(chunkKey: Int): Map<String, LifeRecord> {
+        val fileName = chunkFileName(chunkKey)
         val map = LinkedHashMap<String, LifeRecord>(CHUNK_SIZE)
 
         context.assets.open(fileName).bufferedReader(Charsets.UTF_8).useLines { lines ->
@@ -174,26 +175,34 @@ class LocalAssetNumerologyRepository(
         return numericCode / CHUNK_SIZE
     }
 
-    private fun chunkFileName(chunkKey: Int, variant: DatasetVariant): String {
+    private fun chunkFileName(chunkKey: Int): String {
         val start = chunkKey * CHUNK_SIZE
         val end = start + (CHUNK_SIZE - 1)
-        return when (variant) {
-            DatasetVariant.NEUTRAL -> "life_records_%04d_%04d.jsonl".format(start, end)
-            DatasetVariant.MALE -> "life_records_male_%04d_%04d.jsonl".format(start, end)
-            DatasetVariant.FEMALE -> "life_records_female_%04d_%04d.jsonl".format(start, end)
-        }
+        return "life_records_%04d_%04d.jsonl".format(start, end)
     }
 
     private fun destinyFileName(variant: DatasetVariant): String {
         return when (variant) {
             DatasetVariant.NEUTRAL -> "destiny_profiles.json"
-            DatasetVariant.MALE -> "destiny_profiles_male.json"
-            DatasetVariant.FEMALE -> "destiny_profiles_female.json"
+            DatasetVariant.MALE,
+            DatasetVariant.FEMALE -> "destiny_profiles_gendered.json"
         }
     }
 
     private fun JSONArray.toStringList(): List<String> = buildList {
         for (i in 0 until length()) add(getString(i))
+    }
+
+    private fun JSONObject.composedDestinyText(): String {
+        return listOf(
+            optString("summary"),
+            optString("strength"),
+            optString("caution"),
+            optString("actionGuide")
+        )
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .joinToString("\n\n")
     }
 
     private enum class DatasetVariant(val key: String) {
