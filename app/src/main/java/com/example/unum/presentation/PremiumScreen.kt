@@ -284,11 +284,11 @@ private fun PremiumFormScreen(
         if (isCompatibility) {
             CompatibilityGreetingCard()
             CompatibilityFormSection(uiState = uiState, viewModel = viewModel)
-            Text("두 사람 관계 질문", color = TextMuted, style = MaterialTheme.typography.labelLarge)
+            Text("관계 질문", color = TextMuted, style = MaterialTheme.typography.labelLarge)
             PremiumConcernField(
                 value = uiState.compatibilityConcern,
                 onValueChange = viewModel::updateCompatibilityConcern,
-                placeholder = "두 사람이 왜 끌리는지, 자주 부딪히는 지점, 앞으로의 가능성처럼 궁금한 관계 질문을 적어주세요."
+                placeholder = "지금 이 관계에서 가장 궁금한 점을 짧게 적어주세요."
             )
         } else {
             SuriGreetingCard()
@@ -309,7 +309,7 @@ private fun PremiumFormScreen(
         }
         uiState.inputError?.let { Text(it, color = Rose, style = MaterialTheme.typography.bodySmall) }
         GradientButton(
-            text = if (isCompatibility) "두 사람 궁합노트 제작하기" else "프리미엄 맞춤 비책 제작하기",
+            text = if (isCompatibility) "궁합노트 제작하기" else "프리미엄 맞춤 비책 제작하기",
             onClick = onStart,
             modifier = Modifier.fillMaxWidth(),
             enabled = canStart
@@ -379,14 +379,14 @@ private fun CompatibilityGreetingCard() {
                 modifier = Modifier
                     .size(38.dp)
                     .clip(CircleShape)
-                    .background(Rose.copy(alpha = 0.12f)),
+                    .background(Rose.copy(alpha = 0.10f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text("궁", color = Rose, style = MaterialTheme.typography.titleMedium)
             }
             Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
-                Text("두 사람의 숫자의 궁합을 읽어볼게요.", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
-                Text("각자의 기본 흐름을 따로 본 뒤, 둘 사이에 만들어지는 궁합수와 생활 흐름을 책자로 정리합니다.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                Text("안녕하세요. 관계를 알려주세요.", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
+                Text("두 사람의 흐름을 책자 형태로 정리해드릴게요.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -395,14 +395,16 @@ private fun CompatibilityGreetingCard() {
 @Composable
 private fun CompatibilityFormSection(uiState: AppUiState, viewModel: AppViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("관계 유형 선택", color = TextMuted, style = MaterialTheme.typography.labelLarge)
         CompatibilityStatusSelector(
             selected = uiState.compatibilityForm.relationshipStatus,
             onSelected = viewModel::setCompatibilityRelationshipStatus
         )
+        Text("상대방 정보 입력", color = TextMuted, style = MaterialTheme.typography.labelLarge)
         MyBirthFixedCard(bundle = uiState.latestBundle)
         PartnerBirthInputCard(
-            title = "상대방 생년월일",
-            subtitle = "상대방의 성별과 생년월일을 입력해 주세요",
+            title = "상대방 정보",
+            subtitle = "성별과 생년월일만 입력해 주세요.",
             selectedGender = uiState.compatibilityForm.partnerGender,
             onGenderSelected = viewModel::setCompatibilityPartnerGender,
             calendarType = uiState.compatibilityForm.partner.calendarType,
@@ -437,12 +439,6 @@ private fun CompatibilityStatusSelector(
     }
 }
 
-private fun CompatibilityRelationshipStatus.helperText(): String = when (this) {
-    CompatibilityRelationshipStatus.COUPLE -> "사귀는 중인 두 사람"
-    CompatibilityRelationshipStatus.CRUSH -> "다가갈 타이밍 보기"
-    CompatibilityRelationshipStatus.REUNION -> "다시 이어질 가능성"
-}
-
 @Composable
 private fun CompatibilityStatusCard(
     status: CompatibilityRelationshipStatus,
@@ -461,14 +457,9 @@ private fun CompatibilityStatusCard(
     )
     val glow by animateFloatAsState(
         targetValue = if (selected) 0.38f else 0.08f,
-        animationSpec = tween(durationMillis = 360, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 360),
         label = "compatibilityStatusGlow"
     )
-    val colors = when (status) {
-        CompatibilityRelationshipStatus.COUPLE -> listOf(Color(0xFFFFEEF2), Color(0xFFFFF8F9))
-        CompatibilityRelationshipStatus.CRUSH -> listOf(Color(0xFFFFF3F6), Color(0xFFFFFBFC))
-        CompatibilityRelationshipStatus.REUNION -> listOf(Color(0xFFFFE8EF), Color(0xFFFFF6F8))
-    }
 
     Box(
         modifier = Modifier
@@ -481,8 +472,16 @@ private fun CompatibilityStatusCard(
             }
             .shadow(if (selected) 14.dp else 3.dp, RoundedCornerShape(16.dp), clip = false)
             .clip(RoundedCornerShape(16.dp))
-            .background(Brush.verticalGradient(colors))
-            .border(1.dp, Rose.copy(alpha = if (selected) 0.74f else 0.20f), RoundedCornerShape(16.dp))
+            .background(
+                Brush.verticalGradient(
+                    if (selected) {
+                        listOf(Rose.copy(alpha = 0.24f), Surface.copy(alpha = 0.94f))
+                    } else {
+                        listOf(Surface2.copy(alpha = 0.86f), Surface.copy(alpha = 0.94f))
+                    }
+                )
+            )
+            .border(1.dp, if (selected) Rose.copy(alpha = 0.72f) else Border, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(12.dp),
         contentAlignment = Alignment.CenterStart
@@ -491,74 +490,55 @@ private fun CompatibilityStatusCard(
             drawCircle(
                 color = Rose.copy(alpha = glow),
                 radius = size.minDimension * 0.42f,
-                center = Offset(size.width * 0.82f, size.height * 0.18f)
+                center = Offset(size.width * 0.86f, size.height * 0.18f)
             )
             drawCircle(
-                color = Gold.copy(alpha = glow * 0.38f),
+                color = Gold.copy(alpha = glow * 0.55f),
                 radius = size.minDimension * 0.28f,
                 center = Offset(size.width * 0.12f, size.height * 0.84f)
             )
         }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(status.symbol(), color = Rose, style = MaterialTheme.typography.labelLarge)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
-                Text(
-                    status.label,
-                    color = if (selected) Rose else TextPrimary,
-                    style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    status.helperText(),
-                    color = TextMuted,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                status.label,
+                color = if (selected) Rose else TextSecondary,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(if (selected) "궁합 활성" else "밀어서 선택", color = TextMuted, style = MaterialTheme.typography.bodySmall)
         }
     }
-}
-
-private fun CompatibilityRelationshipStatus.symbol(): String = when (this) {
-    CompatibilityRelationshipStatus.COUPLE -> "연"
-    CompatibilityRelationshipStatus.CRUSH -> "설"
-    CompatibilityRelationshipStatus.REUNION -> "재"
 }
 
 @Composable
 private fun MyBirthFixedCard(bundle: NumerologyResultBundle?) {
     SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
-        tonalColor = Surface2.copy(alpha = 0.78f),
-        borderColor = Border.copy(alpha = 0.72f),
-        contentPadding = 14
+        tonalColor = Surface2.copy(alpha = 0.58f),
+        borderColor = Border.copy(alpha = 0.52f),
+        contentPadding = 12
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text("내 생년월일", color = TextSecondary, style = MaterialTheme.typography.labelLarge)
-                    Text("이미 입력된 내 정보로 고정됩니다", color = TextMuted, style = MaterialTheme.typography.bodySmall)
-                }
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(TextMuted.copy(alpha = 0.10f))
-                        .border(1.dp, TextMuted.copy(alpha = 0.18f), RoundedCornerShape(999.dp))
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Text("고정", color = TextMuted, style = MaterialTheme.typography.labelSmall)
-                }
+        val input = bundle?.displayInput
+        val dateText = input?.let {
+            "${calendarLabel(it.calendarType)} ${it.year}.${it.month}.${it.day} · ${genderLabel(it.gender)}"
+        } ?: "생년월일을 먼저 입력해 주세요"
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("내 정보", color = TextSecondary, style = MaterialTheme.typography.labelLarge)
+            Text(dateText, color = TextMuted, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(TextMuted.copy(alpha = 0.08f))
+                    .border(1.dp, TextMuted.copy(alpha = 0.14f), RoundedCornerShape(999.dp))
+                    .padding(horizontal = 9.dp, vertical = 4.dp)
+            ) {
+                Text("고정", color = TextMuted, style = MaterialTheme.typography.labelSmall)
             }
-            val input = bundle?.displayInput
-            val dateText = input?.let {
-                "${calendarLabel(it.calendarType)} ${it.year}.${it.month}.${it.day} · ${genderLabel(it.gender)}"
-            } ?: "생년월일을 먼저 입력해 주세요"
-            Text(dateText, color = TextMuted, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -579,34 +559,36 @@ private fun PartnerBirthInputCard(
     onDayChange: (String) -> Unit,
     accentColor: Color
 ) {
-    SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface, borderColor = Border, contentPadding = 14) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text(title, color = TextPrimary, style = MaterialTheme.typography.labelLarge)
-                    Text(subtitle, color = TextMuted, style = MaterialTheme.typography.bodySmall)
-                }
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(accentColor.copy(alpha = 0.13f))
-                        .border(1.dp, accentColor.copy(alpha = 0.34f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("상대", color = accentColor, style = MaterialTheme.typography.labelSmall)
-                }
+    SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface, borderColor = Border, contentPadding = 12) {
+        Column(verticalArrangement = Arrangement.spacedBy(11.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(title, color = TextPrimary, style = MaterialTheme.typography.labelLarge)
+                Text(subtitle, color = TextMuted, style = MaterialTheme.typography.bodySmall)
             }
-            PartnerGenderSelector(selected = selectedGender, onSelected = onGenderSelected, accentColor = accentColor)
-            ToggleSegment(selected = calendarType, onSelected = onCalendarSelected)
-            DateInputRow(
-                year = year,
-                month = month,
-                day = day,
-                onYearChange = onYearChange,
-                onMonthChange = onMonthChange,
-                onDayChange = onDayChange
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                PartnerGenderSelector(
+                    selected = selectedGender,
+                    onSelected = onGenderSelected,
+                    accentColor = accentColor,
+                    modifier = Modifier.weight(0.95f)
+                )
+                ToggleSegment(
+                    selected = calendarType,
+                    onSelected = onCalendarSelected,
+                    modifier = Modifier.weight(1.05f)
+                )
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Text("생년월일", color = TextMuted, style = MaterialTheme.typography.labelMedium)
+                DateInputRow(
+                    year = year,
+                    month = month,
+                    day = day,
+                    onYearChange = onYearChange,
+                    onMonthChange = onMonthChange,
+                    onDayChange = onDayChange
+                )
+            }
         }
     }
 }
@@ -615,9 +597,10 @@ private fun PartnerBirthInputCard(
 private fun PartnerGenderSelector(
     selected: GenderOption,
     onSelected: (GenderOption) -> Unit,
-    accentColor: Color
+    accentColor: Color,
+    modifier: Modifier = Modifier
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = modifier.fillMaxWidth()) {
         listOf(GenderOption.MALE, GenderOption.FEMALE).forEach { gender ->
             val isSelected = selected == gender
             Box(
@@ -627,7 +610,7 @@ private fun PartnerGenderSelector(
                     .background(if (isSelected) accentColor.copy(alpha = 0.12f) else Surface2.copy(alpha = 0.72f))
                     .border(1.dp, if (isSelected) accentColor.copy(alpha = 0.68f) else Border, RoundedCornerShape(8.dp))
                     .clickable { onSelected(gender) }
-                    .padding(vertical = 11.dp),
+                    .padding(vertical = 10.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(genderLabel(gender), color = if (isSelected) accentColor else TextSecondary, style = MaterialTheme.typography.labelLarge)

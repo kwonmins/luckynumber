@@ -62,6 +62,7 @@ data class LifeRecord(
     val late: Int,
     val destinyProfileKey: Int,
     val lifeTitle: String,
+    val destinyText: String = "",
     val earlyText: String,
     val middleText: String,
     val lateText: String,
@@ -75,18 +76,6 @@ data class LifeRecord(
 data class NumerologyContent(
     val destinyProfile: DestinyProfile,
     val lifeRecord: LifeRecord
-)
-
-data class FreeReadingPhrase(
-    val id: String,
-    val category: String,
-    val number: Int?,
-    val polarity: String,
-    val tone: String,
-    val intensity: String,
-    val keywords: List<String>,
-    val text: String,
-    val avoidWith: List<String>
 )
 
 data class FreeReadingResult(

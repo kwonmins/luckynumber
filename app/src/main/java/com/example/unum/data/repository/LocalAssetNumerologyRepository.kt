@@ -2,7 +2,6 @@ package com.example.unum.data.repository
 
 import android.content.Context
 import com.example.unum.data.model.DestinyProfile
-import com.example.unum.data.model.FreeReadingPhrase
 import com.example.unum.data.model.GenderOption
 import com.example.unum.data.model.LifeRecord
 import com.example.unum.data.model.NumerologyContent
@@ -25,7 +24,7 @@ class LocalAssetNumerologyRepository(
     private val mutex = Mutex()
     private val loadedVariants = mutableSetOf<DatasetVariant>()
     private val destinyProfilesByVariant = mutableMapOf<DatasetVariant, MutableMap<Int, DestinyProfile>>()
-    private var freeReadingPhrases: List<FreeReadingPhrase>? = null
+    private var freeLifeRecordOverrides: Map<String, LifeRecord>? = null
 
     /**
      * access-order=true 로 두어 최근 접근 chunk가 뒤로 가도록 구성.
@@ -53,38 +52,6 @@ class LocalAssetNumerologyRepository(
     }
 
     override fun observeRecentSearches(): Flow<List<RecentSearch>> = recentSearches.asStateFlow()
-
-    override suspend fun getFreeReadingPhrases(): List<FreeReadingPhrase> {
-        freeReadingPhrases?.let { return it }
-
-        return mutex.withLock {
-            freeReadingPhrases ?: withContext(Dispatchers.IO) {
-                val raw = context.assets
-                    .open(FREE_READING_PHRASES_FILE)
-                    .bufferedReader(Charsets.UTF_8)
-                    .use { it.readText().trimStart('\uFEFF') }
-                val array = JSONArray(raw)
-                buildList {
-                    for (index in 0 until array.length()) {
-                        val obj = array.getJSONObject(index)
-                        add(
-                            FreeReadingPhrase(
-                                id = obj.getString("id"),
-                                category = obj.getString("category"),
-                                number = obj.phraseNumberOrNull(),
-                                polarity = obj.getString("polarity"),
-                                tone = obj.getString("tone"),
-                                intensity = obj.getString("intensity"),
-                                keywords = obj.getJSONArray("keywords").toStringList(),
-                                text = obj.getString("text"),
-                                avoidWith = obj.getJSONArray("avoidWith").toStringList()
-                            )
-                        )
-                    }
-                }
-            }.also { freeReadingPhrases = it }
-        }
-    }
 
     override suspend fun addRecentSearch(search: RecentSearch) {
         val next = buildList {
@@ -147,6 +114,8 @@ class LocalAssetNumerologyRepository(
     }
 
     private suspend fun getLifeRecord(code: String): LifeRecord {
+        getFreeLifeRecordOverride(code)?.let { return it }
+
         val chunkKey = chunkKeyFor(code)
         val cacheKey = "life:$chunkKey"
 
@@ -181,6 +150,7 @@ class LocalAssetNumerologyRepository(
                     late = obj.getInt("late"),
                     destinyProfileKey = obj.getInt("destinyProfileKey"),
                     lifeTitle = obj.getString("lifeTitle"),
+                    destinyText = obj.optString("destinyText"),
                     earlyText = obj.getString("earlyText"),
                     middleText = obj.getString("middleText"),
                     lateText = obj.getString("lateText"),
@@ -195,6 +165,27 @@ class LocalAssetNumerologyRepository(
         }
 
         return map
+    }
+
+    private suspend fun getFreeLifeRecordOverride(code: String): LifeRecord? {
+        freeLifeRecordOverrides?.let { return it[code] }
+
+        return mutex.withLock {
+            freeLifeRecordOverrides ?: withContext(Dispatchers.IO) {
+                val raw = context.assets
+                    .open(FREE_LIFE_RECORD_OVERRIDES_FILE)
+                    .bufferedReader(Charsets.UTF_8)
+                    .use { it.readText().trimStart('\uFEFF') }
+                val array = JSONArray(raw)
+                buildMap {
+                    for (index in 0 until array.length()) {
+                        val obj = array.getJSONObject(index)
+                        val record = obj.toFreeLifeRecord()
+                        put(record.code, record)
+                    }
+                }
+            }.also { freeLifeRecordOverrides = it }
+        }[code]
     }
 
     private fun trimChunkCacheIfNeeded() {
@@ -239,13 +230,73 @@ class LocalAssetNumerologyRepository(
             .joinToString("\n\n")
     }
 
-    private fun JSONObject.phraseNumberOrNull(): Int? {
-        val value = opt("number") ?: return null
-        return when (value) {
-            is Number -> value.toInt()
-            is String -> value.toIntOrNull()
-            else -> null
-        }
+    private fun JSONObject.toFreeLifeRecord(): LifeRecord {
+        val code = getString("code")
+        val destiny = getInt("destiny")
+        val early = getInt("early")
+        val middle = getInt("middle")
+        val late = getInt("late")
+        val keywords = listOf(destiny, early, middle, late)
+            .distinct()
+            .flatMap(::keywordsForNumber)
+            .distinct()
+        val cautionKeywords = listOf(destiny, middle, late)
+            .distinct()
+            .flatMap(::cautionsForNumber)
+            .distinct()
+
+        return LifeRecord(
+            code = code,
+            destiny = destiny,
+            early = early,
+            middle = middle,
+            late = late,
+            destinyProfileKey = destiny,
+            lifeTitle = "$code 조합 리포트",
+            destinyText = getString("destinyText"),
+            earlyText = getString("earlyText"),
+            middleText = getString("middleText"),
+            lateText = getString("lateText"),
+            lifeText = getString("lifeText"),
+            summaryText = getString("summaryText"),
+            keywords = keywords.take(8),
+            cautionKeywords = cautionKeywords.take(8),
+            oneLineAdvice = getString("lateText")
+                .split(".")
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+                .lastOrNull()
+                ?.plus(".")
+                ?: getString("summaryText")
+        )
+    }
+
+    private fun keywordsForNumber(number: Int): List<String> = when (number) {
+        0 -> listOf("가능성", "리셋", "전환")
+        1 -> listOf("시작", "독립", "결정")
+        2 -> listOf("감정선", "협력", "거리 조절")
+        3 -> listOf("표현", "해석", "설득")
+        4 -> listOf("구조", "질서", "습관")
+        5 -> listOf("확장", "실험", "이동")
+        6 -> listOf("책임", "관리", "현실감")
+        7 -> listOf("집중", "분석", "몰입")
+        8 -> listOf("대인", "평판", "자원")
+        9 -> listOf("완성", "정리", "의미화")
+        else -> emptyList()
+    }
+
+    private fun cautionsForNumber(number: Int): List<String> = when (number) {
+        0 -> listOf("방향 미정", "선택 지연")
+        1 -> listOf("성급한 결론", "혼자 밀어붙임")
+        2 -> listOf("눈치 과다", "감정 누적")
+        3 -> listOf("말의 과속", "해석 과잉")
+        4 -> listOf("경직", "통제감")
+        5 -> listOf("산만함", "무리한 확장")
+        6 -> listOf("책임 과다", "피로 누적")
+        7 -> listOf("고립", "집착")
+        8 -> listOf("평판 의식", "관계 소모")
+        9 -> listOf("미련", "마감 지연")
+        else -> emptyList()
     }
 
     private enum class DatasetVariant(val key: String) {
@@ -265,6 +316,6 @@ class LocalAssetNumerologyRepository(
     companion object {
         private const val CHUNK_SIZE = 1000
         private const val CHUNK_CACHE_LIMIT = 6
-        private const val FREE_READING_PHRASES_FILE = "free_reading_phrases.json"
+        private const val FREE_LIFE_RECORD_OVERRIDES_FILE = "free_life_records_0000_0099.json"
     }
 }
