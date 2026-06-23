@@ -7,6 +7,7 @@ import com.example.unum.data.model.AuthState
 import com.example.unum.BuildConfig
 import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.CompatibilityFormState
+import com.example.unum.data.model.CompatibilityRelationshipStatus
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.data.model.FortuneBookType
 import com.example.unum.data.model.GenderOption
@@ -87,7 +88,7 @@ class AppViewModel : ViewModel() {
                 .onFailure { error ->
                     _uiState.update {
                         it.copy(
-                            userSyncState = UserSyncState.Failed(error.message ?: "移댁뭅??濡쒓렇?몄뿉 ?ㅽ뙣?덉뒿?덈떎."),
+                            userSyncState = UserSyncState.Failed(error.message ?: "카카오 로그인에 실패했습니다."),
                             inputError = error.message
                         )
                     }
@@ -142,12 +143,8 @@ class AppViewModel : ViewModel() {
         }
     }
 
-    private fun updateCompatibilityMale(block: PartnerBirthFormState.() -> PartnerBirthFormState) = updateCompatibilityForm {
-        copy(male = male.block())
-    }
-
-    private fun updateCompatibilityFemale(block: PartnerBirthFormState.() -> PartnerBirthFormState) = updateCompatibilityForm {
-        copy(female = female.block())
+    private fun updateCompatibilityPartner(block: PartnerBirthFormState.() -> PartnerBirthFormState) = updateCompatibilityForm {
+        copy(partner = partner.block())
     }
 
     fun calculateAndStore(isInitial: Boolean = false, onSuccess: (() -> Unit)? = null) {
@@ -283,21 +280,21 @@ class AppViewModel : ViewModel() {
         _uiState.update { it.copy(compatibilityConcern = value) }
     }
 
-    fun setCompatibilityMaleCalendarType(type: CalendarType) = updateCompatibilityMale { copy(calendarType = type) }
+    fun setCompatibilityRelationshipStatus(status: CompatibilityRelationshipStatus) = updateCompatibilityForm {
+        copy(relationshipStatus = status)
+    }
 
-    fun updateCompatibilityMaleYear(value: String) = updateCompatibilityMale { copy(year = value.filter(Char::isDigit).take(4)) }
+    fun setCompatibilityPartnerGender(gender: GenderOption) = updateCompatibilityForm {
+        copy(partnerGender = if (gender == GenderOption.NONE) GenderOption.FEMALE else gender)
+    }
 
-    fun updateCompatibilityMaleMonth(value: String) = updateCompatibilityMale { copy(month = value.filter(Char::isDigit).take(2)) }
+    fun setCompatibilityPartnerCalendarType(type: CalendarType) = updateCompatibilityPartner { copy(calendarType = type) }
 
-    fun updateCompatibilityMaleDay(value: String) = updateCompatibilityMale { copy(day = value.filter(Char::isDigit).take(2)) }
+    fun updateCompatibilityPartnerYear(value: String) = updateCompatibilityPartner { copy(year = value.filter(Char::isDigit).take(4)) }
 
-    fun setCompatibilityFemaleCalendarType(type: CalendarType) = updateCompatibilityFemale { copy(calendarType = type) }
+    fun updateCompatibilityPartnerMonth(value: String) = updateCompatibilityPartner { copy(month = value.filter(Char::isDigit).take(2)) }
 
-    fun updateCompatibilityFemaleYear(value: String) = updateCompatibilityFemale { copy(year = value.filter(Char::isDigit).take(4)) }
-
-    fun updateCompatibilityFemaleMonth(value: String) = updateCompatibilityFemale { copy(month = value.filter(Char::isDigit).take(2)) }
-
-    fun updateCompatibilityFemaleDay(value: String) = updateCompatibilityFemale { copy(day = value.filter(Char::isDigit).take(2)) }
+    fun updateCompatibilityPartnerDay(value: String) = updateCompatibilityPartner { copy(day = value.filter(Char::isDigit).take(2)) }
 
     fun clearBirthInput() {
         _uiState.update {
@@ -399,11 +396,11 @@ class AppViewModel : ViewModel() {
         }
 
         val current = _uiState.value
-        val maleInput = current.compatibilityForm.male.toBirthInput(GenderOption.MALE)
-        val femaleInput = current.compatibilityForm.female.toBirthInput(GenderOption.FEMALE)
+        val myInput = current.latestBundle?.displayInput
+        val partnerInput = current.compatibilityForm.partner.toBirthInput(current.compatibilityForm.partnerGender)
 
-        if (maleInput == null || femaleInput == null) {
-            _uiState.update { it.copy(inputError = "?⑥옄? ?ъ옄 ?앸뀈?붿씪???ㅼ떆 ?뺤씤?댁＜?몄슂.") }
+        if (myInput == null || partnerInput == null) {
+            _uiState.update { it.copy(inputError = "내 생년월일 저장 여부와 상대방 생년월일을 다시 확인해 주세요.") }
             return
         }
 
@@ -418,13 +415,16 @@ class AppViewModel : ViewModel() {
                 )
             }
             runCatching {
-                val maleBundle = buildNumerologyResultBundle(maleInput)
-                val femaleBundle = buildNumerologyResultBundle(femaleInput)
+                val myBundle = current.latestBundle ?: buildNumerologyResultBundle(myInput)
+                val partnerBundle = buildNumerologyResultBundle(partnerInput)
+                val maleBundle = if (myInput.gender == GenderOption.MALE) myBundle else partnerBundle
+                val femaleBundle = if (myInput.gender == GenderOption.MALE) partnerBundle else myBundle
                 val consultation = generateCompatibilityConsultation(
                     apiKey = BuildConfig.OPENAI_API_KEY,
                     maleBundle = maleBundle,
                     femaleBundle = femaleBundle,
-                    concern = current.compatibilityConcern
+                    concern = current.compatibilityConcern,
+                    relationshipStatus = current.compatibilityForm.relationshipStatus
                 )
                 Triple(maleBundle, femaleBundle, consultation)
             }.onSuccess { (maleBundle, femaleBundle, consultation) ->
@@ -432,7 +432,8 @@ class AppViewModel : ViewModel() {
                     consultation = consultation,
                     maleBundle = maleBundle,
                     femaleBundle = femaleBundle,
-                    concern = current.compatibilityConcern
+                    concern = current.compatibilityConcern,
+                    relationshipStatus = current.compatibilityForm.relationshipStatus
                 )
                 val nextBooks = saveNewBook(book)
                 _uiState.update {
@@ -567,7 +568,7 @@ class AppViewModel : ViewModel() {
     private suspend fun syncSignedInUser(userId: String) {
         if (!userDataRepository.isRemoteConfigured) {
             _uiState.update {
-                it.copy(userSyncState = UserSyncState.Synced("濡쒓렇?몃맖. Supabase ?ㅼ젙??異붽??섎㈃ 梨낆옄媛 怨꾩젙蹂꾨줈 ?숆린?붾맗?덈떎."))
+                it.copy(userSyncState = UserSyncState.Synced("로그인되었습니다."))
             }
             return
         }
@@ -575,23 +576,26 @@ class AppViewModel : ViewModel() {
         _uiState.update { it.copy(userSyncState = UserSyncState.Syncing) }
         runCatching {
             val user = (_uiState.value.authState as? AuthState.SignedIn)?.user ?: return
+            val localBooks = _uiState.value.savedBooks
             userDataRepository.prepareUser(user)
             val remoteBooks = sortBooks(userDataRepository.loadBooks(userId).map {
                 refreshStoredMonthInsights(it.copy(userId = userId))
             })
-            fortuneBookStore.saveBooks(remoteBooks)
-            remoteBooks
+            val mergedBooks = mergeBooks(localBooks, remoteBooks).map { it.copy(userId = userId) }
+            fortuneBookStore.saveBooks(mergedBooks)
+            userDataRepository.saveBooks(userId, mergedBooks)
+            mergedBooks
         }.onSuccess { books ->
             _uiState.update {
                 it.copy(
                     savedBooks = books,
                     selectedBookId = books.firstOrNull()?.bookId,
-                    userSyncState = UserSyncState.Synced("怨꾩젙 梨낆옄 ${books.size}媛쒕? ?숆린?뷀뻽?듬땲??")
+                    userSyncState = UserSyncState.Synced("로그인되었습니다.")
                 )
             }
         }.onFailure { error ->
             _uiState.update {
-                it.copy(userSyncState = UserSyncState.Failed(error.message ?: "怨꾩젙 ?숆린?붿뿉 ?ㅽ뙣?덉뒿?덈떎."))
+                it.copy(userSyncState = UserSyncState.Failed(error.message ?: "계정 동기화에 실패했습니다."))
             }
         }
     }
@@ -602,9 +606,11 @@ class AppViewModel : ViewModel() {
         viewModelScope.launch {
             runCatching {
                 userDataRepository.saveBooks(userId, books.map { it.copy(userId = userId) })
+            }.onSuccess {
+                _uiState.update { it.copy(userSyncState = UserSyncState.Synced("로그인되었습니다.")) }
             }.onFailure { error ->
                 _uiState.update {
-                    it.copy(userSyncState = UserSyncState.Failed(error.message ?: "梨낆옄 ?숆린?붿뿉 ?ㅽ뙣?덉뒿?덈떎."))
+                    it.copy(userSyncState = UserSyncState.Failed(error.message ?: "책자 동기화에 실패했습니다."))
                 }
             }
         }
@@ -712,23 +718,20 @@ class AppViewModel : ViewModel() {
             ?: concern
         val shortened = firstSentence.take(72).trim()
         val topicHint = when (topic) {
-            PremiumTopic.ROMANCE -> "?곗븷?먯꽌"
-            PremiumTopic.CAREER -> "?쇨낵 吏꾨줈?먯꽌"
-            PremiumTopic.MONEY -> "?덉쓽 ?먮쫫?먯꽌"
-            PremiumTopic.SELF_ESTEEM -> "???먯떊????섎뒗 諛⑹떇?먯꽌"
+            PremiumTopic.ROMANCE -> "연애에서"
+            PremiumTopic.CAREER -> "일과 진로에서"
+            PremiumTopic.MONEY -> "돈의 흐름에서"
+            PremiumTopic.SELF_ESTEEM -> "나 자신을 대하는 방식에서"
             PremiumTopic.RELATIONSHIP -> "인간관계에서"
         }
         val sentence = if (shortened.endsWith("?")) shortened.dropLast(1) else shortened
-        return "$topicHint ?닿? 吏湲?媛??議곗젙?댁빞 ???듭떖? '$sentence'媛 留욌굹??"
+        return "$topicHint 지금 가장 조정해야 할 핵심은 '$sentence'가 맞나요?"
     }
 
     private fun CompatibilityFormState.hasAnyInput(): Boolean {
-        return male.year.isNotBlank() ||
-            male.month.isNotBlank() ||
-            male.day.isNotBlank() ||
-            female.year.isNotBlank() ||
-            female.month.isNotBlank() ||
-            female.day.isNotBlank()
+        return partner.year.isNotBlank() ||
+            partner.month.isNotBlank() ||
+            partner.day.isNotBlank()
     }
 
     private fun PartnerBirthFormState.toBirthInput(gender: GenderOption) =

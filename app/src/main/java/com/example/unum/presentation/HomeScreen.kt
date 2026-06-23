@@ -339,8 +339,8 @@ private fun NumberCardRow(
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         LazyRow(
             state = listState,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            contentPadding = PaddingValues(horizontal = 2.dp, vertical = 8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(horizontal = 0.dp, vertical = 6.dp)
         ) {
             itemsIndexed(cards) { index, card ->
                 NumberReadingCard(
@@ -439,8 +439,8 @@ private fun NumberReadingCard(card: NumberCard, focused: Boolean, onClick: () ->
 
     Column(
         modifier = Modifier
-            .width(148.dp)
-            .height(174.dp)
+            .width(132.dp)
+            .height(160.dp)
             .offset(y = -lift)
             .graphicsLayer {
                 scaleX = scale
@@ -463,14 +463,14 @@ private fun NumberReadingCard(card: NumberCard, focused: Boolean, onClick: () ->
                 indication = null,
                 onClick = onClick
             )
-            .padding(18.dp),
+            .padding(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Text(card.word, color = card.color, style = MaterialTheme.typography.labelLarge)
         Box(
             modifier = Modifier
-                .size(64.dp)
+                .size(58.dp)
                 .clip(CircleShape)
                 .background(Color.White.copy(alpha = 0.72f))
                 .border(1.dp, card.color.copy(alpha = 0.30f), CircleShape)
@@ -493,7 +493,7 @@ private fun NumberReadingCard(card: NumberCard, focused: Boolean, onClick: () ->
 
 @Composable
 private fun OneLineRoomNote(bundle: NumerologyResultBundle?, onOpenInput: () -> Unit) {
-    val text = bundle?.content?.lifeRecord?.oneLineAdvice
+    val text = bundle?.freeReading?.action ?: bundle?.content?.lifeRecord?.oneLineAdvice
         ?: "생년월일을 입력하면 오늘 날짜에 맞춘 한 줄 조언이 표시됩니다."
     Box(
         modifier = Modifier

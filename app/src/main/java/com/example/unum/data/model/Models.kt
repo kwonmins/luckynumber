@@ -77,6 +77,29 @@ data class NumerologyContent(
     val lifeRecord: LifeRecord
 )
 
+data class FreeReadingPhrase(
+    val id: String,
+    val category: String,
+    val number: Int?,
+    val polarity: String,
+    val tone: String,
+    val intensity: String,
+    val keywords: List<String>,
+    val text: String,
+    val avoidWith: List<String>
+)
+
+data class FreeReadingResult(
+    val opening: String,
+    val core: String,
+    val strength: String,
+    val caution: String,
+    val action: String,
+    val relationship: String,
+    val career: String,
+    val money: String
+)
+
 data class RecentSearch(
     val code: String,
     val dateLabel: String,
@@ -108,9 +131,16 @@ data class PartnerBirthFormState(
     val day: String = ""
 )
 
+enum class CompatibilityRelationshipStatus(val label: String) {
+    COUPLE("커플이에요"),
+    CRUSH("짝사랑이에요"),
+    REUNION("재회하고 싶어요")
+}
+
 data class CompatibilityFormState(
-    val male: PartnerBirthFormState = PartnerBirthFormState(),
-    val female: PartnerBirthFormState = PartnerBirthFormState()
+    val partner: PartnerBirthFormState = PartnerBirthFormState(),
+    val partnerGender: GenderOption = GenderOption.FEMALE,
+    val relationshipStatus: CompatibilityRelationshipStatus = CompatibilityRelationshipStatus.COUPLE
 )
 
 enum class ReaderFontScale(val label: String, val multiplier: Float) {
@@ -261,5 +291,6 @@ data class NumerologyResultBundle(
     val input: BirthInput,
     val numbers: NumerologyNumbers,
     val content: NumerologyContent,
-    val displayInput: BirthInput = input
+    val displayInput: BirthInput = input,
+    val freeReading: FreeReadingResult? = null
 )

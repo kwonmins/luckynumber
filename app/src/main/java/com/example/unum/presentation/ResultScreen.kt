@@ -91,6 +91,7 @@ private fun ResultNumberCard(bundle: NumerologyResultBundle, onOpenFlow: () -> U
     val destiny = bundle.numbers.destiny
     val profile = bundle.content.destinyProfile
     val life = bundle.content.lifeRecord
+    val freeReading = bundle.freeReading
 
     SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
@@ -106,7 +107,12 @@ private fun ResultNumberCard(bundle: NumerologyResultBundle, onOpenFlow: () -> U
             Text(destiny.toString(), color = Accent, style = MaterialTheme.typography.displayLarge)
             Text(profile.title, color = Accent, style = MaterialTheme.typography.titleLarge)
             Text(
-                profile.destinyText,
+                freeReading?.opening ?: life.summaryText.ifBlank { profile.destinyText },
+                color = TextMuted,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                freeReading?.core ?: life.lifeText.ifBlank { life.summaryText },
                 color = TextSecondary,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -118,16 +124,33 @@ private fun ResultNumberCard(bundle: NumerologyResultBundle, onOpenFlow: () -> U
             ) {
                 ResultInfoBox(
                     title = "강점",
-                    items = life.keywords.take(3),
+                    items = freeReading?.strength?.let(::listOf) ?: life.keywords.take(3),
                     color = Accent,
                     modifier = Modifier.weight(1f)
                 )
                 ResultInfoBox(
                     title = "주의",
-                    items = life.cautionKeywords.take(3),
+                    items = freeReading?.caution?.let(::listOf) ?: life.cautionKeywords.take(3),
                     color = Rose,
                     modifier = Modifier.weight(1f)
                 )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Accent.copy(alpha = 0.06f))
+                    .border(1.dp, Accent.copy(alpha = 0.18f), RoundedCornerShape(8.dp))
+                    .padding(13.dp)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("오늘의 행동", color = Accent, style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        freeReading?.action ?: life.oneLineAdvice,
+                        color = TextSecondary,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
             GradientButton(
                 text = "전체 리포트 보기",

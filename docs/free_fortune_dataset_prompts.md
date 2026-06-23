@@ -3,6 +3,14 @@
 이 문서는 `app/src/main/assets/life_records_*.jsonl` 품질을 높이기 위한 작업용 프롬프트입니다.
 한 번에 1,000개를 만들기보다 20개 단위로 생성하고, 별도 검수 프롬프트를 한 번 더 돌린 뒤 JSONL에 반영합니다.
 
+## 최종 생성 프롬프트
+
+`life_records_*.jsonl` 신규 문장을 생성할 때는 아래 별도 문서를 우선 사용합니다.
+
+- [life_records_generation_prompt.md](life_records_generation_prompt.md)
+
+이 문서의 "생성 프롬프트"는 축약 참고용이고, 실제 20개 단위 생성은 `life_records_generation_prompt.md`의 상세 규칙을 기준으로 합니다.
+
 ## 생성 단위
 
 - 권장 단위: 20개

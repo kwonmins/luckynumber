@@ -45,6 +45,7 @@ import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface as MaterialSurface
@@ -81,6 +82,8 @@ import com.example.unum.data.model.FortuneBookChapter
 import com.example.unum.data.model.FortuneBookType
 import com.example.unum.data.model.PremiumTopic
 import com.example.unum.data.model.ReaderFontScale
+import com.example.unum.data.model.compatibilityKicker
+import com.example.unum.data.model.compatibilityStatusFromThemeOrText
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Blue
 import com.example.unum.ui.theme.BookLine
@@ -186,6 +189,7 @@ fun FortuneBookCover(
     val ribbonColor = leatherRibbonColor(book.coverTheme)
     val coverHeight = if (compact) 268.dp else 390.dp
     val mainTitle = coverDisplayTitle(book)
+    val isCompatibility = book.bookType == FortuneBookType.COMPATIBILITY
 
     Box(
         modifier = modifier
@@ -292,12 +296,16 @@ fun FortuneBookCover(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp)
             ) {
-                Text(
-                    coverKicker(book),
-                    color = foilColor,
-                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.4.sp, fontWeight = FontWeight.SemiBold),
-                    textAlign = TextAlign.Center
-                )
+                if (isCompatibility) {
+                    CompatibilityCoverPlate(book = book, foilColor = foilColor, compact = compact)
+                } else {
+                    Text(
+                        coverKicker(book),
+                        color = foilColor,
+                        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.4.sp, fontWeight = FontWeight.SemiBold),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -326,6 +334,37 @@ fun FortuneBookCover(
                 Text("수리의 운세노트", color = PremiumTokens.TextMuted, style = MaterialTheme.typography.labelSmall)
             }
         }
+    }
+}
+
+@Composable
+private fun CompatibilityCoverPlate(
+    book: FortuneBook,
+    foilColor: Color,
+    compact: Boolean
+) {
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(foilColor.copy(alpha = 0.10f))
+            .border(1.dp, foilColor.copy(alpha = 0.28f), RoundedCornerShape(999.dp))
+            .padding(horizontal = if (compact) 10.dp else 14.dp, vertical = if (compact) 5.dp else 7.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(
+            compatibilityCoverSymbol(book.coverTheme),
+            color = foilColor,
+            style = if (compact) MaterialTheme.typography.labelLarge else MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            coverKicker(book),
+            color = foilColor,
+            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = if (compact) 0.8.sp else 1.1.sp, fontWeight = FontWeight.SemiBold),
+            textAlign = TextAlign.Center,
+            maxLines = 1
+        )
     }
 }
 
@@ -458,6 +497,7 @@ fun InteractiveBookArchiveShelf(
     selectedBookId: String?,
     onBookOpen: (FortuneBook) -> Unit,
     onBookmarkClick: (FortuneBook) -> Unit,
+    onShareClick: (FortuneBook) -> Unit,
     onDeleteClick: (FortuneBook) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -602,6 +642,15 @@ fun InteractiveBookArchiveShelf(
                         modifier = Modifier
                             .clip(CircleShape)
                             .clickable { onBookmarkClick(focusedBook) }
+                            .padding(9.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Rounded.Share,
+                        contentDescription = "PDF 공유",
+                        tint = PremiumTokens.TextMuted,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .clickable { onShareClick(focusedBook) }
                             .padding(9.dp)
                     )
                     Icon(
@@ -825,6 +874,8 @@ private fun PageCornerFold(modifier: Modifier = Modifier) {
 
 @Composable
 private fun OverviewPage(book: FortuneBook, fontScale: ReaderFontScale, onBookmarkClick: () -> Unit) {
+    val accentColor = noteAccentColor(book.coverTheme)
+    val paperColor = overviewPaperColor(book.coverTheme)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -840,41 +891,59 @@ private fun OverviewPage(book: FortuneBook, fontScale: ReaderFontScale, onBookma
             } else {
                 "목차를 먼저 보고, 필요한 섹션부터 한 장씩 넘겨 읽어보세요. 추천할 월과 주의할 월은 뒤쪽에서 다시 정리합니다."
             },
-            fontScale = fontScale
+            fontScale = fontScale,
+            accentColor = accentColor,
+            tonalColor = paperColor
         )
         NotebookSummaryCardLight(
             summaryText = book.summary,
             oneLineAdvice = book.chapters.firstOrNull()?.highlightQuote ?: "지금 가장 마음에 남는 문장부터 천천히 읽어보세요.",
-            fontScale = fontScale
+            fontScale = fontScale,
+            accentColor = accentColor,
+            tonalColor = paperColor.copy(alpha = 0.92f)
         )
     }
 }
 
 @Composable
-private fun NotebookGuideCard(title: String, body: String, fontScale: ReaderFontScale, modifier: Modifier = Modifier) {
+private fun NotebookGuideCard(
+    title: String,
+    body: String,
+    fontScale: ReaderFontScale,
+    modifier: Modifier = Modifier,
+    accentColor: Color = PremiumTokens.GoldDeep,
+    tonalColor: Color = Color(0xFFFBF6EA)
+) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
-        tonalColor = Color(0xFFFBF6EA),
-        borderColor = PremiumTokens.Gold.copy(alpha = 0.18f),
+        tonalColor = tonalColor,
+        borderColor = accentColor.copy(alpha = 0.20f),
         contentPadding = 16
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(title, color = TextPrimary, style = scaledTextStyle(MaterialTheme.typography.titleMedium, fontScale, 18f, 24f))
+            Text(title, color = accentColor, style = scaledTextStyle(MaterialTheme.typography.titleMedium, fontScale, 18f, 24f))
             Text(body, color = TextSecondary, style = scaledTextStyle(MaterialTheme.typography.bodyMedium, fontScale, 15f, 23f))
         }
     }
 }
 
 @Composable
-private fun NotebookSummaryCardLight(summaryText: String, oneLineAdvice: String, fontScale: ReaderFontScale, modifier: Modifier = Modifier) {
+private fun NotebookSummaryCardLight(
+    summaryText: String,
+    oneLineAdvice: String,
+    fontScale: ReaderFontScale,
+    modifier: Modifier = Modifier,
+    accentColor: Color = PremiumTokens.GoldDeep,
+    tonalColor: Color = Color(0xFFFFFAEF)
+) {
     SurfaceCard(
         modifier = modifier.fillMaxWidth(),
-        tonalColor = Color(0xFFFFFAEF),
-        borderColor = PremiumTokens.GoldDeep.copy(alpha = 0.28f),
+        tonalColor = tonalColor,
+        borderColor = accentColor.copy(alpha = 0.28f),
         contentPadding = 16
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("첫 답변", color = PremiumTokens.GoldDeep, style = scaledTextStyle(MaterialTheme.typography.labelLarge, fontScale, 14f, 19f))
+            Text("첫 답변", color = accentColor, style = scaledTextStyle(MaterialTheme.typography.labelLarge, fontScale, 14f, 19f))
             Text(summaryText, color = TextPrimary, style = scaledTextStyle(MaterialTheme.typography.bodyMedium, fontScale, 15f, 23f))
             Text(oneLineAdvice, color = TextMuted, style = scaledTextStyle(MaterialTheme.typography.bodySmall, fontScale, 13f, 19f))
         }
@@ -974,7 +1043,7 @@ private fun ContentsCard(book: FortuneBook, fontScale: ReaderFontScale, onChapte
                 Icon(Icons.AutoMirrored.Rounded.MenuBook, contentDescription = null, tint = PremiumTokens.GoldDeep)
                 Text("목차", color = TextPrimary, style = scaledTextStyle(MaterialTheme.typography.titleLarge, fontScale, 22f, 28f))
                 Text(
-                    if (book.bookType == FortuneBookType.COMPATIBILITY) "PREMIUM MATCH NOTE" else "PREMIUM FORTUNE NOTE",
+                    if (book.bookType == FortuneBookType.COMPATIBILITY) coverKicker(book) else "PREMIUM FORTUNE NOTE",
                     color = PremiumTokens.GoldDeep,
                     style = scaledTextStyle(MaterialTheme.typography.labelSmall, fontScale, 10f, 14f).copy(letterSpacing = 1.1.sp, fontWeight = FontWeight.SemiBold)
                 )
@@ -1463,6 +1532,9 @@ private fun coverDisplayTitle(book: FortuneBook): String {
 }
 
 private fun coverKicker(book: FortuneBook): String {
+    compatibilityStatusFromThemeOrText(book.coverTheme, "${book.concernTopic} ${book.coverTitle}")?.let { status ->
+        return status.compatibilityKicker()
+    }
     return when (book.coverTheme) {
         PremiumTopic.ROMANCE.name.lowercase() -> "PREMIUM ROMANCE NOTE"
         PremiumTopic.CAREER.name.lowercase() -> "PREMIUM CAREER NOTE"
@@ -1488,6 +1560,14 @@ private fun coverTags(book: FortuneBook): List<String> {
 
 private fun bookCoverPalette(theme: String): Triple<Color, Color, Color> {
     return when (theme) {
+        "compatibility_couple" ->
+            Triple(Color(0xFF062F35), Color(0xFF083F43), Color(0xFF2DD4BF).copy(alpha = 0.26f))
+        "compatibility_crush" ->
+            Triple(Color(0xFF11183A), Color(0xFF1D2756), Color(0xFFA78BFA).copy(alpha = 0.26f))
+        "compatibility_reunion" ->
+            Triple(Color(0xFF3A1609), Color(0xFF6B2D14), Color(0xFFF59E0B).copy(alpha = 0.24f))
+        "compatibility" ->
+            Triple(Color(0xFF2A1232), Color(0xFF442044), Color(0xFFF0ABFC).copy(alpha = 0.24f))
         PremiumTopic.ROMANCE.name.lowercase() ->
             Triple(Color(0xFF1C1018), Color(0xFF2A1520), Color(0xFF8B3A5A).copy(alpha = 0.28f))
         PremiumTopic.CAREER.name.lowercase() ->
@@ -1498,8 +1578,6 @@ private fun bookCoverPalette(theme: String): Triple<Color, Color, Color> {
             Triple(Color(0xFF191208), Color(0xFF241A0A), PremiumTokens.Gold.copy(alpha = 0.22f))
         PremiumTopic.RELATIONSHIP.name.lowercase() ->
             Triple(Color(0xFF1C1018), Color(0xFF2A1520), Color(0xFF9B5C3A).copy(alpha = 0.26f))
-        "compatibility" ->
-            Triple(Color(0xFF191208), Color(0xFF241A0A), PremiumTokens.Gold.copy(alpha = 0.22f))
         else ->
             Triple(PremiumTokens.Ink, PremiumTokens.InkWarm, PremiumTokens.BorderSubtle)
     }
@@ -1507,6 +1585,14 @@ private fun bookCoverPalette(theme: String): Triple<Color, Color, Color> {
 
 private fun leatherCoverColors(theme: String): List<Color> {
     return when (theme) {
+        "compatibility_couple" ->
+            listOf(Color(0xFF075E5F), Color(0xFF044043), Color(0xFF011E22))
+        "compatibility_crush" ->
+            listOf(Color(0xFF26305F), Color(0xFF151B3C), Color(0xFF080B1E))
+        "compatibility_reunion" ->
+            listOf(Color(0xFF7A321A), Color(0xFF431508), Color(0xFF190602))
+        "compatibility" ->
+            listOf(Color(0xFF4A1B4E), Color(0xFF2B0F35), Color(0xFF100517))
         PremiumTopic.MONEY.name.lowercase() ->
             listOf(Color(0xFF0E3D2C), Color(0xFF072418), Color(0xFF020F09))
         PremiumTopic.RELATIONSHIP.name.lowercase() ->
@@ -1524,19 +1610,26 @@ private fun leatherCoverColors(theme: String): List<Color> {
 
 private fun leatherFoilColor(theme: String): Color {
     return when (theme) {
+        "compatibility_couple" -> Color(0xFF8EE7D6)
+        "compatibility_crush" -> Color(0xFFC4B5FD)
+        "compatibility_reunion" -> Color(0xFFFDBA74)
+        "compatibility" -> Color(0xFFF0ABFC)
         PremiumTopic.ROMANCE.name.lowercase() -> Color(0xFFF2C4A0)
         PremiumTopic.CAREER.name.lowercase() -> Color(0xFFB8D4F5)
         PremiumTopic.MONEY.name.lowercase() -> Color(0xFFA8E6C4)
         PremiumTopic.SELF_ESTEEM.name.lowercase() -> Color(0xFFF7D56A)
         PremiumTopic.RELATIONSHIP.name.lowercase() -> Color(0xFFF0C080)
-        "compatibility" -> Color(0xFFF7D56A)
         else -> Color(0xFFD4A84B)
     }
 }
 
 private fun leatherRibbonColor(theme: String): Color {
     return when (theme) {
-        PremiumTopic.ROMANCE.name.lowercase(), "compatibility" -> Color(0xFF8B1A2E)
+        "compatibility_couple" -> Color(0xFFF0B94F)
+        "compatibility_crush" -> Color(0xFFA78BFA)
+        "compatibility_reunion" -> Color(0xFFF59E0B)
+        "compatibility" -> Color(0xFF5EEAD4)
+        PremiumTopic.ROMANCE.name.lowercase() -> Color(0xFF8B1A2E)
         PremiumTopic.CAREER.name.lowercase() -> Color(0xFF1A3A6B)
         PremiumTopic.MONEY.name.lowercase() -> Color(0xFF0D4028)
         PremiumTopic.RELATIONSHIP.name.lowercase() -> Color(0xFF7A5010)
@@ -1547,13 +1640,35 @@ private fun leatherRibbonColor(theme: String): Color {
 
 private fun noteAccentColor(theme: String): Color {
     return when (theme) {
+        "compatibility_couple" -> Color(0xFF0F8A8A)
+        "compatibility_crush" -> Color(0xFF7C6DE8)
+        "compatibility_reunion" -> Color(0xFFC46A2A)
+        "compatibility" -> Color(0xFFB85AC7)
         PremiumTopic.ROMANCE.name.lowercase() -> Color(0xFFBB6680)
         PremiumTopic.CAREER.name.lowercase() -> Color(0xFF5A8EC4)
         PremiumTopic.MONEY.name.lowercase() -> Color(0xFF4AAA7A)
         PremiumTopic.SELF_ESTEEM.name.lowercase() -> PremiumTokens.Gold
         PremiumTopic.RELATIONSHIP.name.lowercase() -> Color(0xFFBB7755)
-        "compatibility" -> PremiumTokens.Gold
         else -> PremiumTokens.Gold
+    }
+}
+
+private fun overviewPaperColor(theme: String): Color {
+    return when (theme) {
+        "compatibility_couple" -> Color(0xFFF0FDFA)
+        "compatibility_crush" -> Color(0xFFF5F3FF)
+        "compatibility_reunion" -> Color(0xFFFFF4E8)
+        "compatibility" -> Color(0xFFFFF1F8)
+        else -> Color(0xFFFBF6EA)
+    }
+}
+
+private fun compatibilityCoverSymbol(theme: String): String {
+    return when (theme) {
+        "compatibility_couple" -> "♡"
+        "compatibility_crush" -> "✦"
+        "compatibility_reunion" -> "⌂"
+        else -> "∞"
     }
 }
 
@@ -1568,7 +1683,10 @@ private fun chapterMascotRes(theme: String, chapterIndex: Int): Int {
             R.drawable.suri_reader_action,
             R.drawable.suri_scroll
         )
-        "compatibility" -> listOf(
+        "compatibility",
+        "compatibility_couple",
+        "compatibility_crush",
+        "compatibility_reunion" -> listOf(
             R.drawable.suri_reader_compatibility,
             R.drawable.suri_reader_romance,
             R.drawable.suri_reader_caution,

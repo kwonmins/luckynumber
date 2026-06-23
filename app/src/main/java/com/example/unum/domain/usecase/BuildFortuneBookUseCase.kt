@@ -1,6 +1,7 @@
 package com.example.unum.domain.usecase
 
 import com.example.unum.data.model.CompatibilityConsultation
+import com.example.unum.data.model.CompatibilityRelationshipStatus
 import com.example.unum.data.model.ConsultationAnswerCard
 import com.example.unum.data.model.ConsultationPage
 import com.example.unum.data.model.FortuneBook
@@ -9,6 +10,8 @@ import com.example.unum.data.model.FortuneBookType
 import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.data.model.PremiumConsultation
 import com.example.unum.data.model.PremiumTopic
+import com.example.unum.data.model.compatibilityCoverTheme
+import com.example.unum.data.model.compatibilityCoverTitle
 import com.example.unum.domain.NumerologyCalculator
 
 class BuildFortuneBookUseCase {
@@ -56,7 +59,8 @@ class BuildFortuneBookUseCase {
         consultation: CompatibilityConsultation,
         maleBundle: NumerologyResultBundle,
         femaleBundle: NumerologyResultBundle,
-        concern: String
+        concern: String,
+        relationshipStatus: CompatibilityRelationshipStatus
     ): FortuneBook {
         val now = System.currentTimeMillis()
         val relationshipNumber = (maleBundle.numbers.destiny + femaleBundle.numbers.destiny) % 10
@@ -75,6 +79,7 @@ class BuildFortuneBookUseCase {
         } else {
             buildCompatibilityFallbackChapters(consultation)
         }
+        val coverTheme = relationshipStatus.compatibilityCoverTheme()
 
         return FortuneBook(
             bookId = "compatibility-${maleBundle.numbers.code}-${femaleBundle.numbers.code}-$now",
@@ -83,9 +88,9 @@ class BuildFortuneBookUseCase {
             early = maleBundle.numbers.early,
             middle = femaleBundle.numbers.middle,
             late = relationshipNumber,
-            concernTopic = "궁합",
+            concernTopic = "궁합 · ${relationshipStatus.label}",
             concernText = concern,
-            coverTitle = consultation.coverTitle.ifBlank { "수리 궁합 상담소" },
+            coverTitle = consultation.coverTitle.ifBlank { relationshipStatus.compatibilityCoverTitle() },
             coverSubtitle = consultation.coverSubtitle.ifBlank { "남자 $maleBirthLabel · 여자 $femaleBirthLabel" },
             summary = consultation.answerCard.shortAnswer.ifBlank { consultation.oneLineSummary },
             bookType = FortuneBookType.COMPATIBILITY,
@@ -104,7 +109,7 @@ class BuildFortuneBookUseCase {
             createdAt = now,
             lastOpenedAt = now,
             purchasedAt = now,
-            coverTheme = "compatibility"
+            coverTheme = coverTheme
         )
     }
 

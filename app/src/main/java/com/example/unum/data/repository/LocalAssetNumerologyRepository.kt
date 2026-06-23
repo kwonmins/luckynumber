@@ -2,6 +2,7 @@ package com.example.unum.data.repository
 
 import android.content.Context
 import com.example.unum.data.model.DestinyProfile
+import com.example.unum.data.model.FreeReadingPhrase
 import com.example.unum.data.model.GenderOption
 import com.example.unum.data.model.LifeRecord
 import com.example.unum.data.model.NumerologyContent
@@ -24,6 +25,7 @@ class LocalAssetNumerologyRepository(
     private val mutex = Mutex()
     private val loadedVariants = mutableSetOf<DatasetVariant>()
     private val destinyProfilesByVariant = mutableMapOf<DatasetVariant, MutableMap<Int, DestinyProfile>>()
+    private var freeReadingPhrases: List<FreeReadingPhrase>? = null
 
     /**
      * access-order=true 로 두어 최근 접근 chunk가 뒤로 가도록 구성.
@@ -51,6 +53,38 @@ class LocalAssetNumerologyRepository(
     }
 
     override fun observeRecentSearches(): Flow<List<RecentSearch>> = recentSearches.asStateFlow()
+
+    override suspend fun getFreeReadingPhrases(): List<FreeReadingPhrase> {
+        freeReadingPhrases?.let { return it }
+
+        return mutex.withLock {
+            freeReadingPhrases ?: withContext(Dispatchers.IO) {
+                val raw = context.assets
+                    .open(FREE_READING_PHRASES_FILE)
+                    .bufferedReader(Charsets.UTF_8)
+                    .use { it.readText().trimStart('\uFEFF') }
+                val array = JSONArray(raw)
+                buildList {
+                    for (index in 0 until array.length()) {
+                        val obj = array.getJSONObject(index)
+                        add(
+                            FreeReadingPhrase(
+                                id = obj.getString("id"),
+                                category = obj.getString("category"),
+                                number = obj.phraseNumberOrNull(),
+                                polarity = obj.getString("polarity"),
+                                tone = obj.getString("tone"),
+                                intensity = obj.getString("intensity"),
+                                keywords = obj.getJSONArray("keywords").toStringList(),
+                                text = obj.getString("text"),
+                                avoidWith = obj.getJSONArray("avoidWith").toStringList()
+                            )
+                        )
+                    }
+                }
+            }.also { freeReadingPhrases = it }
+        }
+    }
 
     override suspend fun addRecentSearch(search: RecentSearch) {
         val next = buildList {
@@ -205,6 +239,15 @@ class LocalAssetNumerologyRepository(
             .joinToString("\n\n")
     }
 
+    private fun JSONObject.phraseNumberOrNull(): Int? {
+        val value = opt("number") ?: return null
+        return when (value) {
+            is Number -> value.toInt()
+            is String -> value.toIntOrNull()
+            else -> null
+        }
+    }
+
     private enum class DatasetVariant(val key: String) {
         NEUTRAL("neutral"),
         MALE("male"),
@@ -222,5 +265,6 @@ class LocalAssetNumerologyRepository(
     companion object {
         private const val CHUNK_SIZE = 1000
         private const val CHUNK_CACHE_LIMIT = 6
+        private const val FREE_READING_PHRASES_FILE = "free_reading_phrases.json"
     }
 }

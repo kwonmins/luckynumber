@@ -86,6 +86,8 @@ fun ActionPlanScreen(
 @Composable
 private fun WarningCard(bundle: NumerologyResultBundle) {
     val cautions = bundle.content.lifeRecord.cautionKeywords
+    val cautionText = bundle.freeReading?.caution
+        ?: "${cautions.take(2).joinToString(", ")} 흐름이 반복되면 좋은 에너지가 쉽게 소모될 수 있어요. 단정적인 예언이 아니라, 오늘의 선택을 조금 더 부드럽게 조율하기 위한 생활 관리 신호로 봐주세요."
     SurfaceCard(
         modifier = Modifier.fillMaxWidth(),
         tonalColor = Rose.copy(alpha = 0.07f),
@@ -98,7 +100,7 @@ private fun WarningCard(bundle: NumerologyResultBundle) {
                 Text("지금 조심할 것", color = Rose, style = MaterialTheme.typography.titleMedium)
             }
             Text(
-                "${cautions.take(2).joinToString(", ")} 흐름이 반복되면 좋은 에너지가 쉽게 소모될 수 있어요. 단정적인 예언이 아니라, 오늘의 선택을 조금 더 부드럽게 조율하기 위한 생활 관리 신호로 봐주세요.",
+                cautionText,
                 color = TextSecondary,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -130,10 +132,10 @@ private fun CautionTags(bundle: NumerologyResultBundle) {
 @Composable
 private fun ActionChecklist(bundle: NumerologyResultBundle) {
     val actions = listOf(
-        "하루 10분 마음 상태 먼저 체크하기",
+        bundle.freeReading?.action ?: "하루 10분 마음 상태 먼저 체크하기",
         "중요하지 않은 일은 과감히 거절하기",
         "반복되는 실수 패턴을 짧게 기록하기"
-    )
+    ).distinct()
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("액션 플랜", color = TextMuted, style = MaterialTheme.typography.labelLarge)
         actions.forEach { action ->

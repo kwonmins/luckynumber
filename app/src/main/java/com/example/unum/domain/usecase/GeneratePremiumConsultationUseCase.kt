@@ -47,7 +47,7 @@ class GeneratePremiumConsultationUseCase(
         val traitBrief = buildTraitBrief(destiny.title, destiny.coreKeywords, destiny.cautionKeywords)
         val currentMonth = PremiumMonthPlanner.currentMonth()
 
-        return buildShortPremiumPrompt(
+        return buildCompactPremiumPrompt(
             topic = topic,
             concernText = concernText,
             bundle = bundle,
@@ -68,7 +68,7 @@ class GeneratePremiumConsultationUseCase(
         val bestMonth = PremiumMonthPlanner.pickBestMonth(topic, bundle.numbers, currentMonth).toDisplayText()
         val riskyMonth = PremiumMonthPlanner.pickRiskyMonth(topic, bundle.numbers, currentMonth).toDisplayText()
 
-        return buildRomanceSalonPromptV2(
+        return buildCompactRomancePrompt(
             concernText = concernText,
             bundle = bundle,
             traitBrief = traitBrief,
@@ -79,6 +79,52 @@ class GeneratePremiumConsultationUseCase(
             riskyMonth = riskyMonth
         )
 
+    }
+
+    private fun buildCompactPremiumPrompt(
+        topic: PremiumTopic,
+        concernText: String,
+        bundle: NumerologyResultBundle,
+        hiddenCue: String,
+        traitBrief: String,
+        currentMonth: Int
+    ): String {
+        val displayInput = bundle.displayInput
+        val numbers = bundle.numbers
+        val destiny = bundle.content.destinyProfile
+        val life = bundle.content.lifeRecord
+        return """
+            Write Korean premium counseling JSON for ${topic.label}.
+            Input: concern="$concernText"; birth=${displayInput.year}.${displayInput.month}.${displayInput.day}; calendar=${if (displayInput.calendarType == CalendarType.LUNAR) "lunar" else "solar"}; gender=${displayInput.gender.label}; currentMonth=$currentMonth.
+            Cues: destiny=${numbers.destiny}; polarity=${NumerologyCalculator.destinyPolarity(numbers.destiny).label}; traits="$traitBrief"; caution="${destiny.cautionKeywords.take(2).joinToString(", ")}"; advice="${life.oneLineAdvice}"; rhythm=${numbers.early}/${numbers.middle}/${numbers.late}/${numbers.code}; hidden="$hiddenCue".
+            Style: polite Korean, direct to the user, concrete scenes/actions, no long personality recap, no system-name terms, no "선생님", no fear-mongering.
+            Length: each field 2-4 short mobile sentences. Avoid repeated phrasing.
+            Month fields: choose one best and one risky month from now onward, with action-focused reasons. Do not explain calculations.
+            Return only valid JSON:
+            {"core":"","interpretation":"","caution":"","direction":"","oneLineAdvice":"","bestMonth":"","bestMonthReason":"","riskyMonth":"","riskyMonthReason":""}
+        """.trimIndent()
+    }
+
+    private fun buildCompactRomancePrompt(
+        concernText: String,
+        bundle: NumerologyResultBundle,
+        traitBrief: String,
+        cautionKeywords: String,
+        createdYear: Int,
+        currentMonth: Int,
+        bestMonth: String,
+        riskyMonth: String
+    ): String {
+        val displayInput = bundle.displayInput
+        val numbers = bundle.numbers
+        return """
+            Write Korean romance counseling page JSON.
+            Input: concern="$concernText"; year=$createdYear; currentMonth=$currentMonth; birth=${displayInput.year}.${displayInput.month}.${displayInput.day}; gender=${displayInput.gender.label}; destiny=${numbers.destiny}; rhythm=${numbers.early}/${numbers.middle}/${numbers.late}/${numbers.code}; traits="$traitBrief"; caution="$cautionKeywords"; bestMonth="$bestMonth"; riskyMonth="$riskyMonth".
+            Style: warm but realistic, mobile-friendly, concrete dating scenes/actions. No long trait recap, no system-name terms, no "선생님", no code block.
+            Rules: one message per page; body arrays have 2 short paragraphs; avoid repeated phrasing.
+            Return only valid JSON:
+            {"coverTitle":"","coverSubtitle":"","answerCard":{"question":"","shortAnswer":"","body":["",""]},"toc":[{"id":"timing","title":""},{"id":"person","title":""},{"id":"caution","title":""},{"id":"action","title":""}],"pages":[{"id":"timing","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"person","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"caution","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"action","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""}],"closingAdvice":""}
+        """.trimIndent()
     }
 
     private fun buildShortPremiumPrompt(
@@ -526,7 +572,7 @@ class GeneratePremiumConsultationUseCase(
 
     companion object {
         private const val SYSTEM_PROMPT =
-            "You are a Korean numerology premium consultation writer. Write concise mobile-friendly counseling JSON in polite Korean. Avoid repeating free-reading personality explanations; focus on concrete scenes, timing, and actions. Never call the user 선생님, never mention traditional divination system names, and return only valid JSON."
+            "Write concise Korean counseling JSON. Be concrete and polite. No system-name terms, no '선생님'. JSON only."
         private const val OPENAI_MODEL = "gpt-5.1"
     }
 }

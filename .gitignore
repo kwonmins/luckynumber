@@ -1,6 +1,5 @@
 # Local secrets
 local.properties
-web/config.local.js
 *.jks
 *.keystore
 
@@ -11,6 +10,13 @@ web/config.local.js
 build/
 app/build/
 captures/
+
+# Generated previews / local experiments
+generated/
+tmp/
+tts/
+design_previews/
+*.log
 
 # IDE files
 .idea/

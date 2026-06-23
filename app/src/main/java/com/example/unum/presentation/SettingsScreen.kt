@@ -23,7 +23,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.data.model.AuthState
 import com.example.unum.data.model.AuthUser
 import com.example.unum.data.model.ReaderFontScale
-import com.example.unum.data.model.UserSyncState
 import com.example.unum.ui.components.AppHeader
 import com.example.unum.ui.components.GradientButton
 import com.example.unum.ui.components.MascotArt
@@ -57,17 +56,15 @@ fun SettingsScreen(viewModel: AppViewModel) {
             item {
                 AppHeader(
                     title = "설정",
-                    subtitle = "계정, 책자 동기화, 읽기 환경을 관리합니다.",
+                    subtitle = "계정 로그인과 읽기 환경을 관리합니다.",
                     eyebrow = "MY NOTE"
                 )
             }
             item {
                 AccountCard(
                     authState = uiState.authState,
-                    syncState = uiState.userSyncState,
                     activity = activity,
                     onKakaoLogin = viewModel::signInWithKakao,
-                    onSync = viewModel::syncCurrentUserBooks,
                     onLogout = viewModel::signOut
                 )
             }
@@ -109,10 +106,8 @@ fun SettingsScreen(viewModel: AppViewModel) {
 @Composable
 private fun AccountCard(
     authState: AuthState,
-    syncState: UserSyncState,
     activity: Activity?,
     onKakaoLogin: (Activity) -> Unit,
-    onSync: () -> Unit,
     onLogout: () -> Unit
 ) {
     SurfaceCard(
@@ -122,9 +117,9 @@ private fun AccountCard(
         contentPadding = 16
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("계정 동기화", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+            Text("계정", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
             Text(
-                "카카오로 로그인하면 만든 책자를 사용자별 DB에 저장할 수 있습니다.",
+                "로그인하면 새로 만든 프리미엄 책자가 자동으로 계정에 저장됩니다.",
                 color = TextSecondary,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -133,13 +128,10 @@ private fun AccountCard(
                 AuthState.SignedOut -> LoginButtons(activity, onKakaoLogin)
                 is AuthState.SignedIn -> SignedInPanel(
                     user = authState.user,
-                    syncState = syncState,
-                    onSync = onSync,
                     onLogout = onLogout
                 )
             }
 
-            SyncMessage(syncState)
         }
     }
 }
@@ -162,29 +154,20 @@ private fun LoginButtons(
 @Composable
 private fun SignedInPanel(
     user: AuthUser,
-    syncState: UserSyncState,
-    onSync: () -> Unit,
     onLogout: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         SettingsRow(
-            title = "${user.displayName}님",
-            subtitle = "${user.provider.label} 계정으로 연결됨",
+            title = "로그인됨",
+            subtitle = "${user.displayName}님 · ${user.provider.label} 계정",
             accentColor = Accent
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            SecondaryActionChip(
-                text = if (syncState is UserSyncState.Syncing) "동기화 중" else "책자 동기화",
-                modifier = Modifier.weight(1f),
-                onClick = onSync
-            )
-            SecondaryActionChip(
-                text = "로그아웃",
-                modifier = Modifier.weight(1f),
-                tone = Rose,
-                onClick = onLogout
-            )
-        }
+        SecondaryActionChip(
+            text = "로그아웃",
+            modifier = Modifier.fillMaxWidth(),
+            tone = Rose,
+            onClick = onLogout
+        )
     }
 }
 
@@ -203,17 +186,6 @@ private fun SecondaryActionChip(
     ) {
         Text(text, color = tone, style = MaterialTheme.typography.labelLarge)
     }
-}
-
-@Composable
-private fun SyncMessage(syncState: UserSyncState) {
-    val message = when (syncState) {
-        UserSyncState.Idle -> "로그인 전에는 책자가 이 기기에만 저장됩니다."
-        UserSyncState.Syncing -> "계정 정보를 확인하고 책자를 맞추는 중입니다."
-        is UserSyncState.Synced -> syncState.message
-        is UserSyncState.Failed -> syncState.message
-    }
-    Text(message, color = TextSecondary, style = MaterialTheme.typography.bodySmall)
 }
 
 @Composable

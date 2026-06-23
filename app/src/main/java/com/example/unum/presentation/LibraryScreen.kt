@@ -11,7 +11,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
@@ -32,6 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.data.model.FortuneBookType
+import com.example.unum.data.model.PremiumTopic
+import com.example.unum.data.model.CompatibilityRelationshipStatus
+import com.example.unum.data.model.compatibilityStatusFromThemeOrText
+import com.example.unum.presentation.spec.FeatureSpecs
+import com.example.unum.presentation.spec.LibrarySection
 import com.example.unum.ui.components.MascotArt
 import com.example.unum.ui.components.MascotGuideCard
 import com.example.unum.ui.components.MysticBackground
@@ -43,27 +51,16 @@ import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
 
-private enum class LibraryFilter(val label: String) {
-    ALL("전체"),
-    PERSONAL("운세노트"),
-    COMPATIBILITY("조합리포트"),
-    CONSULTATION("상담")
-}
-
 @Composable
 fun LibraryScreen(viewModel: AppViewModel, onOpenBook: (FortuneBook) -> Unit) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-    var filter by rememberSaveable { mutableStateOf(LibraryFilter.ALL) }
+    val shareBook = rememberFortuneBookShareHandler()
+    var filter by rememberSaveable { mutableStateOf(LibrarySection.ALL) }
     var pendingDeleteBookId by rememberSaveable { mutableStateOf<String?>(null) }
 
     val allBooks = uiState.savedBooks
     val pendingDeleteBook = pendingDeleteBookId?.let { id -> allBooks.firstOrNull { it.bookId == id } }
-    val filteredBooks = when (filter) {
-        LibraryFilter.ALL -> allBooks
-        LibraryFilter.PERSONAL -> allBooks.filter { it.bookType == FortuneBookType.PERSONAL }
-        LibraryFilter.COMPATIBILITY -> allBooks.filter { it.bookType == FortuneBookType.COMPATIBILITY }
-        LibraryFilter.CONSULTATION -> allBooks.filter { it.bookType == FortuneBookType.PERSONAL }
-    }
+    val filteredBooks = allBooks.filter { it.matchesFilter(filter) }
 
     MysticBackground(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -133,6 +130,7 @@ fun LibraryScreen(viewModel: AppViewModel, onOpenBook: (FortuneBook) -> Unit) {
                             onOpenBook(book)
                         },
                         onBookmarkClick = { book -> viewModel.toggleBookmark(book) },
+                        onShareClick = { book -> shareBook(book) },
                         onDeleteClick = { book -> pendingDeleteBookId = book.bookId }
                     )
                 }
@@ -179,16 +177,50 @@ private fun TextMutedAction(text: String) {
     androidx.compose.material3.Text(text, color = TextMuted, style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
 }
 
+private fun FortuneBook.matchesFilter(filter: LibrarySection): Boolean = when (filter) {
+    LibrarySection.ALL -> true
+    LibrarySection.ROMANCE -> matchesPersonalTopic(PremiumTopic.ROMANCE)
+    LibrarySection.CAREER -> matchesPersonalTopic(PremiumTopic.CAREER)
+    LibrarySection.MONEY -> matchesPersonalTopic(PremiumTopic.MONEY)
+    LibrarySection.SELF -> matchesPersonalTopic(PremiumTopic.SELF_ESTEEM)
+    LibrarySection.RELATIONSHIP -> matchesPersonalTopic(PremiumTopic.RELATIONSHIP)
+    LibrarySection.COMPATIBILITY -> matchesCompatibilityTopic()
+    LibrarySection.COUPLE -> matchesCompatibilityStatus(CompatibilityRelationshipStatus.COUPLE)
+    LibrarySection.CRUSH -> matchesCompatibilityStatus(CompatibilityRelationshipStatus.CRUSH)
+    LibrarySection.REUNION -> matchesCompatibilityStatus(CompatibilityRelationshipStatus.REUNION)
+}
+
+private fun FortuneBook.matchesPersonalTopic(topic: PremiumTopic): Boolean {
+    if (bookType != FortuneBookType.PERSONAL) return false
+    val plan = FeatureSpecs.planFor(topic)
+    if (coverTheme == plan.coverTheme || coverTheme == topic.name.lowercase()) return true
+
+    val searchableText = "$concernTopic $coverTitle"
+    return plan.archiveKeywords.any { keyword -> searchableText.contains(keyword, ignoreCase = true) }
+}
+
+private fun FortuneBook.matchesCompatibilityTopic(): Boolean {
+    val searchableText = "$concernTopic $coverTitle"
+    return bookType == FortuneBookType.COMPATIBILITY ||
+        coverTheme.startsWith("compatibility") ||
+        searchableText.contains("궁합", ignoreCase = true)
+}
+
+private fun FortuneBook.matchesCompatibilityStatus(status: CompatibilityRelationshipStatus): Boolean {
+    if (!matchesCompatibilityTopic()) return false
+    val searchableText = "$concernTopic $coverTitle"
+    return compatibilityStatusFromThemeOrText(coverTheme, searchableText) == status
+}
+
 @Composable
-private fun LibraryFilterRow(selected: LibraryFilter, onSelected: (LibraryFilter) -> Unit) {
-    androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        LibraryFilter.entries.forEach { filter ->
+private fun LibraryFilterRow(selected: LibrarySection, onSelected: (LibrarySection) -> Unit) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+        items(LibrarySection.entries) { filter ->
             val isSelected = selected == filter
             SurfaceCard(
                 modifier = Modifier
-                    .weight(1f)
                     .padding(bottom = 2.dp)
-                    .fillMaxWidth(),
+                    .width(filter.chipWidthDp.dp),
                 tonalColor = if (isSelected) com.example.unum.ui.theme.Accent else Surface2,
                 borderColor = if (isSelected) com.example.unum.ui.theme.Accent.copy(alpha = 0.42f) else com.example.unum.ui.theme.Border,
                 contentPadding = 0
@@ -196,14 +228,14 @@ private fun LibraryFilterRow(selected: LibraryFilter, onSelected: (LibraryFilter
                 androidx.compose.foundation.layout.Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp)
+                        .padding(horizontal = 8.dp, vertical = 9.dp)
                         .clickable { onSelected(filter) },
                     contentAlignment = androidx.compose.ui.Alignment.Center
                 ) {
                     androidx.compose.material3.Text(
                         text = filter.label,
                         color = if (isSelected) androidx.compose.ui.graphics.Color.White else TextSecondary,
-                        style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+                        style = androidx.compose.material3.MaterialTheme.typography.labelMedium
                     )
                 }
             }

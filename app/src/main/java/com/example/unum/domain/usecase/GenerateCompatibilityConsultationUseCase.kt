@@ -2,6 +2,7 @@ package com.example.unum.domain.usecase
 
 import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.CompatibilityConsultation
+import com.example.unum.data.model.CompatibilityRelationshipStatus
 import com.example.unum.data.model.ConsultationAnswerCard
 import com.example.unum.data.model.ConsultationPage
 import com.example.unum.data.model.ConsultationTocItem
@@ -22,13 +23,15 @@ class GenerateCompatibilityConsultationUseCase(
         apiKey: String,
         maleBundle: NumerologyResultBundle,
         femaleBundle: NumerologyResultBundle,
-        concern: String
+        concern: String,
+        relationshipStatus: CompatibilityRelationshipStatus
     ): CompatibilityConsultation = withContext(Dispatchers.IO) {
         val relationshipNumber = relationshipNumber(maleBundle, femaleBundle)
         val prompt = buildPrompt(
             maleBundle = maleBundle,
             femaleBundle = femaleBundle,
             concern = concern,
+            relationshipStatus = relationshipStatus,
             relationshipNumber = relationshipNumber
         )
         val content = chatClient.requestJsonContent(
@@ -45,6 +48,7 @@ class GenerateCompatibilityConsultationUseCase(
         maleBundle: NumerologyResultBundle,
         femaleBundle: NumerologyResultBundle,
         concern: String,
+        relationshipStatus: CompatibilityRelationshipStatus,
         relationshipNumber: Int
     ): String {
         val concernText = concern.ifBlank { "두 사람의 관계가 잘 이어질 수 있을지 궁금합니다." }
@@ -60,7 +64,7 @@ class GenerateCompatibilityConsultationUseCase(
             femaleBundle.content.destinyProfile.cautionKeywords.take(2)
         ).flatten().distinct().joinToString(", ").ifBlank { "속도 차이, 감정 확인, 거리 조절" }
 
-        return buildCompatibilitySalonPromptV2(
+        return buildCompactCompatibilityPrompt(
             concernText = concernText,
             createdYear = createdYear,
             currentMonth = currentMonth,
@@ -71,10 +75,49 @@ class GenerateCompatibilityConsultationUseCase(
             maleTrait = maleTrait,
             femaleTrait = femaleTrait,
             cautionKeywords = cautionKeywords,
+            relationshipStatus = relationshipStatus,
             bestMonth = bestMonth,
             riskyMonth = riskyMonth
         )
 
+    }
+
+    private fun buildCompactCompatibilityPrompt(
+        concernText: String,
+        createdYear: Int,
+        currentMonth: Int,
+        maleBundle: NumerologyResultBundle,
+        femaleBundle: NumerologyResultBundle,
+        relationshipNumber: Int,
+        relationshipMeaning: String,
+        maleTrait: String,
+        femaleTrait: String,
+        cautionKeywords: String,
+        relationshipStatus: CompatibilityRelationshipStatus,
+        bestMonth: String,
+        riskyMonth: String
+    ): String {
+        val maleInput = maleBundle.displayInput
+        val femaleInput = femaleBundle.displayInput
+        val statusRule = when (relationshipStatus) {
+            CompatibilityRelationshipStatus.COUPLE ->
+                "They are already a couple. Focus on warmth, friction repair, communication, routines, and next-step actions."
+            CompatibilityRelationshipStatus.CRUSH ->
+                "This is a crush/unrequited-love reading. Focus on attraction signals, safe distance, how to approach, when to express feelings, and how to handle rejection without pressuring the other person."
+            CompatibilityRelationshipStatus.REUNION ->
+                "This is a reunion/getting-back-together reading. Focus on why the connection broke, whether contact is safe and welcome, timing for a light message, apology/closure boundaries, and how to avoid repeating the same pattern. Do not promise reconciliation."
+        }
+        return """
+            Write Korean compatibility counseling page JSON.
+            Input: status="${relationshipStatus.label}"; concern="$concernText"; date=${createdYear}.${currentMonth}; relationshipNumber=$relationshipNumber; relationshipCue="$relationshipMeaning"; caution="$cautionKeywords"; bestMonth="$bestMonth"; riskyMonth="$riskyMonth".
+            Male: birth=${maleInput.year}.${maleInput.month}.${maleInput.day}; calendar=${calendarTypeLabel(maleInput.calendarType)}; destiny=${maleBundle.numbers.destiny}; rhythm=${maleBundle.numbers.early}/${maleBundle.numbers.middle}/${maleBundle.numbers.late}/${maleBundle.numbers.code}; traits="$maleTrait".
+            Female: birth=${femaleInput.year}.${femaleInput.month}.${femaleInput.day}; calendar=${calendarTypeLabel(femaleInput.calendarType)}; destiny=${femaleBundle.numbers.destiny}; rhythm=${femaleBundle.numbers.early}/${femaleBundle.numbers.middle}/${femaleBundle.numbers.late}/${femaleBundle.numbers.code}; traits="$femaleTrait".
+            Relationship status rule: $statusRule
+            Style: polite Korean, concrete relationship scenes, no long individual trait recap, no good/bad verdict, no system-name terms, no "선생님", no code block.
+            Rules: one message per page; each highlight is one clear sentence; each body has 2 short paragraphs; avoid repeated phrasing. Use the given month values and do not explain calculations.
+            Return only valid JSON:
+            {"coverTitle":"","coverSubtitle":"","bestMonth":"$bestMonth","bestMonthReason":"","riskyMonth":"$riskyMonth","riskyMonthReason":"","answerCard":{"question":"","shortAnswer":"","body":["",""]},"toc":[{"id":"attraction","title":""},{"id":"friction","title":""},{"id":"view","title":""},{"id":"action","title":""}],"pages":[{"id":"attraction","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"friction","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"view","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"action","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""}],"closingAdvice":""}
+        """.trimIndent()
     }
 
     private fun buildCompatibilitySalonPromptV2(
@@ -492,7 +535,7 @@ class GenerateCompatibilityConsultationUseCase(
 
     companion object {
         private const val SYSTEM_PROMPT =
-            "You are a Korean numerology compatibility consultation writer. Write concise mobile-friendly counseling pages in polite Korean. Focus on concrete relationship scenes, attraction, friction, timing, and actions. Never call the user 선생님, never mention traditional divination system names, and return only valid JSON."
+            "Write concise Korean compatibility counseling JSON. Be concrete and polite. No system-name terms, no '선생님'. JSON only."
         private const val OPENAI_MODEL = "gpt-5.1"
     }
 }

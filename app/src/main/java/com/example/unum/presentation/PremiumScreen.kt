@@ -76,13 +76,18 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.data.model.CalendarType
+import com.example.unum.data.model.CompatibilityRelationshipStatus
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.data.model.FortuneBookType
+import com.example.unum.data.model.GenderOption
+import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.data.model.PremiumMode
 import com.example.unum.data.model.PremiumTopic
+import com.example.unum.presentation.spec.FeatureSpecs
 import com.example.unum.ui.components.DateInputRow
 import com.example.unum.ui.components.GradientButton
 import com.example.unum.ui.components.MysticBackground
@@ -249,14 +254,11 @@ private fun PremiumFormScreen(
     onStart: () -> Unit
 ) {
     val isCompatibility = uiState.premiumMode == PremiumMode.COMPATIBILITY
-    val male = uiState.compatibilityForm.male
-    val female = uiState.compatibilityForm.female
-    val compatibilityReady = male.year.length == 4 &&
-        male.month.isNotBlank() &&
-        male.day.isNotBlank() &&
-        female.year.length == 4 &&
-        female.month.isNotBlank() &&
-        female.day.isNotBlank()
+    val partner = uiState.compatibilityForm.partner
+    val compatibilityReady = uiState.latestBundle != null &&
+        partner.year.length == 4 &&
+        partner.month.isNotBlank() &&
+        partner.day.isNotBlank()
     val canStart = if (isCompatibility) compatibilityReady else uiState.latestBundle != null
 
     Column(
@@ -307,7 +309,7 @@ private fun PremiumFormScreen(
         }
         uiState.inputError?.let { Text(it, color = Rose, style = MaterialTheme.typography.bodySmall) }
         GradientButton(
-            text = if (isCompatibility) "두 사람 궁합노트 제책하기" else "프리미엄 맞춤 비책 제책하기",
+            text = if (isCompatibility) "두 사람 궁합노트 제작하기" else "프리미엄 맞춤 비책 제작하기",
             onClick = onStart,
             modifier = Modifier.fillMaxWidth(),
             enabled = canStart
@@ -322,7 +324,7 @@ private fun PremiumModeSelector(selected: PremiumMode, onSelected: (PremiumMode)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             PremiumModePill(
                 title = "운세노트",
-                body = "내 생년월일과 고민으로 제책",
+                body = "내 생년월일로 제작",
                 selected = selected == PremiumMode.PERSONAL,
                 modifier = Modifier.weight(1f),
                 onClick = { onSelected(PremiumMode.PERSONAL) }
@@ -380,11 +382,11 @@ private fun CompatibilityGreetingCard() {
                     .background(Rose.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("合", color = Rose, style = MaterialTheme.typography.titleMedium)
+                Text("궁", color = Rose, style = MaterialTheme.typography.titleMedium)
             }
             Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
-                Text("두 사람의 숫자 결을 함께 읽어볼게요.", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
-                Text("각자의 기본 기운을 따로 본 뒤, 둘 사이에 만들어지는 궁합수와 생활 흐름을 책자로 정리합니다.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                Text("두 사람의 숫자의 궁합을 읽어볼게요.", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
+                Text("각자의 기본 흐름을 따로 본 뒤, 둘 사이에 만들어지는 궁합수와 생활 흐름을 책자로 정리합니다.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -393,32 +395,171 @@ private fun CompatibilityGreetingCard() {
 @Composable
 private fun CompatibilityFormSection(uiState: AppUiState, viewModel: AppViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        PartnerBirthInputCard(
-            title = "남자 생년월일",
-            subtitle = "첫 번째 사람의 기본 숫자",
-            calendarType = uiState.compatibilityForm.male.calendarType,
-            year = uiState.compatibilityForm.male.year,
-            month = uiState.compatibilityForm.male.month,
-            day = uiState.compatibilityForm.male.day,
-            onCalendarSelected = viewModel::setCompatibilityMaleCalendarType,
-            onYearChange = viewModel::updateCompatibilityMaleYear,
-            onMonthChange = viewModel::updateCompatibilityMaleMonth,
-            onDayChange = viewModel::updateCompatibilityMaleDay,
-            accentColor = Accent
+        CompatibilityStatusSelector(
+            selected = uiState.compatibilityForm.relationshipStatus,
+            onSelected = viewModel::setCompatibilityRelationshipStatus
         )
+        MyBirthFixedCard(bundle = uiState.latestBundle)
         PartnerBirthInputCard(
-            title = "여자 생년월일",
-            subtitle = "두 번째 사람의 기본 숫자",
-            calendarType = uiState.compatibilityForm.female.calendarType,
-            year = uiState.compatibilityForm.female.year,
-            month = uiState.compatibilityForm.female.month,
-            day = uiState.compatibilityForm.female.day,
-            onCalendarSelected = viewModel::setCompatibilityFemaleCalendarType,
-            onYearChange = viewModel::updateCompatibilityFemaleYear,
-            onMonthChange = viewModel::updateCompatibilityFemaleMonth,
-            onDayChange = viewModel::updateCompatibilityFemaleDay,
+            title = "상대방 생년월일",
+            subtitle = "상대방의 성별과 생년월일을 입력해 주세요",
+            selectedGender = uiState.compatibilityForm.partnerGender,
+            onGenderSelected = viewModel::setCompatibilityPartnerGender,
+            calendarType = uiState.compatibilityForm.partner.calendarType,
+            year = uiState.compatibilityForm.partner.year,
+            month = uiState.compatibilityForm.partner.month,
+            day = uiState.compatibilityForm.partner.day,
+            onCalendarSelected = viewModel::setCompatibilityPartnerCalendarType,
+            onYearChange = viewModel::updateCompatibilityPartnerYear,
+            onMonthChange = viewModel::updateCompatibilityPartnerMonth,
+            onDayChange = viewModel::updateCompatibilityPartnerDay,
             accentColor = Rose
         )
+    }
+}
+
+@Composable
+private fun CompatibilityStatusSelector(
+    selected: CompatibilityRelationshipStatus,
+    onSelected: (CompatibilityRelationshipStatus) -> Unit
+) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        items(CompatibilityRelationshipStatus.entries) { status ->
+            CompatibilityStatusCard(
+                status = status,
+                selected = selected == status,
+                onClick = { onSelected(status) }
+            )
+        }
+    }
+}
+
+private fun CompatibilityRelationshipStatus.helperText(): String = when (this) {
+    CompatibilityRelationshipStatus.COUPLE -> "사귀는 중인 두 사람"
+    CompatibilityRelationshipStatus.CRUSH -> "다가갈 타이밍 보기"
+    CompatibilityRelationshipStatus.REUNION -> "다시 이어질 가능성"
+}
+
+@Composable
+private fun CompatibilityStatusCard(
+    status: CompatibilityRelationshipStatus,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val lift by animateFloatAsState(
+        targetValue = if (selected) -10f else 0f,
+        animationSpec = tween(durationMillis = 360, easing = FastOutSlowInEasing),
+        label = "compatibilityStatusLift"
+    )
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1.06f else 0.96f,
+        animationSpec = tween(durationMillis = 360, easing = FastOutSlowInEasing),
+        label = "compatibilityStatusScale"
+    )
+    val glow by animateFloatAsState(
+        targetValue = if (selected) 0.38f else 0.08f,
+        animationSpec = tween(durationMillis = 360, easing = FastOutSlowInEasing),
+        label = "compatibilityStatusGlow"
+    )
+    val colors = when (status) {
+        CompatibilityRelationshipStatus.COUPLE -> listOf(Color(0xFFFFEEF2), Color(0xFFFFF8F9))
+        CompatibilityRelationshipStatus.CRUSH -> listOf(Color(0xFFFFF3F6), Color(0xFFFFFBFC))
+        CompatibilityRelationshipStatus.REUNION -> listOf(Color(0xFFFFE8EF), Color(0xFFFFF6F8))
+    }
+
+    Box(
+        modifier = Modifier
+            .width(128.dp)
+            .height(82.dp)
+            .graphicsLayer {
+                translationY = lift
+                scaleX = scale
+                scaleY = scale
+            }
+            .shadow(if (selected) 14.dp else 3.dp, RoundedCornerShape(16.dp), clip = false)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Brush.verticalGradient(colors))
+            .border(1.dp, Rose.copy(alpha = if (selected) 0.74f else 0.20f), RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            drawCircle(
+                color = Rose.copy(alpha = glow),
+                radius = size.minDimension * 0.42f,
+                center = Offset(size.width * 0.82f, size.height * 0.18f)
+            )
+            drawCircle(
+                color = Gold.copy(alpha = glow * 0.38f),
+                radius = size.minDimension * 0.28f,
+                center = Offset(size.width * 0.12f, size.height * 0.84f)
+            )
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(status.symbol(), color = Rose, style = MaterialTheme.typography.labelLarge)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
+                Text(
+                    status.label,
+                    color = if (selected) Rose else TextPrimary,
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    status.helperText(),
+                    color = TextMuted,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+private fun CompatibilityRelationshipStatus.symbol(): String = when (this) {
+    CompatibilityRelationshipStatus.COUPLE -> "연"
+    CompatibilityRelationshipStatus.CRUSH -> "설"
+    CompatibilityRelationshipStatus.REUNION -> "재"
+}
+
+@Composable
+private fun MyBirthFixedCard(bundle: NumerologyResultBundle?) {
+    SurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        tonalColor = Surface2.copy(alpha = 0.78f),
+        borderColor = Border.copy(alpha = 0.72f),
+        contentPadding = 14
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text("내 생년월일", color = TextSecondary, style = MaterialTheme.typography.labelLarge)
+                    Text("이미 입력된 내 정보로 고정됩니다", color = TextMuted, style = MaterialTheme.typography.bodySmall)
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(TextMuted.copy(alpha = 0.10f))
+                        .border(1.dp, TextMuted.copy(alpha = 0.18f), RoundedCornerShape(999.dp))
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                ) {
+                    Text("고정", color = TextMuted, style = MaterialTheme.typography.labelSmall)
+                }
+            }
+            val input = bundle?.displayInput
+            val dateText = input?.let {
+                "${calendarLabel(it.calendarType)} ${it.year}.${it.month}.${it.day} · ${genderLabel(it.gender)}"
+            } ?: "생년월일을 먼저 입력해 주세요"
+            Text(dateText, color = TextMuted, style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }
 
@@ -426,6 +567,8 @@ private fun CompatibilityFormSection(uiState: AppUiState, viewModel: AppViewMode
 private fun PartnerBirthInputCard(
     title: String,
     subtitle: String,
+    selectedGender: GenderOption,
+    onGenderSelected: (GenderOption) -> Unit,
     calendarType: CalendarType,
     year: String,
     month: String,
@@ -451,9 +594,10 @@ private fun PartnerBirthInputCard(
                         .border(1.dp, accentColor.copy(alpha = 0.34f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(if (accentColor == Rose) "2" else "1", color = accentColor, style = MaterialTheme.typography.labelMedium)
+                    Text("상대", color = accentColor, style = MaterialTheme.typography.labelSmall)
                 }
             }
+            PartnerGenderSelector(selected = selectedGender, onSelected = onGenderSelected, accentColor = accentColor)
             ToggleSegment(selected = calendarType, onSelected = onCalendarSelected)
             DateInputRow(
                 year = year,
@@ -465,6 +609,42 @@ private fun PartnerBirthInputCard(
             )
         }
     }
+}
+
+@Composable
+private fun PartnerGenderSelector(
+    selected: GenderOption,
+    onSelected: (GenderOption) -> Unit,
+    accentColor: Color
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        listOf(GenderOption.MALE, GenderOption.FEMALE).forEach { gender ->
+            val isSelected = selected == gender
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isSelected) accentColor.copy(alpha = 0.12f) else Surface2.copy(alpha = 0.72f))
+                    .border(1.dp, if (isSelected) accentColor.copy(alpha = 0.68f) else Border, RoundedCornerShape(8.dp))
+                    .clickable { onSelected(gender) }
+                    .padding(vertical = 11.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(genderLabel(gender), color = if (isSelected) accentColor else TextSecondary, style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
+}
+
+private fun calendarLabel(type: CalendarType): String = when (type) {
+    CalendarType.SOLAR -> "양력"
+    CalendarType.LUNAR -> "음력"
+}
+
+private fun genderLabel(gender: GenderOption): String = when (gender) {
+    GenderOption.MALE -> "남성"
+    GenderOption.FEMALE -> "여성"
+    GenderOption.NONE -> "미선택"
 }
 
 @Composable
@@ -490,7 +670,7 @@ private fun SuriGreetingCard() {
 
 @Composable
 private fun TopicGrid(selected: PremiumTopic, onSelected: (PremiumTopic) -> Unit) {
-    val topics = PremiumTopic.entries
+    val topics = FeatureSpecs.premiumTopicPlans.map { it.topic }
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier.fillMaxWidth()
@@ -646,7 +826,7 @@ private fun QuestionConfirmScreen(
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                GradientButton("네, 이 질문으로 제책하기", onConfirm, Modifier.fillMaxWidth())
+                GradientButton("네, 이 질문으로 제작하기", onConfirm, Modifier.fillMaxWidth())
                 SecondaryButton("수정하기", onEdit, Modifier.fillMaxWidth())
             }
         }
@@ -725,9 +905,9 @@ private fun PremiumLoadingScreen(
                 )
                 Text(
                     if (mode == PremiumMode.COMPATIBILITY) {
-                        "궁합수와 생활 흐름에 맞는 관계 비책을 제책 중입니다."
+                        "궁합수와 생활 흐름에 맞는 관계 비책을 제작 중입니다."
                     } else {
-                        "고민 분야에 맞는 깊이 있는 비책을 제책 중입니다."
+                        "고민 분야에 맞는 깊이 있는 비책을 제작 중입니다."
                     },
                     color = TextMuted,
                     style = MaterialTheme.typography.bodySmall
@@ -1522,21 +1702,69 @@ private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
             pageTop = Color(0xFFFFFAF1),
             edge = Color(0xFFE6DAC9)
         )
+        "compatibility_couple" in key || "커플" in key -> BookIdentityTheme(
+            shortName = "커플 운세노트",
+            caption = "PREMIUM COUPLE NOTE",
+            accent = Color(0xFF0F8A8A),
+            accentDeep = Color(0xFF075E5F),
+            ribbon = Color(0xFFF0B94F),
+            foil = Color(0xFF8EE7D6),
+            stitch = Color(0xFFB6F4E8),
+            coverTop = Color(0xFF075E5F),
+            coverMid = Color(0xFF044043),
+            coverBottom = Color(0xFF011E22),
+            tint = Color(0xFFF0FDFA),
+            page = Color(0xFFFFF7FB),
+            pageTop = Color(0xFFFFECF5),
+            edge = Color(0xFFE8CAD8)
+        )
+        "compatibility_crush" in key || "짝사랑" in key -> BookIdentityTheme(
+            shortName = "짝사랑 운세노트",
+            caption = "PREMIUM CRUSH NOTE",
+            accent = Color(0xFF7C6DE8),
+            accentDeep = Color(0xFF4338CA),
+            ribbon = Color(0xFFA78BFA),
+            foil = Color(0xFFC4B5FD),
+            stitch = Color(0xFFE9D5FF),
+            coverTop = Color(0xFF26305F),
+            coverMid = Color(0xFF151B3C),
+            coverBottom = Color(0xFF080B1E),
+            tint = Color(0xFFF5F3FF),
+            page = Color(0xFFFFF7FB),
+            pageTop = Color(0xFFFFECF5),
+            edge = Color(0xFFE8CAD8)
+        )
+        "compatibility_reunion" in key || "재회" in key -> BookIdentityTheme(
+            shortName = "재회 운세노트",
+            caption = "PREMIUM REUNION NOTE",
+            accent = Color(0xFFC46A2A),
+            accentDeep = Color(0xFF7C2D12),
+            ribbon = Color(0xFFF59E0B),
+            foil = Color(0xFFFDBA74),
+            stitch = Color(0xFFFED7AA),
+            coverTop = Color(0xFF7A321A),
+            coverMid = Color(0xFF431508),
+            coverBottom = Color(0xFF190602),
+            tint = Color(0xFFFFF4E8),
+            page = Color(0xFFFFF7FB),
+            pageTop = Color(0xFFFFECF5),
+            edge = Color(0xFFE8CAD8)
+        )
         "compatibility" in key || "궁합" in key -> BookIdentityTheme(
             shortName = "궁합노트",
             caption = "PREMIUM MATCH NOTE",
-            accent = Color(0xFFDC2626),
-            accentDeep = Color(0xFF991B1B),
-            ribbon = Color(0xFFB91C1C),
-            foil = Color(0xFFF7D56A),
-            stitch = Color(0xFFFDE68A),
-            coverTop = Color(0xFF222633),
-            coverMid = Color(0xFF10131B),
-            coverBottom = Color(0xFF05070C),
+            accent = Color(0xFFB85AC7),
+            accentDeep = Color(0xFF7E2E84),
+            ribbon = Color(0xFF5EEAD4),
+            foil = Color(0xFFF0ABFC),
+            stitch = Color(0xFFF5D0FE),
+            coverTop = Color(0xFF4A1B4E),
+            coverMid = Color(0xFF2B0F35),
+            coverBottom = Color(0xFF100517),
             tint = Color(0xFFFDF2F8),
-            page = Color(0xFFFFFDF8),
-            pageTop = Color(0xFFFFFAF1),
-            edge = Color(0xFFE6DAC9)
+            page = Color(0xFFFFF7FB),
+            pageTop = Color(0xFFFFECF5),
+            edge = Color(0xFFE8CAD8)
         )
         else -> BookIdentityTheme(
             shortName = "연애 운세",
@@ -1557,10 +1785,4 @@ private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
     }
 }
 
-private fun PremiumTopic.bookLabel(): String = when (this) {
-    PremiumTopic.ROMANCE -> "연애"
-    PremiumTopic.CAREER -> "일 & 진로"
-    PremiumTopic.MONEY -> "돈 & 경제"
-    PremiumTopic.SELF_ESTEEM -> "나 자신"
-    PremiumTopic.RELATIONSHIP -> "인간관계"
-}
+private fun PremiumTopic.bookLabel(): String = FeatureSpecs.planFor(this).bookLabel
