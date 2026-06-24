@@ -2,6 +2,7 @@ package com.example.unum.domain.usecase
 
 import com.example.unum.data.model.CompatibilityConsultation
 import com.example.unum.data.model.CompatibilityRelationshipStatus
+import com.example.unum.data.model.BookSpecs
 import com.example.unum.data.model.ConsultationAnswerCard
 import com.example.unum.data.model.ConsultationPage
 import com.example.unum.data.model.FortuneBook
@@ -10,8 +11,6 @@ import com.example.unum.data.model.FortuneBookType
 import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.data.model.PremiumConsultation
 import com.example.unum.data.model.PremiumTopic
-import com.example.unum.data.model.compatibilityCoverTheme
-import com.example.unum.data.model.compatibilityCoverTitle
 import com.example.unum.domain.NumerologyCalculator
 
 class BuildFortuneBookUseCase {
@@ -22,7 +21,8 @@ class BuildFortuneBookUseCase {
         concern: String
     ): FortuneBook {
         val now = System.currentTimeMillis()
-        val topicLabel = topic.label
+        val spec = BookSpecs.forTopic(topic)
+        val topicLabel = spec.label
         val createdYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
         val chapters = if (consultation.pages.isNotEmpty() || consultation.answerCard.hasContent()) {
             buildSalonChapters(consultation.answerCard, consultation.pages, consultation.closingAdvice)
@@ -39,7 +39,7 @@ class BuildFortuneBookUseCase {
             late = bundle.numbers.late,
             concernTopic = topicLabel,
             concernText = concern,
-            coverTitle = consultation.coverTitle.ifBlank { buildCoverTitle(topic, bundle.numbers.destiny, createdYear) },
+            coverTitle = consultation.coverTitle.ifBlank { buildCoverTitle(topic, createdYear) },
             coverSubtitle = consultation.coverSubtitle.ifBlank { "운명수 ${bundle.numbers.destiny} · ${bundle.content.destinyProfile.title}" },
             summary = consultation.answerCard.shortAnswer.ifBlank { consultation.core },
             bookType = FortuneBookType.PERSONAL,
@@ -51,7 +51,7 @@ class BuildFortuneBookUseCase {
             createdAt = now,
             lastOpenedAt = now,
             purchasedAt = now,
-            coverTheme = topic.name.lowercase()
+            coverTheme = spec.themeId.key
         )
     }
 
@@ -79,7 +79,7 @@ class BuildFortuneBookUseCase {
         } else {
             buildCompatibilityFallbackChapters(consultation)
         }
-        val coverTheme = relationshipStatus.compatibilityCoverTheme()
+        val spec = BookSpecs.forStatus(relationshipStatus)
 
         return FortuneBook(
             bookId = "compatibility-${maleBundle.numbers.code}-${femaleBundle.numbers.code}-$now",
@@ -90,7 +90,7 @@ class BuildFortuneBookUseCase {
             late = relationshipNumber,
             concernTopic = "궁합 · ${relationshipStatus.label}",
             concernText = concern,
-            coverTitle = consultation.coverTitle.ifBlank { relationshipStatus.compatibilityCoverTitle() },
+            coverTitle = consultation.coverTitle.ifBlank { spec.coverTitle },
             coverSubtitle = consultation.coverSubtitle.ifBlank { "남자 $maleBirthLabel · 여자 $femaleBirthLabel" },
             summary = consultation.answerCard.shortAnswer.ifBlank { consultation.oneLineSummary },
             bookType = FortuneBookType.COMPATIBILITY,
@@ -109,7 +109,7 @@ class BuildFortuneBookUseCase {
             createdAt = now,
             lastOpenedAt = now,
             purchasedAt = now,
-            coverTheme = coverTheme
+            coverTheme = spec.themeId.key
         )
     }
 
@@ -211,14 +211,13 @@ class BuildFortuneBookUseCase {
         )
     }
 
-    private fun buildCoverTitle(topic: PremiumTopic, destiny: Int, createdYear: Int): String {
+    private fun buildCoverTitle(topic: PremiumTopic, createdYear: Int): String {
         return when (topic) {
             PremiumTopic.ROMANCE -> "$createdYear 수리 연애 상담소"
             PremiumTopic.CAREER -> "일과 방향 상담소"
             PremiumTopic.MONEY -> "돈의 흐름 상담소"
             PremiumTopic.SELF_ESTEEM -> "마음 기준 상담소"
             PremiumTopic.RELATIONSHIP -> "관계 패턴 상담소"
-            else -> "운명수 $destiny 상담소"
         }
     }
 

@@ -33,12 +33,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.unum.data.model.BookSpecs
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.data.model.FortuneBookType
 import com.example.unum.data.model.PremiumTopic
 import com.example.unum.data.model.CompatibilityRelationshipStatus
-import com.example.unum.data.model.compatibilityStatusFromThemeOrText
-import com.example.unum.presentation.spec.FeatureSpecs
+import com.example.unum.data.model.matchesBookSpec
+import com.example.unum.data.model.resolvedThemeId
 import com.example.unum.presentation.spec.LibrarySection
 import com.example.unum.ui.components.MascotArt
 import com.example.unum.ui.components.MascotGuideCard
@@ -191,25 +192,19 @@ private fun FortuneBook.matchesFilter(filter: LibrarySection): Boolean = when (f
 }
 
 private fun FortuneBook.matchesPersonalTopic(topic: PremiumTopic): Boolean {
-    if (bookType != FortuneBookType.PERSONAL) return false
-    val plan = FeatureSpecs.planFor(topic)
-    if (coverTheme == plan.coverTheme || coverTheme == topic.name.lowercase()) return true
-
-    val searchableText = "$concernTopic $coverTitle"
-    return plan.archiveKeywords.any { keyword -> searchableText.contains(keyword, ignoreCase = true) }
+    return matchesBookSpec(BookSpecs.forTopic(topic))
 }
 
 private fun FortuneBook.matchesCompatibilityTopic(): Boolean {
     val searchableText = "$concernTopic $coverTitle"
     return bookType == FortuneBookType.COMPATIBILITY ||
-        coverTheme.startsWith("compatibility") ||
+        resolvedThemeId().isCompatibility ||
         searchableText.contains("궁합", ignoreCase = true)
 }
 
 private fun FortuneBook.matchesCompatibilityStatus(status: CompatibilityRelationshipStatus): Boolean {
     if (!matchesCompatibilityTopic()) return false
-    val searchableText = "$concernTopic $coverTitle"
-    return compatibilityStatusFromThemeOrText(coverTheme, searchableText) == status
+    return matchesBookSpec(BookSpecs.forStatus(status))
 }
 
 @Composable

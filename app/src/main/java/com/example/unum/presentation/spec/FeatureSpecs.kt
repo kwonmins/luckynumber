@@ -1,8 +1,9 @@
 package com.example.unum.presentation.spec
 
+import com.example.unum.data.model.BookSpecs
+import com.example.unum.data.model.BookThemeId
 import com.example.unum.data.model.CompatibilityRelationshipStatus
 import com.example.unum.data.model.PremiumTopic
-import com.example.unum.data.model.compatibilityCoverTheme
 
 enum class LibrarySection(
     val label: String,
@@ -23,47 +24,27 @@ enum class LibrarySection(
 data class PremiumTopicPlan(
     val topic: PremiumTopic,
     val bookLabel: String,
-    val coverTheme: String,
+    val themeId: BookThemeId,
     val archiveKeywords: List<String>
-)
+) {
+    val coverTheme: String
+        get() = themeId.key
+}
 
 object FeatureSpecs {
-    val premiumTopicPlans: List<PremiumTopicPlan> = listOf(
-        PremiumTopicPlan(
-            topic = PremiumTopic.ROMANCE,
-            bookLabel = "연애",
-            coverTheme = "romance",
-            archiveKeywords = listOf("연애", "사랑")
-        ),
-        PremiumTopicPlan(
-            topic = PremiumTopic.CAREER,
-            bookLabel = "일과 진로",
-            coverTheme = "career",
-            archiveKeywords = listOf("일", "진로", "직업", "커리어")
-        ),
-        PremiumTopicPlan(
-            topic = PremiumTopic.MONEY,
-            bookLabel = "돈과 경제",
-            coverTheme = "money",
-            archiveKeywords = listOf("돈", "금전", "경제", "재물")
-        ),
-        PremiumTopicPlan(
-            topic = PremiumTopic.SELF_ESTEEM,
-            bookLabel = "나 자신",
-            coverTheme = "self_esteem",
-            archiveKeywords = listOf("나 자신", "자아", "마음", "자존감")
-        ),
-        PremiumTopicPlan(
-            topic = PremiumTopic.RELATIONSHIP,
-            bookLabel = "인간관계",
-            coverTheme = "relationship",
-            archiveKeywords = listOf("인간관계", "관계")
-        )
-    )
+    val premiumTopicPlans: List<PremiumTopicPlan> =
+        BookSpecs.personalSpecs.map { spec ->
+            PremiumTopicPlan(
+                topic = requireNotNull(spec.topic),
+                bookLabel = spec.bookLabel,
+                themeId = spec.themeId,
+                archiveKeywords = spec.archiveKeywords
+            )
+        }
 
     fun planFor(topic: PremiumTopic): PremiumTopicPlan =
         premiumTopicPlans.first { it.topic == topic }
 
     fun compatibilityThemeFor(status: CompatibilityRelationshipStatus): String =
-        status.compatibilityCoverTheme()
+        BookSpecs.forStatus(status).themeId.key
 }

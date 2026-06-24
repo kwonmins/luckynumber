@@ -82,8 +82,6 @@ import com.example.unum.data.model.FortuneBookChapter
 import com.example.unum.data.model.FortuneBookType
 import com.example.unum.data.model.PremiumTopic
 import com.example.unum.data.model.ReaderFontScale
-import com.example.unum.data.model.compatibilityKicker
-import com.example.unum.data.model.compatibilityStatusFromThemeOrText
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Blue
 import com.example.unum.ui.theme.BookLine
@@ -104,6 +102,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.absoluteValue
+import com.example.unum.data.model.BookSpecs
+import com.example.unum.data.model.BookThemeId
 
 private object PremiumTokens {
     val GoldLight = Color(0xFFF7D56A)
@@ -1532,18 +1532,7 @@ private fun coverDisplayTitle(book: FortuneBook): String {
 }
 
 private fun coverKicker(book: FortuneBook): String {
-    compatibilityStatusFromThemeOrText(book.coverTheme, "${book.concernTopic} ${book.coverTitle}")?.let { status ->
-        return status.compatibilityKicker()
-    }
-    return when (book.coverTheme) {
-        PremiumTopic.ROMANCE.name.lowercase() -> "PREMIUM ROMANCE NOTE"
-        PremiumTopic.CAREER.name.lowercase() -> "PREMIUM CAREER NOTE"
-        PremiumTopic.MONEY.name.lowercase() -> "PREMIUM MONEY NOTE"
-        PremiumTopic.SELF_ESTEEM.name.lowercase() -> "PREMIUM SELF NOTE"
-        PremiumTopic.RELATIONSHIP.name.lowercase() -> "PREMIUM RELATION NOTE"
-        "compatibility" -> "PREMIUM MATCH NOTE"
-        else -> "PREMIUM FORTUNE NOTE"
-    }
+    return BookSpecs.forBook(book).coverKicker
 }
 
 private fun coverTags(book: FortuneBook): List<String> {
@@ -1559,123 +1548,125 @@ private fun coverTags(book: FortuneBook): List<String> {
 }
 
 private fun bookCoverPalette(theme: String): Triple<Color, Color, Color> {
-    return when (theme) {
-        "compatibility_couple" ->
+    return when (themeIdFor(theme)) {
+        BookThemeId.COMPATIBILITY_COUPLE ->
             Triple(Color(0xFF062F35), Color(0xFF083F43), Color(0xFF2DD4BF).copy(alpha = 0.26f))
-        "compatibility_crush" ->
+        BookThemeId.COMPATIBILITY_CRUSH ->
             Triple(Color(0xFF11183A), Color(0xFF1D2756), Color(0xFFA78BFA).copy(alpha = 0.26f))
-        "compatibility_reunion" ->
+        BookThemeId.COMPATIBILITY_REUNION ->
             Triple(Color(0xFF3A1609), Color(0xFF6B2D14), Color(0xFFF59E0B).copy(alpha = 0.24f))
-        "compatibility" ->
+        BookThemeId.COMPATIBILITY ->
             Triple(Color(0xFF2A1232), Color(0xFF442044), Color(0xFFF0ABFC).copy(alpha = 0.24f))
-        PremiumTopic.ROMANCE.name.lowercase() ->
+        BookThemeId.ROMANCE ->
             Triple(Color(0xFF1C1018), Color(0xFF2A1520), Color(0xFF8B3A5A).copy(alpha = 0.28f))
-        PremiumTopic.CAREER.name.lowercase() ->
+        BookThemeId.CAREER ->
             Triple(Color(0xFF0F131C), Color(0xFF172030), Color(0xFF3A6EBB).copy(alpha = 0.28f))
-        PremiumTopic.MONEY.name.lowercase() ->
+        BookThemeId.MONEY ->
             Triple(Color(0xFF0D1910), Color(0xFF112318), Color(0xFF2A7A52).copy(alpha = 0.28f))
-        PremiumTopic.SELF_ESTEEM.name.lowercase() ->
+        BookThemeId.SELF_ESTEEM ->
             Triple(Color(0xFF191208), Color(0xFF241A0A), PremiumTokens.Gold.copy(alpha = 0.22f))
-        PremiumTopic.RELATIONSHIP.name.lowercase() ->
+        BookThemeId.RELATIONSHIP ->
             Triple(Color(0xFF1C1018), Color(0xFF2A1520), Color(0xFF9B5C3A).copy(alpha = 0.26f))
-        else ->
+        BookThemeId.CALM ->
             Triple(PremiumTokens.Ink, PremiumTokens.InkWarm, PremiumTokens.BorderSubtle)
     }
 }
 
 private fun leatherCoverColors(theme: String): List<Color> {
-    return when (theme) {
-        "compatibility_couple" ->
+    return when (themeIdFor(theme)) {
+        BookThemeId.COMPATIBILITY_COUPLE ->
             listOf(Color(0xFF075E5F), Color(0xFF044043), Color(0xFF011E22))
-        "compatibility_crush" ->
+        BookThemeId.COMPATIBILITY_CRUSH ->
             listOf(Color(0xFF26305F), Color(0xFF151B3C), Color(0xFF080B1E))
-        "compatibility_reunion" ->
+        BookThemeId.COMPATIBILITY_REUNION ->
             listOf(Color(0xFF7A321A), Color(0xFF431508), Color(0xFF190602))
-        "compatibility" ->
+        BookThemeId.COMPATIBILITY ->
             listOf(Color(0xFF4A1B4E), Color(0xFF2B0F35), Color(0xFF100517))
-        PremiumTopic.MONEY.name.lowercase() ->
+        BookThemeId.MONEY ->
             listOf(Color(0xFF0E3D2C), Color(0xFF072418), Color(0xFF020F09))
-        PremiumTopic.RELATIONSHIP.name.lowercase() ->
+        BookThemeId.RELATIONSHIP ->
             listOf(Color(0xFF6B3519), Color(0xFF3E1B08), Color(0xFF190A02))
-        PremiumTopic.SELF_ESTEEM.name.lowercase() ->
+        BookThemeId.SELF_ESTEEM ->
             listOf(Color(0xFF1A1625), Color(0xFF0D0B17), Color(0xFF04030A))
-        PremiumTopic.ROMANCE.name.lowercase() ->
+        BookThemeId.ROMANCE ->
             listOf(Color(0xFF4A1528), Color(0xFF280B17), Color(0xFF0F0308))
-        PremiumTopic.CAREER.name.lowercase() ->
+        BookThemeId.CAREER ->
             listOf(Color(0xFF0D1E3A), Color(0xFF060F1E), Color(0xFF020508))
-        else ->
+        BookThemeId.CALM ->
             listOf(Color(0xFF151017), Color(0xFF0A0810), Color(0xFF030205))
     }
 }
 
 private fun leatherFoilColor(theme: String): Color {
-    return when (theme) {
-        "compatibility_couple" -> Color(0xFF8EE7D6)
-        "compatibility_crush" -> Color(0xFFC4B5FD)
-        "compatibility_reunion" -> Color(0xFFFDBA74)
-        "compatibility" -> Color(0xFFF0ABFC)
-        PremiumTopic.ROMANCE.name.lowercase() -> Color(0xFFF2C4A0)
-        PremiumTopic.CAREER.name.lowercase() -> Color(0xFFB8D4F5)
-        PremiumTopic.MONEY.name.lowercase() -> Color(0xFFA8E6C4)
-        PremiumTopic.SELF_ESTEEM.name.lowercase() -> Color(0xFFF7D56A)
-        PremiumTopic.RELATIONSHIP.name.lowercase() -> Color(0xFFF0C080)
-        else -> Color(0xFFD4A84B)
+    return when (themeIdFor(theme)) {
+        BookThemeId.COMPATIBILITY_COUPLE -> Color(0xFF8EE7D6)
+        BookThemeId.COMPATIBILITY_CRUSH -> Color(0xFFC4B5FD)
+        BookThemeId.COMPATIBILITY_REUNION -> Color(0xFFFDBA74)
+        BookThemeId.COMPATIBILITY -> Color(0xFFF0ABFC)
+        BookThemeId.ROMANCE -> Color(0xFFF2C4A0)
+        BookThemeId.CAREER -> Color(0xFFB8D4F5)
+        BookThemeId.MONEY -> Color(0xFFA8E6C4)
+        BookThemeId.SELF_ESTEEM -> Color(0xFFF7D56A)
+        BookThemeId.RELATIONSHIP -> Color(0xFFF0C080)
+        BookThemeId.CALM -> Color(0xFFD4A84B)
     }
 }
 
 private fun leatherRibbonColor(theme: String): Color {
-    return when (theme) {
-        "compatibility_couple" -> Color(0xFFF0B94F)
-        "compatibility_crush" -> Color(0xFFA78BFA)
-        "compatibility_reunion" -> Color(0xFFF59E0B)
-        "compatibility" -> Color(0xFF5EEAD4)
-        PremiumTopic.ROMANCE.name.lowercase() -> Color(0xFF8B1A2E)
-        PremiumTopic.CAREER.name.lowercase() -> Color(0xFF1A3A6B)
-        PremiumTopic.MONEY.name.lowercase() -> Color(0xFF0D4028)
-        PremiumTopic.RELATIONSHIP.name.lowercase() -> Color(0xFF7A5010)
-        PremiumTopic.SELF_ESTEEM.name.lowercase() -> Color(0xFF3A1565)
-        else -> Color(0xFF5A3A10)
+    return when (themeIdFor(theme)) {
+        BookThemeId.COMPATIBILITY_COUPLE -> Color(0xFFF0B94F)
+        BookThemeId.COMPATIBILITY_CRUSH -> Color(0xFFA78BFA)
+        BookThemeId.COMPATIBILITY_REUNION -> Color(0xFFF59E0B)
+        BookThemeId.COMPATIBILITY -> Color(0xFF5EEAD4)
+        BookThemeId.ROMANCE -> Color(0xFF8B1A2E)
+        BookThemeId.CAREER -> Color(0xFF1A3A6B)
+        BookThemeId.MONEY -> Color(0xFF0D4028)
+        BookThemeId.RELATIONSHIP -> Color(0xFF7A5010)
+        BookThemeId.SELF_ESTEEM -> Color(0xFF3A1565)
+        BookThemeId.CALM -> Color(0xFF5A3A10)
     }
 }
 
 private fun noteAccentColor(theme: String): Color {
-    return when (theme) {
-        "compatibility_couple" -> Color(0xFF0F8A8A)
-        "compatibility_crush" -> Color(0xFF7C6DE8)
-        "compatibility_reunion" -> Color(0xFFC46A2A)
-        "compatibility" -> Color(0xFFB85AC7)
-        PremiumTopic.ROMANCE.name.lowercase() -> Color(0xFFBB6680)
-        PremiumTopic.CAREER.name.lowercase() -> Color(0xFF5A8EC4)
-        PremiumTopic.MONEY.name.lowercase() -> Color(0xFF4AAA7A)
-        PremiumTopic.SELF_ESTEEM.name.lowercase() -> PremiumTokens.Gold
-        PremiumTopic.RELATIONSHIP.name.lowercase() -> Color(0xFFBB7755)
-        else -> PremiumTokens.Gold
+    return when (themeIdFor(theme)) {
+        BookThemeId.COMPATIBILITY_COUPLE -> Color(0xFF0F8A8A)
+        BookThemeId.COMPATIBILITY_CRUSH -> Color(0xFF7C6DE8)
+        BookThemeId.COMPATIBILITY_REUNION -> Color(0xFFC46A2A)
+        BookThemeId.COMPATIBILITY -> Color(0xFFB85AC7)
+        BookThemeId.ROMANCE -> Color(0xFFBB6680)
+        BookThemeId.CAREER -> Color(0xFF5A8EC4)
+        BookThemeId.MONEY -> Color(0xFF4AAA7A)
+        BookThemeId.SELF_ESTEEM -> PremiumTokens.Gold
+        BookThemeId.RELATIONSHIP -> Color(0xFFBB7755)
+        BookThemeId.CALM -> PremiumTokens.Gold
     }
 }
 
 private fun overviewPaperColor(theme: String): Color {
-    return when (theme) {
-        "compatibility_couple" -> Color(0xFFF0FDFA)
-        "compatibility_crush" -> Color(0xFFF5F3FF)
-        "compatibility_reunion" -> Color(0xFFFFF4E8)
-        "compatibility" -> Color(0xFFFFF1F8)
+    return when (themeIdFor(theme)) {
+        BookThemeId.COMPATIBILITY_COUPLE -> Color(0xFFF0FDFA)
+        BookThemeId.COMPATIBILITY_CRUSH -> Color(0xFFF5F3FF)
+        BookThemeId.COMPATIBILITY_REUNION -> Color(0xFFFFF4E8)
+        BookThemeId.COMPATIBILITY -> Color(0xFFFFF1F8)
         else -> Color(0xFFFBF6EA)
     }
 }
 
 private fun compatibilityCoverSymbol(theme: String): String {
-    return when (theme) {
-        "compatibility_couple" -> "♡"
-        "compatibility_crush" -> "✦"
-        "compatibility_reunion" -> "⌂"
+    return when (themeIdFor(theme)) {
+        BookThemeId.COMPATIBILITY_COUPLE -> "♡"
+        BookThemeId.COMPATIBILITY_CRUSH -> "✦"
+        BookThemeId.COMPATIBILITY_REUNION -> "⌂"
         else -> "∞"
     }
 }
 
+private fun themeIdFor(theme: String): BookThemeId =
+    BookThemeId.fromThemeOrText(theme, theme)
+
 private fun chapterMascotRes(theme: String, chapterIndex: Int): Int {
-    val normalizedTheme = theme.lowercase()
-    val orderedMascots = when (normalizedTheme) {
-        PremiumTopic.ROMANCE.name.lowercase() -> listOf(
+    val orderedMascots = when (themeIdFor(theme)) {
+        BookThemeId.ROMANCE -> listOf(
             R.drawable.suri_reader_romance,
             R.drawable.suri_anim_romance_hero,
             R.drawable.suri_reader_compatibility,
@@ -1683,10 +1674,10 @@ private fun chapterMascotRes(theme: String, chapterIndex: Int): Int {
             R.drawable.suri_reader_action,
             R.drawable.suri_scroll
         )
-        "compatibility",
-        "compatibility_couple",
-        "compatibility_crush",
-        "compatibility_reunion" -> listOf(
+        BookThemeId.COMPATIBILITY,
+        BookThemeId.COMPATIBILITY_COUPLE,
+        BookThemeId.COMPATIBILITY_CRUSH,
+        BookThemeId.COMPATIBILITY_REUNION -> listOf(
             R.drawable.suri_reader_compatibility,
             R.drawable.suri_reader_romance,
             R.drawable.suri_reader_caution,
@@ -1694,20 +1685,22 @@ private fun chapterMascotRes(theme: String, chapterIndex: Int): Int {
             R.drawable.suri_reader_action,
             R.drawable.suri_hanbok
         )
-        PremiumTopic.MONEY.name.lowercase() -> listOf(
+        BookThemeId.MONEY -> listOf(
             R.drawable.suri_reader_money_cutout,
             R.drawable.suri_anim_money_01,
             R.drawable.suri_coins,
             R.drawable.suri_reader_caution,
             R.drawable.suri_reader_action
         )
-        PremiumTopic.CAREER.name.lowercase() -> listOf(
+        BookThemeId.CAREER -> listOf(
             R.drawable.suri_reader_action,
             R.drawable.suri_anim_writer_hero,
             R.drawable.suri_writer,
             R.drawable.suri_reader_caution
         )
-        else -> listOf(
+        BookThemeId.RELATIONSHIP,
+        BookThemeId.SELF_ESTEEM,
+        BookThemeId.CALM -> listOf(
             premiumThemeMascot(theme),
             R.drawable.suri_scroll,
             R.drawable.suri_writer,

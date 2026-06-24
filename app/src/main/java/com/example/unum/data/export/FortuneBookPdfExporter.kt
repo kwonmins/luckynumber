@@ -16,8 +16,10 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import com.example.unum.R
+import com.example.unum.data.model.BookThemeId
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.data.model.FortuneBookType
+import com.example.unum.data.model.resolvedThemeId
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -104,11 +106,11 @@ object FortuneBookPdfExporter {
 
     private fun FortuneBook.pdfTitle(): String =
         coverTitle.takeUnless { it.isBlank() || it.looksBrokenKorean() }
-            ?: when {
-                coverTheme == "compatibility_couple" -> "커플 운세노트"
-                coverTheme == "compatibility_crush" -> "짝사랑 운세노트"
-                coverTheme == "compatibility_reunion" -> "재회 운세노트"
-                bookType == FortuneBookType.COMPATIBILITY -> "궁합 운세노트"
+            ?: when (resolvedThemeId()) {
+                BookThemeId.COMPATIBILITY_COUPLE -> "커플 운세노트"
+                BookThemeId.COMPATIBILITY_CRUSH -> "짝사랑 운세노트"
+                BookThemeId.COMPATIBILITY_REUNION -> "재회 운세노트"
+                BookThemeId.COMPATIBILITY -> "궁합 운세노트"
                 else -> "프리미엄 운세노트"
             }
 
@@ -157,8 +159,8 @@ object FortuneBookPdfExporter {
         HanjiReport
     }
 
-    private fun FortuneBook.pdfTheme(): PdfTheme = when {
-        coverTheme == "career" -> leatherTheme(
+    private fun FortuneBook.pdfTheme(): PdfTheme = when (resolvedThemeId()) {
+        BookThemeId.CAREER -> leatherTheme(
             shortName = "일과 방향",
             kicker = "PREMIUM CAREER NOTE",
             title = "일과 진로 운세노트",
@@ -173,7 +175,7 @@ object FortuneBookPdfExporter {
             tint = 0xFFEFF6FF.toInt(),
             imageResId = R.drawable.suri_anim_writer_hero
         )
-        coverTheme == "money" -> leatherTheme(
+        BookThemeId.MONEY -> leatherTheme(
             shortName = "돈의 흐름",
             kicker = "PREMIUM MONEY NOTE",
             title = "돈 운세노트",
@@ -188,7 +190,7 @@ object FortuneBookPdfExporter {
             tint = 0xFFECFDF5.toInt(),
             imageResId = R.drawable.suri_reader_money_cutout
         )
-        coverTheme == "relationship" -> leatherTheme(
+        BookThemeId.RELATIONSHIP -> leatherTheme(
             shortName = "관계 패턴",
             kicker = "PREMIUM RELATION NOTE",
             title = "인간관계 운세노트",
@@ -203,7 +205,7 @@ object FortuneBookPdfExporter {
             tint = 0xFFFFF7ED.toInt(),
             imageResId = R.drawable.suri_anim_consult_01
         )
-        coverTheme == "self_esteem" -> leatherTheme(
+        BookThemeId.SELF_ESTEEM -> leatherTheme(
             shortName = "자기 기준",
             kicker = "PREMIUM SELF NOTE",
             title = "나 자신 운세노트",
@@ -218,7 +220,7 @@ object FortuneBookPdfExporter {
             tint = 0xFFF5F3FF.toInt(),
             imageResId = R.drawable.suri_anim_numbers_hero
         )
-        coverTheme == "compatibility_couple" -> leatherTheme(
+        BookThemeId.COMPATIBILITY_COUPLE -> leatherTheme(
             shortName = "커플 운세노트",
             kicker = "PREMIUM COUPLE NOTE",
             title = "커플 운세노트",
@@ -236,7 +238,7 @@ object FortuneBookPdfExporter {
             pageTop = 0xFFFFECF5.toInt(),
             edge = 0xFFE8CAD8.toInt()
         )
-        coverTheme == "compatibility_crush" -> leatherTheme(
+        BookThemeId.COMPATIBILITY_CRUSH -> leatherTheme(
             shortName = "짝사랑 운세노트",
             kicker = "PREMIUM CRUSH NOTE",
             title = "짝사랑 운세노트",
@@ -254,7 +256,7 @@ object FortuneBookPdfExporter {
             pageTop = 0xFFFFECF5.toInt(),
             edge = 0xFFE8CAD8.toInt()
         )
-        coverTheme == "compatibility_reunion" -> leatherTheme(
+        BookThemeId.COMPATIBILITY_REUNION -> leatherTheme(
             shortName = "재회 운세노트",
             kicker = "PREMIUM REUNION NOTE",
             title = "재회 운세노트",
@@ -272,7 +274,7 @@ object FortuneBookPdfExporter {
             pageTop = 0xFFFFECF5.toInt(),
             edge = 0xFFE8CAD8.toInt()
         )
-        bookType == FortuneBookType.COMPATIBILITY -> leatherTheme(
+        BookThemeId.COMPATIBILITY -> leatherTheme(
             shortName = "궁합노트",
             kicker = "PREMIUM MATCH NOTE",
             title = "궁합 운세노트",
@@ -290,7 +292,8 @@ object FortuneBookPdfExporter {
             pageTop = 0xFFFFECF5.toInt(),
             edge = 0xFFE8CAD8.toInt()
         )
-        else -> leatherTheme(
+        BookThemeId.ROMANCE,
+        BookThemeId.CALM -> leatherTheme(
             shortName = "연애 운세",
             kicker = "PREMIUM ROMANCE NOTE",
             title = coverTitle.takeUnless { it.looksBrokenKorean() }.orEmpty().ifBlank { "연애 운세노트" },

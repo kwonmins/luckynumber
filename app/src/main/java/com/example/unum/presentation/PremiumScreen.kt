@@ -79,6 +79,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.unum.data.model.BookThemeId
 import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.CompatibilityRelationshipStatus
 import com.example.unum.data.model.FortuneBook
@@ -87,6 +88,7 @@ import com.example.unum.data.model.GenderOption
 import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.data.model.PremiumMode
 import com.example.unum.data.model.PremiumTopic
+import com.example.unum.data.model.resolvedThemeId
 import com.example.unum.presentation.spec.FeatureSpecs
 import com.example.unum.ui.components.DateInputRow
 import com.example.unum.ui.components.GradientButton
@@ -1619,9 +1621,8 @@ private data class BookIdentityTheme(
 )
 
 private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
-    val key = listOfNotNull(book?.coverTheme, book?.concernTopic, book?.coverTitle).joinToString(" ").lowercase()
-    return when {
-        "career" in key || "진로" in key || "일" in key -> BookIdentityTheme(
+    return when (book?.resolvedThemeId() ?: BookThemeId.ROMANCE) {
+        BookThemeId.CAREER -> BookIdentityTheme(
             shortName = "일과 방향",
             caption = "PREMIUM CAREER NOTE",
             accent = Color(0xFF2563EB),
@@ -1637,7 +1638,7 @@ private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
             pageTop = Color(0xFFFFFAF1),
             edge = Color(0xFFE6DAC9)
         )
-        "money" in key || "돈" in key -> BookIdentityTheme(
+        BookThemeId.MONEY -> BookIdentityTheme(
             shortName = "돈의 흐름",
             caption = "PREMIUM MONEY NOTE",
             accent = Color(0xFF059669),
@@ -1653,7 +1654,7 @@ private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
             pageTop = Color(0xFFFFFAF1),
             edge = Color(0xFFE6DAC9)
         )
-        "relationship" in key || "인간관계" in key || "관계" in key -> BookIdentityTheme(
+        BookThemeId.RELATIONSHIP -> BookIdentityTheme(
             shortName = "관계 패턴",
             caption = "PREMIUM RELATION NOTE",
             accent = Color(0xFFA16207),
@@ -1669,7 +1670,7 @@ private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
             pageTop = Color(0xFFFFFAF1),
             edge = Color(0xFFE6DAC9)
         )
-        "self_esteem" in key || "나 자신" in key || "자기" in key -> BookIdentityTheme(
+        BookThemeId.SELF_ESTEEM -> BookIdentityTheme(
             shortName = "자기 기준",
             caption = "PREMIUM SELF NOTE",
             accent = Color(0xFF7C3AED),
@@ -1685,7 +1686,7 @@ private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
             pageTop = Color(0xFFFFFAF1),
             edge = Color(0xFFE6DAC9)
         )
-        "compatibility_couple" in key || "커플" in key -> BookIdentityTheme(
+        BookThemeId.COMPATIBILITY_COUPLE -> BookIdentityTheme(
             shortName = "커플 운세노트",
             caption = "PREMIUM COUPLE NOTE",
             accent = Color(0xFF0F8A8A),
@@ -1701,7 +1702,7 @@ private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
             pageTop = Color(0xFFFFECF5),
             edge = Color(0xFFE8CAD8)
         )
-        "compatibility_crush" in key || "짝사랑" in key -> BookIdentityTheme(
+        BookThemeId.COMPATIBILITY_CRUSH -> BookIdentityTheme(
             shortName = "짝사랑 운세노트",
             caption = "PREMIUM CRUSH NOTE",
             accent = Color(0xFF7C6DE8),
@@ -1717,7 +1718,7 @@ private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
             pageTop = Color(0xFFFFECF5),
             edge = Color(0xFFE8CAD8)
         )
-        "compatibility_reunion" in key || "재회" in key -> BookIdentityTheme(
+        BookThemeId.COMPATIBILITY_REUNION -> BookIdentityTheme(
             shortName = "재회 운세노트",
             caption = "PREMIUM REUNION NOTE",
             accent = Color(0xFFC46A2A),
@@ -1733,7 +1734,7 @@ private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
             pageTop = Color(0xFFFFECF5),
             edge = Color(0xFFE8CAD8)
         )
-        "compatibility" in key || "궁합" in key -> BookIdentityTheme(
+        BookThemeId.COMPATIBILITY -> BookIdentityTheme(
             shortName = "궁합노트",
             caption = "PREMIUM MATCH NOTE",
             accent = Color(0xFFB85AC7),
@@ -1749,7 +1750,8 @@ private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
             pageTop = Color(0xFFFFECF5),
             edge = Color(0xFFE8CAD8)
         )
-        else -> BookIdentityTheme(
+        BookThemeId.ROMANCE,
+        BookThemeId.CALM -> BookIdentityTheme(
             shortName = "연애 운세",
             caption = "PREMIUM ROMANCE NOTE",
             accent = Color(0xFFDC2626),
