@@ -5,6 +5,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,6 +19,8 @@ import com.example.unum.presentation.FlowReportScreen
 import com.example.unum.presentation.HomeScreen
 import com.example.unum.presentation.InputScreen
 import com.example.unum.presentation.LibraryScreen
+import com.example.unum.presentation.NotificationOnboardingScreen
+import com.example.unum.presentation.PaymentScreen
 import com.example.unum.presentation.PremiumScreen
 import com.example.unum.presentation.ReaderScreen
 import com.example.unum.presentation.ResultScreen
@@ -26,11 +29,13 @@ import com.example.unum.ui.components.BottomNavBar
 
 sealed class AppRoute(val route: String) {
     data object Home : AppRoute("home")
+    data object Notification : AppRoute("notification")
     data object Input : AppRoute("input")
     data object Fortune : AppRoute("fortune")
     data object FlowReport : AppRoute("flow")
     data object ActionPlan : AppRoute("action")
     data object Premium : AppRoute("premium")
+    data object Payment : AppRoute("payment")
     data object Library : AppRoute("library")
     data object Settings : AppRoute("settings")
     data object Reader : AppRoute("reader/{bookId}") {
@@ -41,20 +46,24 @@ sealed class AppRoute(val route: String) {
 @Composable
 fun UnumAppNavigation(viewModel: AppViewModel) {
     val navController = rememberNavController()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: AppRoute.Home.route
 
     val bottomNavRoute = when {
         currentRoute.startsWith("reader/") -> AppRoute.Library.route
+        currentRoute == AppRoute.Notification.route -> AppRoute.Home.route
         currentRoute == AppRoute.FlowReport.route -> AppRoute.Fortune.route
         currentRoute == AppRoute.ActionPlan.route -> AppRoute.Fortune.route
+        currentRoute == AppRoute.Payment.route -> AppRoute.Premium.route
         else -> currentRoute
     }
     val showBottomNav = !currentRoute.startsWith("reader/") && bottomNavRoute in setOf(
-        AppRoute.Home.route,
-        AppRoute.Input.route,
-        AppRoute.Fortune.route,
-        AppRoute.Premium.route,
+            AppRoute.Home.route,
+            AppRoute.Notification.route,
+            AppRoute.Input.route,
+            AppRoute.Fortune.route,
+            AppRoute.Premium.route,
         AppRoute.Library.route
     )
 
@@ -76,9 +85,21 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = AppRoute.Home.route,
+            startDestination = if (uiState.notificationOnboardingSeen) AppRoute.Home.route else AppRoute.Notification.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable(AppRoute.Notification.route) {
+                NotificationOnboardingScreen(
+                    initialEnabled = uiState.notificationsEnabled,
+                    onComplete = { enabled ->
+                        viewModel.completeNotificationOnboarding(enabled)
+                        navController.navigate(AppRoute.Home.route) {
+                            popUpTo(AppRoute.Notification.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
             composable(AppRoute.Home.route) {
                 HomeScreen(
                     viewModel = viewModel,
@@ -119,11 +140,24 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                 PremiumScreen(
                     viewModel = viewModel,
                     onRequestPersonalConsultation = viewModel::runPremiumConsultation,
-                    onRequestCompatibilityConsultation = viewModel::runCompatibilityConsultation,
                     onOpenBook = { book ->
                         navController.navigateToBook(viewModel, book)
                     },
-                    onOpenLibrary = { navController.navigate(AppRoute.Library.route) }
+                    onOpenLibrary = { navController.navigate(AppRoute.Library.route) },
+                    onOpenPayment = { navController.navigate(AppRoute.Payment.route) }
+                )
+            }
+            composable(AppRoute.Payment.route) {
+                PaymentScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onComplete = {
+                        navController.popBackStack(AppRoute.Premium.route, inclusive = false)
+                        when (viewModel.uiState.value.premiumMode) {
+                            com.example.unum.data.model.PremiumMode.PERSONAL -> viewModel.preparePremiumQuestionConfirmation()
+                            com.example.unum.data.model.PremiumMode.COMPATIBILITY -> viewModel.runCompatibilityConsultation()
+                        }
+                    }
                 )
             }
             composable(AppRoute.Library.route) {

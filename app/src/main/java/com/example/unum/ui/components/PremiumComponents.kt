@@ -104,6 +104,7 @@ import kotlin.math.abs
 import kotlin.math.absoluteValue
 import com.example.unum.data.model.BookSpecs
 import com.example.unum.data.model.BookThemeId
+import com.example.unum.data.model.BookThemeSpecs
 
 private object PremiumTokens {
     val GoldLight = Color(0xFFF7D56A)
@@ -1548,121 +1549,49 @@ private fun coverTags(book: FortuneBook): List<String> {
 }
 
 private fun bookCoverPalette(theme: String): Triple<Color, Color, Color> {
-    return when (themeIdFor(theme)) {
-        BookThemeId.COMPATIBILITY_COUPLE ->
-            Triple(Color(0xFF062F35), Color(0xFF083F43), Color(0xFF2DD4BF).copy(alpha = 0.26f))
-        BookThemeId.COMPATIBILITY_CRUSH ->
-            Triple(Color(0xFF11183A), Color(0xFF1D2756), Color(0xFFA78BFA).copy(alpha = 0.26f))
-        BookThemeId.COMPATIBILITY_REUNION ->
-            Triple(Color(0xFF3A1609), Color(0xFF6B2D14), Color(0xFFF59E0B).copy(alpha = 0.24f))
-        BookThemeId.COMPATIBILITY ->
-            Triple(Color(0xFF2A1232), Color(0xFF442044), Color(0xFFF0ABFC).copy(alpha = 0.24f))
-        BookThemeId.ROMANCE ->
-            Triple(Color(0xFF1C1018), Color(0xFF2A1520), Color(0xFF8B3A5A).copy(alpha = 0.28f))
-        BookThemeId.CAREER ->
-            Triple(Color(0xFF0F131C), Color(0xFF172030), Color(0xFF3A6EBB).copy(alpha = 0.28f))
-        BookThemeId.MONEY ->
-            Triple(Color(0xFF0D1910), Color(0xFF112318), Color(0xFF2A7A52).copy(alpha = 0.28f))
-        BookThemeId.SELF_ESTEEM ->
-            Triple(Color(0xFF191208), Color(0xFF241A0A), PremiumTokens.Gold.copy(alpha = 0.22f))
-        BookThemeId.RELATIONSHIP ->
-            Triple(Color(0xFF1C1018), Color(0xFF2A1520), Color(0xFF9B5C3A).copy(alpha = 0.26f))
-        BookThemeId.CALM ->
-            Triple(PremiumTokens.Ink, PremiumTokens.InkWarm, PremiumTokens.BorderSubtle)
-    }
+    val spec = themeSpecFor(theme)
+    return Triple(
+        spec.archiveCoverStartColor.toThemeColor(),
+        spec.archiveCoverEndColor.toThemeColor(),
+        spec.archiveGlowColor.toThemeColor()
+    )
 }
 
 private fun leatherCoverColors(theme: String): List<Color> {
-    return when (themeIdFor(theme)) {
-        BookThemeId.COMPATIBILITY_COUPLE ->
-            listOf(Color(0xFF075E5F), Color(0xFF044043), Color(0xFF011E22))
-        BookThemeId.COMPATIBILITY_CRUSH ->
-            listOf(Color(0xFF26305F), Color(0xFF151B3C), Color(0xFF080B1E))
-        BookThemeId.COMPATIBILITY_REUNION ->
-            listOf(Color(0xFF7A321A), Color(0xFF431508), Color(0xFF190602))
-        BookThemeId.COMPATIBILITY ->
-            listOf(Color(0xFF4A1B4E), Color(0xFF2B0F35), Color(0xFF100517))
-        BookThemeId.MONEY ->
-            listOf(Color(0xFF0E3D2C), Color(0xFF072418), Color(0xFF020F09))
-        BookThemeId.RELATIONSHIP ->
-            listOf(Color(0xFF6B3519), Color(0xFF3E1B08), Color(0xFF190A02))
-        BookThemeId.SELF_ESTEEM ->
-            listOf(Color(0xFF1A1625), Color(0xFF0D0B17), Color(0xFF04030A))
-        BookThemeId.ROMANCE ->
-            listOf(Color(0xFF4A1528), Color(0xFF280B17), Color(0xFF0F0308))
-        BookThemeId.CAREER ->
-            listOf(Color(0xFF0D1E3A), Color(0xFF060F1E), Color(0xFF020508))
-        BookThemeId.CALM ->
-            listOf(Color(0xFF151017), Color(0xFF0A0810), Color(0xFF030205))
-    }
+    val spec = themeSpecFor(theme)
+    return listOf(
+        spec.readerLeatherTopColor.toThemeColor(),
+        spec.readerLeatherMidColor.toThemeColor(),
+        spec.readerLeatherBottomColor.toThemeColor()
+    )
 }
 
 private fun leatherFoilColor(theme: String): Color {
-    return when (themeIdFor(theme)) {
-        BookThemeId.COMPATIBILITY_COUPLE -> Color(0xFF8EE7D6)
-        BookThemeId.COMPATIBILITY_CRUSH -> Color(0xFFC4B5FD)
-        BookThemeId.COMPATIBILITY_REUNION -> Color(0xFFFDBA74)
-        BookThemeId.COMPATIBILITY -> Color(0xFFF0ABFC)
-        BookThemeId.ROMANCE -> Color(0xFFF2C4A0)
-        BookThemeId.CAREER -> Color(0xFFB8D4F5)
-        BookThemeId.MONEY -> Color(0xFFA8E6C4)
-        BookThemeId.SELF_ESTEEM -> Color(0xFFF7D56A)
-        BookThemeId.RELATIONSHIP -> Color(0xFFF0C080)
-        BookThemeId.CALM -> Color(0xFFD4A84B)
-    }
+    return themeSpecFor(theme).readerFoilColor.toThemeColor()
 }
 
 private fun leatherRibbonColor(theme: String): Color {
-    return when (themeIdFor(theme)) {
-        BookThemeId.COMPATIBILITY_COUPLE -> Color(0xFFF0B94F)
-        BookThemeId.COMPATIBILITY_CRUSH -> Color(0xFFA78BFA)
-        BookThemeId.COMPATIBILITY_REUNION -> Color(0xFFF59E0B)
-        BookThemeId.COMPATIBILITY -> Color(0xFF5EEAD4)
-        BookThemeId.ROMANCE -> Color(0xFF8B1A2E)
-        BookThemeId.CAREER -> Color(0xFF1A3A6B)
-        BookThemeId.MONEY -> Color(0xFF0D4028)
-        BookThemeId.RELATIONSHIP -> Color(0xFF7A5010)
-        BookThemeId.SELF_ESTEEM -> Color(0xFF3A1565)
-        BookThemeId.CALM -> Color(0xFF5A3A10)
-    }
+    return themeSpecFor(theme).readerRibbonColor.toThemeColor()
 }
 
 private fun noteAccentColor(theme: String): Color {
-    return when (themeIdFor(theme)) {
-        BookThemeId.COMPATIBILITY_COUPLE -> Color(0xFF0F8A8A)
-        BookThemeId.COMPATIBILITY_CRUSH -> Color(0xFF7C6DE8)
-        BookThemeId.COMPATIBILITY_REUNION -> Color(0xFFC46A2A)
-        BookThemeId.COMPATIBILITY -> Color(0xFFB85AC7)
-        BookThemeId.ROMANCE -> Color(0xFFBB6680)
-        BookThemeId.CAREER -> Color(0xFF5A8EC4)
-        BookThemeId.MONEY -> Color(0xFF4AAA7A)
-        BookThemeId.SELF_ESTEEM -> PremiumTokens.Gold
-        BookThemeId.RELATIONSHIP -> Color(0xFFBB7755)
-        BookThemeId.CALM -> PremiumTokens.Gold
-    }
+    return themeSpecFor(theme).readerNoteAccentColor.toThemeColor()
 }
 
 private fun overviewPaperColor(theme: String): Color {
-    return when (themeIdFor(theme)) {
-        BookThemeId.COMPATIBILITY_COUPLE -> Color(0xFFF0FDFA)
-        BookThemeId.COMPATIBILITY_CRUSH -> Color(0xFFF5F3FF)
-        BookThemeId.COMPATIBILITY_REUNION -> Color(0xFFFFF4E8)
-        BookThemeId.COMPATIBILITY -> Color(0xFFFFF1F8)
-        else -> Color(0xFFFBF6EA)
-    }
+    return themeSpecFor(theme).readerOverviewPaperColor.toThemeColor()
 }
 
 private fun compatibilityCoverSymbol(theme: String): String {
-    return when (themeIdFor(theme)) {
-        BookThemeId.COMPATIBILITY_COUPLE -> "♡"
-        BookThemeId.COMPATIBILITY_CRUSH -> "✦"
-        BookThemeId.COMPATIBILITY_REUNION -> "⌂"
-        else -> "∞"
-    }
+    return themeSpecFor(theme).symbol
 }
 
 private fun themeIdFor(theme: String): BookThemeId =
     BookThemeId.fromThemeOrText(theme, theme)
+
+private fun themeSpecFor(theme: String) = BookThemeSpecs.get(themeIdFor(theme))
+
+private fun Long.toThemeColor(): Color = Color(this)
 
 private fun chapterMascotRes(theme: String, chapterIndex: Int): Int {
     val orderedMascots = when (themeIdFor(theme)) {

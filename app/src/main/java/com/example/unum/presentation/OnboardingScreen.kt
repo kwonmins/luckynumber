@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +20,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.example.unum.ui.components.GradientButton
 import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.theme.Accent
+import com.example.unum.ui.theme.Background
 import com.example.unum.ui.theme.Border
 import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.TextPrimary
@@ -41,55 +44,86 @@ fun OnboardingScreen(
     errorMessage: String?,
     onStartWithKakao: () -> Unit
 ) {
-    MysticBackground(modifier = Modifier.fillMaxSize(), animatedWaves = true) {
+    MysticBackground(modifier = Modifier.fillMaxSize(), animatedWaves = false) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 22.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+                .background(Background)
         ) {
-            Spacer(Modifier.height(36.dp))
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(236.dp)
+                    .background(
+                        Brush.linearGradient(
+                            listOf(Color(0xFF3B82F6), Accent, Color(0xFF1E3A8A))
+                        )
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "카카오 로그인 후\n운세노트 시작",
-                    color = TextPrimary,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.displayLarge
-                )
-                Text(
-                    text = "내 운세노트와 프리미엄 책자를\n계정별로 안전하게 불러옵니다.",
-                    color = TextSecondary,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-            AppExplanationPanel()
-            WaveArtwork(modifier = Modifier.fillMaxWidth())
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text("로그인하지 않으면 앱을 시작할 수 없어요.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
-                if (!errorMessage.isNullOrBlank()) {
+                Canvas(Modifier.fillMaxSize()) {
+                    drawCircle(Color.White.copy(alpha = 0.10f), radius = size.minDimension * 0.20f, center = Offset(size.width * 0.18f, size.height * 0.26f))
+                    drawCircle(Color.White.copy(alpha = 0.08f), radius = size.minDimension * 0.28f, center = Offset(size.width * 0.86f, size.height * 0.18f))
+                    drawCircle(Color.White.copy(alpha = 0.08f), radius = size.minDimension * 0.34f, center = Offset(size.width * 0.74f, size.height * 0.82f))
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .shadow(8.dp, RoundedCornerShape(16.dp), clip = false)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White.copy(alpha = 0.20f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("7", color = Color.White, style = MaterialTheme.typography.displayMedium)
+                    }
                     Text(
-                        text = errorMessage,
-                        color = Accent,
+                        text = "카카오 로그인 후\n운세노트 시작",
+                        color = Color.White,
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.displayLarge
+                    )
+                    Text(
+                        text = "내 운세노트와 프리미엄 책자를\n계정별로 안전하게 불러옵니다.",
+                        color = Color.White.copy(alpha = 0.78f),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
-                GradientButton(
-                    text = if (isSigningIn) "카카오 로그인 중..." else "카카오로 로그인하고 앱 시작하기",
-                    onClick = onStartWithKakao,
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp, vertical = 18.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                AppExplanationPanel()
+                WaveArtwork(modifier = Modifier.fillMaxWidth())
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isSigningIn
-                )
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("로그인하지 않으면 앱을 시작할 수 없어요.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                    if (!errorMessage.isNullOrBlank()) {
+                        Text(
+                            text = errorMessage,
+                            color = Accent,
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    GradientButton(
+                        text = if (isSigningIn) "카카오 로그인 중..." else "카카오로 로그인하고 앱 시작하기",
+                        onClick = onStartWithKakao,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isSigningIn
+                    )
+                }
             }
         }
     }

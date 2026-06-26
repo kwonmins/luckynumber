@@ -2,6 +2,7 @@ package com.example.unum.presentation
 
 import android.app.Activity
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,9 +43,12 @@ import com.example.unum.ui.components.SurfaceCard
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Border
 import com.example.unum.ui.theme.Rose
+import com.example.unum.ui.theme.Surface
 import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun SettingsScreen(viewModel: AppViewModel) {
@@ -55,11 +65,13 @@ fun SettingsScreen(viewModel: AppViewModel) {
             item { Spacer(Modifier.height(18.dp)) }
             item {
                 AppHeader(
-                    title = "설정",
-                    subtitle = "계정 로그인과 읽기 환경을 관리합니다.",
-                    eyebrow = "MY NOTE"
+                    title = "마이페이지",
+                    subtitle = "프로필 & 설정",
+                    eyebrow = "MY PAGE"
                 )
             }
+            item { MyPageProfileCard(uiState = uiState) }
+            item { MyNumbersCard(uiState = uiState) }
             item {
                 AccountCard(
                     authState = uiState.authState,
@@ -100,6 +112,112 @@ fun SettingsScreen(viewModel: AppViewModel) {
             }
             item { Spacer(Modifier.height(90.dp)) }
         }
+    }
+}
+
+@Composable
+private fun MyPageProfileCard(uiState: AppUiState) {
+    val user = (uiState.authState as? AuthState.SignedIn)?.user
+    val bundle = uiState.latestBundle
+    val birthLabel = bundle?.displayInput?.let {
+        "${it.year}.${it.month}.${it.day} · ${it.gender.label}"
+    } ?: "생년월일 미입력"
+    SurfaceCard(
+        modifier = Modifier.fillMaxWidth(),
+        tonalColor = Color.Transparent,
+        borderColor = Color.Transparent,
+        contentPadding = 0
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.linearGradient(listOf(Accent, Color(0xFF1E40AF))),
+                    RoundedCornerShape(18.dp)
+                )
+                .padding(18.dp)
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .height(48.dp)
+                                .padding(0.dp)
+                                .background(Color.White.copy(alpha = 0.18f), CircleShape)
+                                .padding(12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Rounded.Person, contentDescription = null, tint = Color.White)
+                        }
+                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(user?.displayName ?: "운세노트 사용자", color = Color.White, style = MaterialTheme.typography.titleMedium)
+                            Text(birthLabel, color = Color.White.copy(alpha = 0.74f), style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                    Text(
+                        "프리미엄",
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier
+                            .background(Color.White.copy(alpha = 0.18f), RoundedCornerShape(999.dp))
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    ProfileStat("저장된 리포트", uiState.savedBooks.size.toString())
+                    ProfileStat("이번달 분석", uiState.recentSearches.size.toString())
+                    ProfileStat("연속 방문", "7일")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileStat(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(value, color = Color.White, style = MaterialTheme.typography.titleMedium)
+        Text(label, color = Color.White.copy(alpha = 0.70f), style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun MyNumbersCard(uiState: AppUiState) {
+    val numbers = uiState.latestBundle?.numbers
+    SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface, borderColor = Border, contentPadding = 16) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = Accent)
+                Text("나의 수리 번호", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                NumberTile("핵심수", numbers?.destiny?.toString() ?: "?", Modifier.weight(1f))
+                NumberTile("생애수", numbers?.early?.toString() ?: "?", Modifier.weight(1f))
+                NumberTile("운명수", numbers?.late?.toString() ?: "?", Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun NumberTile(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .background(Surface2, RoundedCornerShape(14.dp))
+            .padding(vertical = 14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(value, color = Accent, style = MaterialTheme.typography.titleLarge)
+        Text(label, color = Accent, style = MaterialTheme.typography.labelMedium)
     }
 }
 

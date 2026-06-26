@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -48,6 +49,8 @@ class AppViewModel : ViewModel() {
     private val generateCompatibilityConsultation = ServiceLocator.generateCompatibilityConsultationUseCase
     private val premiumAccessGate = ServiceLocator.premiumAccessGate
     private val fortuneBookStore = ServiceLocator.fortuneBookStore
+    private val readerSettingsStore = ServiceLocator.readerSettingsStore
+    private val userPreferencesStore = ServiceLocator.userPreferencesStore
     private val authRepository = ServiceLocator.authRepository
     private val userDataRepository = ServiceLocator.userDataRepository
 
@@ -55,10 +58,21 @@ class AppViewModel : ViewModel() {
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
 
     init {
-        fortuneBookStore.saveBooks(emptyList())
-        _uiState.update { it.copy(savedBooks = emptyList(), selectedBookId = null) }
+        val savedBooks = sortBooks(fortuneBookStore.loadBooks())
+        val savedForm = userPreferencesStore.loadBirthFormState()
+        _uiState.update {
+            it.copy(
+                formState = savedForm ?: it.formState,
+                savedBooks = savedBooks,
+                selectedBookId = savedBooks.firstOrNull()?.bookId,
+                notificationsEnabled = userPreferencesStore.loadNotificationsEnabled(),
+                notificationOnboardingSeen = userPreferencesStore.loadNotificationOnboardingSeen(),
+                readerFontScale = readerSettingsStore.loadFontScale()
+            )
+        }
         observeRecentSearches()
         observeAuthState()
+        savedForm?.let(::restoreSavedBirthResult)
     }
 
     private fun observeRecentSearches() {
@@ -123,15 +137,30 @@ class AppViewModel : ViewModel() {
     fun setGender(gender: GenderOption) = updateForm { copy(gender = gender) }
 
     fun setReaderFontScale(scale: ReaderFontScale) {
+        readerSettingsStore.saveFontScale(scale)
         _uiState.update { it.copy(readerFontScale = scale) }
     }
 
     fun setNotificationsEnabled(enabled: Boolean) {
+        userPreferencesStore.saveNotificationsEnabled(enabled)
         _uiState.update { it.copy(notificationsEnabled = enabled) }
     }
 
+    fun completeNotificationOnboarding(enabled: Boolean) {
+        userPreferencesStore.saveNotificationsEnabled(enabled)
+        userPreferencesStore.saveNotificationOnboardingSeen(true)
+        _uiState.update {
+            it.copy(
+                notificationsEnabled = enabled,
+                notificationOnboardingSeen = true
+            )
+        }
+    }
+
     private fun updateForm(block: HomeFormState.() -> HomeFormState) {
-        _uiState.update { current -> current.copy(formState = current.formState.block(), inputError = null) }
+        val nextForm = _uiState.value.formState.block()
+        userPreferencesStore.saveBirthFormState(nextForm)
+        _uiState.update { current -> current.copy(formState = nextForm, inputError = null) }
     }
 
     private fun updateCompatibilityForm(block: CompatibilityFormState.() -> CompatibilityFormState) {
@@ -147,17 +176,29 @@ class AppViewModel : ViewModel() {
         copy(partner = partner.block())
     }
 
+    private fun restoreSavedBirthResult(formState: HomeFormState) {
+        val userBirthInput = NumerologyCalculator.toBirthInput(formState) ?: return
+        viewModelScope.launch {
+            runCatching { buildNumerologyResultBundle(userBirthInput) }
+                .onSuccess { bundle ->
+                    _uiState.update { it.copy(latestBundle = bundle) }
+                }
+        }
+    }
+
     fun calculateAndStore(isInitial: Boolean = false, onSuccess: (() -> Unit)? = null) {
         val userBirthInput = NumerologyCalculator.toBirthInput(_uiState.value.formState)
         if (userBirthInput == null) {
             _uiState.update { it.copy(inputError = "?앸뀈?붿씪???ㅼ떆 ?뺤씤?댁＜?몄슂.") }
             return
         }
+        userPreferencesStore.saveBirthFormState(_uiState.value.formState)
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, inputError = null) }
             runCatching {
                 val bundle = buildNumerologyResultBundle(userBirthInput)
+                delay(900)
                 val genderPrefix = when (userBirthInput.gender) {
                     GenderOption.MALE -> "?⑥꽦 쨌 "
                     GenderOption.FEMALE -> "?ъ꽦 쨌 "
@@ -297,6 +338,7 @@ class AppViewModel : ViewModel() {
     fun updateCompatibilityPartnerDay(value: String) = updateCompatibilityPartner { copy(day = value.filter(Char::isDigit).take(2)) }
 
     fun clearBirthInput() {
+        userPreferencesStore.clearBirthFormState()
         _uiState.update {
             it.copy(
                 formState = HomeFormState(gender = it.formState.gender),

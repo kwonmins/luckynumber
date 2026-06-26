@@ -42,6 +42,7 @@ data class AppUiState(
     val selectedBookId: String? = null,
     val isPremiumLoading: Boolean = false,
     val notificationsEnabled: Boolean = true,
+    val notificationOnboardingSeen: Boolean = false,
     val readerFontScale: ReaderFontScale = ReaderFontScale.MEDIUM,
     val starWallet: StarWallet = StarWallet(),
     val authState: AuthState = AuthState.SignedOut,

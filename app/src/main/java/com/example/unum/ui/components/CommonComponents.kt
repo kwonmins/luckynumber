@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -72,7 +73,6 @@ import com.example.unum.ui.theme.Mint
 import com.example.unum.ui.theme.Overlay
 import com.example.unum.ui.theme.Rose
 import com.example.unum.ui.theme.Surface
-import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.Surface3
 import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
@@ -87,7 +87,11 @@ fun MysticBackground(
     content: @Composable () -> Unit
 ) {
     Box(
-        modifier = modifier.background(Background)
+        modifier = modifier.background(
+            Brush.verticalGradient(
+                listOf(Color.White, Background, Color(0xFFEFF4FB))
+            )
+        )
     ) {
         if (animatedWaves) {
             FortuneWaveField(Modifier.fillMaxSize())
@@ -209,12 +213,19 @@ fun SurfaceCard(
     borderColor: Color = Border,
     content: @Composable () -> Unit
 ) {
+    val cardShape = RoundedCornerShape(16.dp)
     Box(
         modifier = modifier
-            .shadow(2.dp, RoundedCornerShape(8.dp), clip = false)
-            .clip(RoundedCornerShape(8.dp))
+            .shadow(
+                elevation = 4.dp,
+                shape = cardShape,
+                clip = false,
+                ambientColor = Color.Black.copy(alpha = 0.08f),
+                spotColor = Color.Black.copy(alpha = 0.10f)
+            )
+            .clip(cardShape)
             .background(tonalColor)
-            .border(1.dp, borderColor.copy(alpha = 0.96f), RoundedCornerShape(8.dp))
+            .border(1.dp, borderColor, cardShape)
             .padding(contentPadding.dp)
     ) {
         content()
@@ -267,7 +278,7 @@ fun MascotGuideCard(
             Box(
                 modifier = Modifier
                     .size(34.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .background(Accent.copy(alpha = 0.10f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -306,7 +317,7 @@ fun MascotLoadingCard(
 
 @Composable
 fun ToggleSegment(selected: CalendarType, onSelected: (CalendarType) -> Unit, modifier: Modifier = Modifier) {
-    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 4, tonalColor = Surface2, borderColor = Border) {
+    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 4, tonalColor = Surface, borderColor = Border) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TogglePill("양력", selected == CalendarType.SOLAR, Modifier.weight(1f)) { onSelected(CalendarType.SOLAR) }
             TogglePill("음력", selected == CalendarType.LUNAR, Modifier.weight(1f)) { onSelected(CalendarType.LUNAR) }
@@ -323,9 +334,9 @@ private fun RowScope.TogglePill(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(if (selected) Accent else Surface)
-            .border(1.dp, if (selected) Accent else Border, RoundedCornerShape(8.dp))
+            .border(1.dp, if (selected) Accent else Border, RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center
@@ -365,7 +376,7 @@ private fun DateField(
         textStyle = MaterialTheme.typography.bodyLarge.copy(color = TextPrimary),
         placeholder = { Text(placeholder, color = TextMuted, style = MaterialTheme.typography.bodyMedium) },
         singleLine = true,
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = Surface,
             unfocusedContainerColor = Surface,
@@ -381,20 +392,20 @@ private fun DateField(
 
 @Composable
 fun GenderSelector(selected: GenderOption, onSelected: (GenderOption) -> Unit, modifier: Modifier = Modifier) {
-    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 4, tonalColor = Surface2, borderColor = Border) {
+    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 4, tonalColor = Surface, borderColor = Border) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             GenderOption.entries.forEach { option ->
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (selected == option) Accent.copy(alpha = 0.08f) else Surface)
-                        .border(1.dp, if (selected == option) Accent else Border, RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (selected == option) Accent else Surface)
+                        .border(1.dp, if (selected == option) Accent else Border, RoundedCornerShape(12.dp))
                         .clickable { onSelected(option) }
                         .padding(vertical = 12.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(option.label, color = if (selected == option) Accent else TextSecondary, style = MaterialTheme.typography.labelLarge)
+                    Text(option.label, color = if (selected == option) Color.White else TextSecondary, style = MaterialTheme.typography.labelLarge)
                 }
             }
         }
@@ -403,9 +414,17 @@ fun GenderSelector(selected: GenderOption, onSelected: (GenderOption) -> Unit, m
 
 @Composable
 fun GradientButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    val shape = RoundedCornerShape(12.dp)
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .shadow(
+                elevation = if (enabled) 6.dp else 0.dp,
+                shape = shape,
+                clip = false,
+                ambientColor = Accent.copy(alpha = 0.16f),
+                spotColor = Accent.copy(alpha = 0.22f)
+            )
+            .clip(shape)
             .background(if (enabled) Accent else Accent.copy(alpha = 0.32f))
             .clickable(
                 enabled = enabled,
@@ -422,11 +441,12 @@ fun GradientButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
 
 @Composable
 fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(12.dp)
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(shape)
             .background(Surface)
-            .border(1.dp, Border, RoundedCornerShape(8.dp))
+            .border(1.dp, Border, shape)
             .clickable(onClick = onClick)
             .padding(vertical = 15.dp),
         contentAlignment = Alignment.Center
@@ -447,10 +467,20 @@ val bottomNavItems = listOf(
 
 @Composable
 fun BottomNavBar(currentRoute: String, onNavigate: (String) -> Unit, modifier: Modifier = Modifier) {
+    val navShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     NavigationBar(
         modifier = modifier
             .fillMaxWidth()
-            .border(1.dp, Border, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)),
+            .height(72.dp)
+            .shadow(
+                elevation = 10.dp,
+                shape = navShape,
+                clip = false,
+                ambientColor = Color.Black.copy(alpha = 0.08f),
+                spotColor = Color.Black.copy(alpha = 0.10f)
+            )
+            .clip(navShape)
+            .border(1.dp, Border, navShape),
         containerColor = Overlay,
         tonalElevation = 0.dp
     ) {
@@ -519,9 +549,9 @@ fun KeywordPills(items: List<String>, modifier: Modifier = Modifier) {
 fun NumberPill(label: String, value: String, accent: Color = Accent, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(14.dp))
             .background(Surface)
-            .border(1.dp, accent.copy(alpha = 0.24f), RoundedCornerShape(8.dp))
+            .border(1.dp, accent.copy(alpha = 0.24f), RoundedCornerShape(14.dp))
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {

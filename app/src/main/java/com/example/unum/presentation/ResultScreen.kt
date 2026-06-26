@@ -138,9 +138,9 @@ private fun ResultNumberCard(bundle: NumerologyResultBundle, onOpenFlow: () -> U
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .background(Accent.copy(alpha = 0.06f))
-                    .border(1.dp, Accent.copy(alpha = 0.18f), RoundedCornerShape(8.dp))
+                    .border(1.dp, Accent.copy(alpha = 0.18f), RoundedCornerShape(12.dp))
                     .padding(13.dp)
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -177,9 +177,9 @@ private fun ResultInfoBox(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(color.copy(alpha = 0.06f))
-            .border(1.dp, color.copy(alpha = 0.18f), RoundedCornerShape(8.dp))
+            .border(1.dp, color.copy(alpha = 0.18f), RoundedCornerShape(12.dp))
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(7.dp)
     ) {

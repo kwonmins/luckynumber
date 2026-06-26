@@ -79,7 +79,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.unum.data.model.BookSpecs
 import com.example.unum.data.model.BookThemeId
+import com.example.unum.data.model.BookThemeSpecs
 import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.CompatibilityRelationshipStatus
 import com.example.unum.data.model.FortuneBook
@@ -115,9 +117,9 @@ import kotlinx.coroutines.delay
 fun PremiumScreen(
     viewModel: AppViewModel,
     onRequestPersonalConsultation: () -> Unit,
-    onRequestCompatibilityConsultation: () -> Unit,
     onOpenBook: (FortuneBook) -> Unit,
-    onOpenLibrary: () -> Unit
+    onOpenLibrary: () -> Unit,
+    onOpenPayment: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val shareBook = rememberFortuneBookShareHandler()
@@ -186,12 +188,7 @@ fun PremiumScreen(
                 PremiumFormScreen(
                     uiState = uiState,
                     viewModel = viewModel,
-                    onStart = {
-                        when (uiState.premiumMode) {
-                            PremiumMode.PERSONAL -> viewModel.preparePremiumQuestionConfirmation()
-                            PremiumMode.COMPATIBILITY -> onRequestCompatibilityConsultation()
-                        }
-                    }
+                    onOpenPayment = onOpenPayment
                 )
             }
             PremiumFlowStep.CONFIRM_QUESTION -> QuestionConfirmScreen(
@@ -253,7 +250,7 @@ fun PremiumScreen(
 private fun PremiumFormScreen(
     uiState: AppUiState,
     viewModel: AppViewModel,
-    onStart: () -> Unit
+    onOpenPayment: () -> Unit
 ) {
     val isCompatibility = uiState.premiumMode == PremiumMode.COMPATIBILITY
     val partner = uiState.compatibilityForm.partner
@@ -312,7 +309,7 @@ private fun PremiumFormScreen(
         uiState.inputError?.let { Text(it, color = Rose, style = MaterialTheme.typography.bodySmall) }
         GradientButton(
             text = if (isCompatibility) "궁합노트 제작하기" else "프리미엄 맞춤 비책 제작하기",
-            onClick = onStart,
+            onClick = onOpenPayment,
             modifier = Modifier.fillMaxWidth(),
             enabled = canStart
         )
@@ -361,9 +358,9 @@ private fun PremiumModePill(
                 scaleX = scale
                 scaleY = scale
             }
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(if (selected) Accent.copy(alpha = 0.16f) else Surface)
-            .border(1.dp, if (selected) Accent.copy(alpha = 0.74f) else Border, RoundedCornerShape(8.dp))
+            .border(1.dp, if (selected) Accent.copy(alpha = 0.74f) else Border, RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 11.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -1621,153 +1618,29 @@ private data class BookIdentityTheme(
 )
 
 private fun bookIdentityFor(book: FortuneBook?): BookIdentityTheme {
-    return when (book?.resolvedThemeId() ?: BookThemeId.ROMANCE) {
-        BookThemeId.CAREER -> BookIdentityTheme(
-            shortName = "일과 방향",
-            caption = "PREMIUM CAREER NOTE",
-            accent = Color(0xFF2563EB),
-            accentDeep = Color(0xFF1E3A8A),
-            ribbon = Color(0xFF2563EB),
-            foil = Color(0xFFF7D56A),
-            stitch = Color(0xFFFDE68A),
-            coverTop = Color(0xFF222633),
-            coverMid = Color(0xFF10131B),
-            coverBottom = Color(0xFF05070C),
-            tint = Color(0xFFEFF6FF),
-            page = Color(0xFFFFFDF8),
-            pageTop = Color(0xFFFFFAF1),
-            edge = Color(0xFFE6DAC9)
-        )
-        BookThemeId.MONEY -> BookIdentityTheme(
-            shortName = "돈의 흐름",
-            caption = "PREMIUM MONEY NOTE",
-            accent = Color(0xFF059669),
-            accentDeep = Color(0xFF065F46),
-            ribbon = Color(0xFF10B981),
-            foil = Color(0xFFF7D56A),
-            stitch = Color(0xFFFDE68A),
-            coverTop = Color(0xFF1F5B4C),
-            coverMid = Color(0xFF0E332C),
-            coverBottom = Color(0xFF061C18),
-            tint = Color(0xFFECFDF5),
-            page = Color(0xFFFFFDF8),
-            pageTop = Color(0xFFFFFAF1),
-            edge = Color(0xFFE6DAC9)
-        )
-        BookThemeId.RELATIONSHIP -> BookIdentityTheme(
-            shortName = "관계 패턴",
-            caption = "PREMIUM RELATION NOTE",
-            accent = Color(0xFFA16207),
-            accentDeep = Color(0xFF713F12),
-            ribbon = Color(0xFFF59E0B),
-            foil = Color(0xFFF8E3A3),
-            stitch = Color(0xFFF8E3B0),
-            coverTop = Color(0xFF9C5D32),
-            coverMid = Color(0xFF673719),
-            coverBottom = Color(0xFF30170C),
-            tint = Color(0xFFFFF7ED),
-            page = Color(0xFFFFFDF8),
-            pageTop = Color(0xFFFFFAF1),
-            edge = Color(0xFFE6DAC9)
-        )
-        BookThemeId.SELF_ESTEEM -> BookIdentityTheme(
-            shortName = "자기 기준",
-            caption = "PREMIUM SELF NOTE",
-            accent = Color(0xFF7C3AED),
-            accentDeep = Color(0xFF4C1D95),
-            ribbon = Color(0xFF7C3AED),
-            foil = Color(0xFFF7D56A),
-            stitch = Color(0xFFFDE68A),
-            coverTop = Color(0xFF171A2A),
-            coverMid = Color(0xFF101225),
-            coverBottom = Color(0xFF070813),
-            tint = Color(0xFFF5F3FF),
-            page = Color(0xFFFFFDF8),
-            pageTop = Color(0xFFFFFAF1),
-            edge = Color(0xFFE6DAC9)
-        )
-        BookThemeId.COMPATIBILITY_COUPLE -> BookIdentityTheme(
-            shortName = "커플 운세노트",
-            caption = "PREMIUM COUPLE NOTE",
-            accent = Color(0xFF0F8A8A),
-            accentDeep = Color(0xFF075E5F),
-            ribbon = Color(0xFFF0B94F),
-            foil = Color(0xFF8EE7D6),
-            stitch = Color(0xFFB6F4E8),
-            coverTop = Color(0xFF075E5F),
-            coverMid = Color(0xFF044043),
-            coverBottom = Color(0xFF011E22),
-            tint = Color(0xFFF0FDFA),
-            page = Color(0xFFFFF7FB),
-            pageTop = Color(0xFFFFECF5),
-            edge = Color(0xFFE8CAD8)
-        )
-        BookThemeId.COMPATIBILITY_CRUSH -> BookIdentityTheme(
-            shortName = "짝사랑 운세노트",
-            caption = "PREMIUM CRUSH NOTE",
-            accent = Color(0xFF7C6DE8),
-            accentDeep = Color(0xFF4338CA),
-            ribbon = Color(0xFFA78BFA),
-            foil = Color(0xFFC4B5FD),
-            stitch = Color(0xFFE9D5FF),
-            coverTop = Color(0xFF26305F),
-            coverMid = Color(0xFF151B3C),
-            coverBottom = Color(0xFF080B1E),
-            tint = Color(0xFFF5F3FF),
-            page = Color(0xFFFFF7FB),
-            pageTop = Color(0xFFFFECF5),
-            edge = Color(0xFFE8CAD8)
-        )
-        BookThemeId.COMPATIBILITY_REUNION -> BookIdentityTheme(
-            shortName = "재회 운세노트",
-            caption = "PREMIUM REUNION NOTE",
-            accent = Color(0xFFC46A2A),
-            accentDeep = Color(0xFF7C2D12),
-            ribbon = Color(0xFFF59E0B),
-            foil = Color(0xFFFDBA74),
-            stitch = Color(0xFFFED7AA),
-            coverTop = Color(0xFF7A321A),
-            coverMid = Color(0xFF431508),
-            coverBottom = Color(0xFF190602),
-            tint = Color(0xFFFFF4E8),
-            page = Color(0xFFFFF7FB),
-            pageTop = Color(0xFFFFECF5),
-            edge = Color(0xFFE8CAD8)
-        )
-        BookThemeId.COMPATIBILITY -> BookIdentityTheme(
-            shortName = "궁합노트",
-            caption = "PREMIUM MATCH NOTE",
-            accent = Color(0xFFB85AC7),
-            accentDeep = Color(0xFF7E2E84),
-            ribbon = Color(0xFF5EEAD4),
-            foil = Color(0xFFF0ABFC),
-            stitch = Color(0xFFF5D0FE),
-            coverTop = Color(0xFF4A1B4E),
-            coverMid = Color(0xFF2B0F35),
-            coverBottom = Color(0xFF100517),
-            tint = Color(0xFFFDF2F8),
-            page = Color(0xFFFFF7FB),
-            pageTop = Color(0xFFFFECF5),
-            edge = Color(0xFFE8CAD8)
-        )
-        BookThemeId.ROMANCE,
-        BookThemeId.CALM -> BookIdentityTheme(
-            shortName = "연애 운세",
-            caption = "PREMIUM ROMANCE NOTE",
-            accent = Color(0xFFDC2626),
-            accentDeep = Color(0xFF991B1B),
-            ribbon = Color(0xFFB91C1C),
-            foil = Color(0xFFF7D56A),
-            stitch = Color(0xFFFDE68A),
-            coverTop = Color(0xFF222633),
-            coverMid = Color(0xFF10131B),
-            coverBottom = Color(0xFF05070C),
-            tint = Color(0xFFFFF1F2),
-            page = Color(0xFFFFFDF8),
-            pageTop = Color(0xFFFFFAF1),
-            edge = Color(0xFFE6DAC9)
-        )
-    }
+    val themeId = book?.resolvedThemeId() ?: BookThemeId.ROMANCE
+    val theme = BookThemeSpecs.get(themeId)
+    val spec = book?.let(BookSpecs::forBook) ?: BookSpecs.forTheme(themeId)
+    return BookIdentityTheme(
+        shortName = theme.displayName,
+        caption = spec?.coverKicker ?: "PREMIUM FORTUNE NOTE",
+        accent = theme.readerAccentColor.toComposeColor(),
+        accentDeep = theme.readerAccentDeepColor.toComposeColor(),
+        ribbon = theme.pdfRibbonColor.toComposeColor(),
+        foil = theme.pdfFoilColor.toComposeColor(),
+        stitch = theme.readerStitchColor.toComposeColor(),
+        coverTop = theme.readerCoverTopColor.toComposeColor(),
+        coverMid = theme.readerCoverMidColor.toComposeColor(),
+        coverBottom = theme.readerCoverBottomColor.toComposeColor(),
+        tint = theme.readerTintColor.toComposeColor(),
+        page = theme.readerPageColor.toComposeColor(),
+        pageTop = theme.readerPageTopColor.toComposeColor(),
+        edge = theme.readerEdgeColor.toComposeColor()
+    )
 }
+
+private fun Long.toComposeColor(): Color = Color(this)
+
+private fun Int.toComposeColor(): Color = Color(toLong() and 0xFFFFFFFF)
 
 private fun PremiumTopic.bookLabel(): String = FeatureSpecs.planFor(this).bookLabel

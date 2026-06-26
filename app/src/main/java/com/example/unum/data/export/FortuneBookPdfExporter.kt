@@ -16,7 +16,9 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import com.example.unum.R
+import com.example.unum.data.model.BookSpecs
 import com.example.unum.data.model.BookThemeId
+import com.example.unum.data.model.BookThemeSpecs
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.data.model.FortuneBookType
 import com.example.unum.data.model.resolvedThemeId
@@ -106,13 +108,8 @@ object FortuneBookPdfExporter {
 
     private fun FortuneBook.pdfTitle(): String =
         coverTitle.takeUnless { it.isBlank() || it.looksBrokenKorean() }
-            ?: when (resolvedThemeId()) {
-                BookThemeId.COMPATIBILITY_COUPLE -> "커플 운세노트"
-                BookThemeId.COMPATIBILITY_CRUSH -> "짝사랑 운세노트"
-                BookThemeId.COMPATIBILITY_REUNION -> "재회 운세노트"
-                BookThemeId.COMPATIBILITY -> "궁합 운세노트"
-                else -> "프리미엄 운세노트"
-            }
+            ?: BookSpecs.forTheme(resolvedThemeId())?.coverTitle
+            ?: if (bookType == FortuneBookType.COMPATIBILITY) "궁합 운세노트" else "프리미엄 운세노트"
 
     private fun String.looksBrokenKorean(): Boolean =
         contains("??") || contains("쨌") || contains("?댁") || contains("沅곹") || contains("吏")
@@ -159,155 +156,50 @@ object FortuneBookPdfExporter {
         HanjiReport
     }
 
-    private fun FortuneBook.pdfTheme(): PdfTheme = when (resolvedThemeId()) {
-        BookThemeId.CAREER -> leatherTheme(
-            shortName = "일과 방향",
-            kicker = "PREMIUM CAREER NOTE",
-            title = "일과 진로 운세노트",
-            accent = 0xFF2563EB.toInt(),
-            accentDark = 0xFF1E3A8A.toInt(),
-            ribbon = 0xFF2563EB.toInt(),
-            foil = 0xFFF7D56A.toInt(),
-            stitch = 0xFFFDE68A.toInt(),
-            coverTop = 0xFF222633.toInt(),
-            coverMid = 0xFF10131B.toInt(),
-            coverBottom = 0xFF05070C.toInt(),
-            tint = 0xFFEFF6FF.toInt(),
-            imageResId = R.drawable.suri_anim_writer_hero
+    private fun FortuneBook.pdfTheme(): PdfTheme {
+        val themeId = resolvedThemeId()
+        val theme = BookThemeSpecs.get(themeId)
+        val spec = BookSpecs.forBook(this)
+        return leatherTheme(
+            shortName = theme.displayName,
+            kicker = spec.coverKicker,
+            title = pdfCoverTitle(spec.coverTitle),
+            accent = theme.pdfAccentColor,
+            accentDark = theme.pdfAccentDarkColor,
+            ribbon = theme.pdfRibbonColor,
+            foil = theme.pdfFoilColor,
+            stitch = theme.pdfStitchColor,
+            coverTop = theme.pdfCoverTopColor,
+            coverMid = theme.pdfCoverMidColor,
+            coverBottom = theme.pdfCoverBottomColor,
+            tint = theme.pdfTintColor,
+            imageResId = pdfImageRes(themeId),
+            page = theme.pdfPageColor,
+            pageTop = theme.pdfPageTopColor,
+            edge = theme.pdfEdgeColor
         )
-        BookThemeId.MONEY -> leatherTheme(
-            shortName = "돈의 흐름",
-            kicker = "PREMIUM MONEY NOTE",
-            title = "돈 운세노트",
-            accent = 0xFF059669.toInt(),
-            accentDark = 0xFF065F46.toInt(),
-            ribbon = 0xFF10B981.toInt(),
-            foil = 0xFFF7D56A.toInt(),
-            stitch = 0xFFFDE68A.toInt(),
-            coverTop = 0xFF1F5B4C.toInt(),
-            coverMid = 0xFF0E332C.toInt(),
-            coverBottom = 0xFF061C18.toInt(),
-            tint = 0xFFECFDF5.toInt(),
-            imageResId = R.drawable.suri_reader_money_cutout
-        )
-        BookThemeId.RELATIONSHIP -> leatherTheme(
-            shortName = "관계 패턴",
-            kicker = "PREMIUM RELATION NOTE",
-            title = "인간관계 운세노트",
-            accent = 0xFFA16207.toInt(),
-            accentDark = 0xFF713F12.toInt(),
-            ribbon = 0xFFF59E0B.toInt(),
-            foil = 0xFFF8E3A3.toInt(),
-            stitch = 0xFFF8E3B0.toInt(),
-            coverTop = 0xFF9C5D32.toInt(),
-            coverMid = 0xFF673719.toInt(),
-            coverBottom = 0xFF30170C.toInt(),
-            tint = 0xFFFFF7ED.toInt(),
-            imageResId = R.drawable.suri_anim_consult_01
-        )
-        BookThemeId.SELF_ESTEEM -> leatherTheme(
-            shortName = "자기 기준",
-            kicker = "PREMIUM SELF NOTE",
-            title = "나 자신 운세노트",
-            accent = 0xFF7C3AED.toInt(),
-            accentDark = 0xFF4C1D95.toInt(),
-            ribbon = 0xFF7C3AED.toInt(),
-            foil = 0xFFF7D56A.toInt(),
-            stitch = 0xFFFDE68A.toInt(),
-            coverTop = 0xFF171A2A.toInt(),
-            coverMid = 0xFF101225.toInt(),
-            coverBottom = 0xFF070813.toInt(),
-            tint = 0xFFF5F3FF.toInt(),
-            imageResId = R.drawable.suri_anim_numbers_hero
-        )
-        BookThemeId.COMPATIBILITY_COUPLE -> leatherTheme(
-            shortName = "커플 운세노트",
-            kicker = "PREMIUM COUPLE NOTE",
-            title = "커플 운세노트",
-            accent = 0xFF0F8A8A.toInt(),
-            accentDark = 0xFF075E5F.toInt(),
-            ribbon = 0xFFF0B94F.toInt(),
-            foil = 0xFF8EE7D6.toInt(),
-            stitch = 0xFFB6F4E8.toInt(),
-            coverTop = 0xFF075E5F.toInt(),
-            coverMid = 0xFF044043.toInt(),
-            coverBottom = 0xFF011E22.toInt(),
-            tint = 0xFFF0FDFA.toInt(),
-            imageResId = R.drawable.suri_reader_compatibility,
-            page = 0xFFFFF7FB.toInt(),
-            pageTop = 0xFFFFECF5.toInt(),
-            edge = 0xFFE8CAD8.toInt()
-        )
-        BookThemeId.COMPATIBILITY_CRUSH -> leatherTheme(
-            shortName = "짝사랑 운세노트",
-            kicker = "PREMIUM CRUSH NOTE",
-            title = "짝사랑 운세노트",
-            accent = 0xFF7C6DE8.toInt(),
-            accentDark = 0xFF4338CA.toInt(),
-            ribbon = 0xFFA78BFA.toInt(),
-            foil = 0xFFC4B5FD.toInt(),
-            stitch = 0xFFE9D5FF.toInt(),
-            coverTop = 0xFF26305F.toInt(),
-            coverMid = 0xFF151B3C.toInt(),
-            coverBottom = 0xFF080B1E.toInt(),
-            tint = 0xFFF5F3FF.toInt(),
-            imageResId = R.drawable.suri_reader_compatibility,
-            page = 0xFFFFF7FB.toInt(),
-            pageTop = 0xFFFFECF5.toInt(),
-            edge = 0xFFE8CAD8.toInt()
-        )
-        BookThemeId.COMPATIBILITY_REUNION -> leatherTheme(
-            shortName = "재회 운세노트",
-            kicker = "PREMIUM REUNION NOTE",
-            title = "재회 운세노트",
-            accent = 0xFFC46A2A.toInt(),
-            accentDark = 0xFF7C2D12.toInt(),
-            ribbon = 0xFFF59E0B.toInt(),
-            foil = 0xFFFDBA74.toInt(),
-            stitch = 0xFFFED7AA.toInt(),
-            coverTop = 0xFF7A321A.toInt(),
-            coverMid = 0xFF431508.toInt(),
-            coverBottom = 0xFF190602.toInt(),
-            tint = 0xFFFFF4E8.toInt(),
-            imageResId = R.drawable.suri_reader_compatibility,
-            page = 0xFFFFF7FB.toInt(),
-            pageTop = 0xFFFFECF5.toInt(),
-            edge = 0xFFE8CAD8.toInt()
-        )
-        BookThemeId.COMPATIBILITY -> leatherTheme(
-            shortName = "궁합노트",
-            kicker = "PREMIUM MATCH NOTE",
-            title = "궁합 운세노트",
-            accent = 0xFFB85AC7.toInt(),
-            accentDark = 0xFF7E2E84.toInt(),
-            ribbon = 0xFF5EEAD4.toInt(),
-            foil = 0xFFF0ABFC.toInt(),
-            stitch = 0xFFF5D0FE.toInt(),
-            coverTop = 0xFF4A1B4E.toInt(),
-            coverMid = 0xFF2B0F35.toInt(),
-            coverBottom = 0xFF100517.toInt(),
-            tint = 0xFFFDF2F8.toInt(),
-            imageResId = R.drawable.suri_reader_compatibility,
-            page = 0xFFFFF7FB.toInt(),
-            pageTop = 0xFFFFECF5.toInt(),
-            edge = 0xFFE8CAD8.toInt()
-        )
+    }
+
+    private fun FortuneBook.pdfCoverTitle(defaultTitle: String): String {
+        val themeId = resolvedThemeId()
+        return if (themeId == BookThemeId.ROMANCE || themeId == BookThemeId.CALM) {
+            coverTitle.takeUnless { it.looksBrokenKorean() }.orEmpty().ifBlank { defaultTitle }
+        } else {
+            defaultTitle
+        }
+    }
+
+    private fun pdfImageRes(themeId: BookThemeId): Int = when (themeId) {
+        BookThemeId.CAREER -> R.drawable.suri_anim_writer_hero
+        BookThemeId.MONEY -> R.drawable.suri_reader_money_cutout
+        BookThemeId.RELATIONSHIP -> R.drawable.suri_anim_consult_01
+        BookThemeId.SELF_ESTEEM -> R.drawable.suri_anim_numbers_hero
+        BookThemeId.COMPATIBILITY,
+        BookThemeId.COMPATIBILITY_COUPLE,
+        BookThemeId.COMPATIBILITY_CRUSH,
+        BookThemeId.COMPATIBILITY_REUNION -> R.drawable.suri_reader_compatibility
         BookThemeId.ROMANCE,
-        BookThemeId.CALM -> leatherTheme(
-            shortName = "연애 운세",
-            kicker = "PREMIUM ROMANCE NOTE",
-            title = coverTitle.takeUnless { it.looksBrokenKorean() }.orEmpty().ifBlank { "연애 운세노트" },
-            accent = 0xFFDC2626.toInt(),
-            accentDark = 0xFF991B1B.toInt(),
-            ribbon = 0xFFB91C1C.toInt(),
-            foil = 0xFFF7D56A.toInt(),
-            stitch = 0xFFFDE68A.toInt(),
-            coverTop = 0xFF222633.toInt(),
-            coverMid = 0xFF10131B.toInt(),
-            coverBottom = 0xFF05070C.toInt(),
-            tint = 0xFFFFF1F2.toInt(),
-            imageResId = R.drawable.suri_reader_romance
-        )
+        BookThemeId.CALM -> R.drawable.suri_reader_romance
     }
 
     private fun leatherTheme(

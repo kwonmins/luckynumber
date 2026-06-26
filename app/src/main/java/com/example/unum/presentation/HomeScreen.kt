@@ -188,11 +188,22 @@ private fun TodayNumberCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(26.dp))
-            .background(Color(0xFFF8FBFF))
-            .border(1.dp, Color(0xFFDCE6F3), RoundedCornerShape(26.dp))
+            .shadow(if (bundle == null) 3.dp else 10.dp, RoundedCornerShape(18.dp), clip = false)
+            .clip(RoundedCornerShape(18.dp))
+            .background(
+                if (bundle == null) {
+                    Brush.verticalGradient(listOf(Surface, Color(0xFFF8FBFF)))
+                } else {
+                    Brush.linearGradient(listOf(Accent, Color(0xFF1E40AF)))
+                }
+            )
+            .border(
+                1.dp,
+                if (bundle == null) Border else Color.White.copy(alpha = 0.12f),
+                RoundedCornerShape(18.dp)
+            )
             .then(if (bundle == null) Modifier.clickable(onClick = onOpenInput) else Modifier)
-            .padding(24.dp)
+            .padding(18.dp)
     ) {
         Canvas(Modifier.fillMaxSize()) {
             drawCircle(
@@ -215,21 +226,29 @@ private fun TodayNumberCard(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text("TODAY NUMBER", color = Accent, style = MaterialTheme.typography.labelLarge)
+                    Text(
+                        "TODAY NUMBER",
+                        color = if (bundle == null) Accent else Color.White.copy(alpha = 0.72f),
+                        style = MaterialTheme.typography.labelLarge
+                    )
                     Text(
                         if (bundle == null) "입력이 필요해요" else "오늘의 핵심수",
-                        color = TextPrimary,
+                        color = if (bundle == null) TextPrimary else Color.White,
                         style = MaterialTheme.typography.displayLarge
                     )
                     Text(
                         if (bundle == null) "매일 바뀌는 리딩 준비" else dailyCoreTitle(todayNumber ?: 1),
-                        color = TextSecondary,
+                        color = if (bundle == null) TextSecondary else Color.White.copy(alpha = 0.78f),
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
-                NumberMedallion(number = todayNumber)
+                NumberMedallion(number = todayNumber, onDark = bundle != null)
             }
-            Text(summary, color = TextSecondary, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                summary,
+                color = if (bundle == null) TextSecondary else Color.White.copy(alpha = 0.86f),
+                style = MaterialTheme.typography.bodyLarge
+            )
             if (bundle == null) {
                 Text("생년월일 입력하기", color = Accent, style = MaterialTheme.typography.labelLarge)
             }
@@ -238,16 +257,16 @@ private fun TodayNumberCard(
 }
 
 @Composable
-private fun NumberMedallion(number: Int?) {
+private fun NumberMedallion(number: Int?, onDark: Boolean = false) {
     Box(
         modifier = Modifier
-            .size(92.dp)
+            .size(76.dp)
             .clip(CircleShape)
-            .background(Accent.copy(alpha = 0.08f))
-            .border(1.dp, Accent.copy(alpha = 0.22f), CircleShape),
+            .background(if (onDark) Color.White.copy(alpha = 0.18f) else Accent.copy(alpha = 0.08f))
+            .border(1.dp, if (onDark) Color.White.copy(alpha = 0.24f) else Accent.copy(alpha = 0.22f), CircleShape),
         contentAlignment = Alignment.Center
     ) {
-        Text(number?.toString() ?: "?", color = Accent, style = MaterialTheme.typography.displayLarge)
+        Text(number?.toString() ?: "?", color = if (onDark) Color.White else Accent, style = MaterialTheme.typography.displayLarge)
     }
 }
 

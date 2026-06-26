@@ -149,9 +149,9 @@ private fun ChecklistRow(text: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(Surface)
-            .border(1.dp, Border, RoundedCornerShape(8.dp))
+            .border(1.dp, Border, RoundedCornerShape(12.dp))
             .padding(13.dp),
         horizontalArrangement = Arrangement.spacedBy(11.dp),
         verticalAlignment = Alignment.CenterVertically

@@ -28,7 +28,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.ui.components.DateInputRow
 import com.example.unum.ui.components.GenderSelector
 import com.example.unum.ui.components.GradientButton
-import com.example.unum.ui.components.MascotLoadingCard
 import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.components.SectionCaption
 import com.example.unum.ui.components.SurfaceCard
@@ -48,6 +47,11 @@ fun InputScreen(
     onBack: () -> Unit = {}
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+
+    if (uiState.isLoading) {
+        AnalysisLoadingScreen(formState = uiState.formState)
+        return
+    }
 
     MysticBackground(modifier = Modifier.fillMaxSize(), animatedWaves = true) {
         LazyColumn(
@@ -106,9 +110,9 @@ fun InputScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
+                                .clip(RoundedCornerShape(12.dp))
                                 .background(Surface2)
-                                .border(1.dp, Border, RoundedCornerShape(8.dp))
+                                .border(1.dp, Border, RoundedCornerShape(12.dp))
                                 .padding(12.dp)
                         ) {
                             Text("입력하신 정보는 결과 계산과 운세노트 구성에만 사용됩니다.", color = TextMuted, style = MaterialTheme.typography.bodySmall)
@@ -116,15 +120,11 @@ fun InputScreen(
                         uiState.inputError?.let {
                             Text(it, color = Rose, style = MaterialTheme.typography.bodySmall)
                         }
-                        if (uiState.isLoading) {
-                            MascotLoadingCard("수리가 숫자 리포트를 정리하고 있어요")
-                        } else {
-                            GradientButton(
-                                text = "다음",
-                                onClick = { viewModel.calculateAndStore(onSuccess = onCalculated) },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
+                        GradientButton(
+                            text = "다음",
+                            onClick = { viewModel.calculateAndStore(onSuccess = onCalculated) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }

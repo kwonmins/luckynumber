@@ -136,7 +136,7 @@ private fun FlowTabs(selectedStage: Int, onSelect: (Int) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(Surface2)
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -146,7 +146,7 @@ private fun FlowTabs(selectedStage: Int, onSelect: (Int) -> Unit) {
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(10.dp))
                     .background(if (selected) Accent else Surface2)
                     .clickable { onSelect(index) }
                     .padding(vertical = 10.dp),
