@@ -193,8 +193,7 @@ data class ConsultationPage(
     val ribbon: String = "",
     val title: String = "",
     val highlight: String = "",
-    val body: List<String> = emptyList(),
-    val copyText: String = ""
+    val body: List<String> = emptyList()
 )
 
 enum class FortuneBookType(val label: String) {

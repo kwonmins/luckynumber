@@ -30,9 +30,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.Bookmarks
-import androidx.compose.material.icons.rounded.EditCalendar
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Insights
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -440,18 +440,18 @@ fun GradientButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
 }
 
 @Composable
-fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val shape = RoundedCornerShape(12.dp)
     Box(
         modifier = modifier
             .clip(shape)
             .background(Surface)
             .border(1.dp, Border, shape)
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
             .padding(vertical = 15.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = TextPrimary, style = MaterialTheme.typography.labelLarge)
+        Text(text, color = if (enabled) TextPrimary else TextMuted, style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -459,10 +459,10 @@ data class BottomNavItem(val route: String, val label: String, val icon: ImageVe
 
 val bottomNavItems = listOf(
     BottomNavItem("home", "홈", Icons.Rounded.Home),
-    BottomNavItem("input", "입력", Icons.Rounded.EditCalendar),
-    BottomNavItem("fortune", "결과", Icons.Rounded.Insights),
-    BottomNavItem("premium", "책자", Icons.Rounded.AutoStories),
-    BottomNavItem("library", "기록", Icons.Rounded.Bookmarks)
+    BottomNavItem("fortune", "오늘운세", Icons.Rounded.Insights),
+    BottomNavItem("library", "보관함", Icons.Rounded.Bookmarks),
+    BottomNavItem("premium", "프리미엄", Icons.Rounded.AutoStories),
+    BottomNavItem("settings", "설정", Icons.Rounded.Settings)
 )
 
 @Composable
@@ -523,6 +523,43 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun SectionCaption(text: String, modifier: Modifier = Modifier) {
     Text(text, modifier = modifier, style = MaterialTheme.typography.bodySmall, color = TextMuted)
+}
+
+@Composable
+fun EmptyStateView(
+    title: String,
+    description: String,
+    actionText: String,
+    onActionClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null
+) {
+    SurfaceCard(
+        modifier = modifier.fillMaxWidth(),
+        tonalColor = Surface,
+        borderColor = Border,
+        contentPadding = 22
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            icon?.let {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(Accent.copy(alpha = 0.10f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(it, contentDescription = null, tint = Accent, modifier = Modifier.size(28.dp))
+                }
+            }
+            Text(title, color = TextPrimary, style = MaterialTheme.typography.titleLarge)
+            Text(description, color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+            GradientButton(actionText, onActionClick, Modifier.fillMaxWidth())
+        }
+    }
 }
 
 @Composable

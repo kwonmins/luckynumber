@@ -101,7 +101,7 @@ class GenerateCompatibilityConsultationUseCase(
         val femaleInput = femaleBundle.displayInput
         val statusRule = when (relationshipStatus) {
             CompatibilityRelationshipStatus.COUPLE ->
-                "They are already a couple. Focus on warmth, friction repair, communication, routines, and next-step actions."
+                "They are already a couple. Focus on warmth, friction repair, communication tone, and emotional rhythm."
             CompatibilityRelationshipStatus.CRUSH ->
                 "This is a crush/unrequited-love reading. Focus on attraction signals, safe distance, how to approach, when to express feelings, and how to handle rejection without pressuring the other person."
             CompatibilityRelationshipStatus.REUNION ->
@@ -115,8 +115,10 @@ class GenerateCompatibilityConsultationUseCase(
             Relationship status rule: $statusRule
             Style: polite Korean, concrete relationship scenes, no long individual trait recap, no good/bad verdict, no system-name terms, no "선생님", no code block.
             Rules: one message per page; each highlight is one clear sentence; each body has 2 short paragraphs; avoid repeated phrasing. Use the given month values and do not explain calculations.
+            Do not write task lists or "what to do today" advice. Avoid notebook, memo, journaling, recording, checklist, routine-building, "write it down", "try this today", "this week", or "within a month" instructions.
+            Do not create copy-ready/share-ready sections. Avoid labels or phrases like "복사하면 좋은 문장", "기억할 문장", "공유하기 좋은 문장", or "상대에게 보내기 좋은 말".
             Return only valid JSON:
-            {"coverTitle":"","coverSubtitle":"","bestMonth":"$bestMonth","bestMonthReason":"","riskyMonth":"$riskyMonth","riskyMonthReason":"","answerCard":{"question":"","shortAnswer":"","body":["",""]},"toc":[{"id":"attraction","title":""},{"id":"friction","title":""},{"id":"view","title":""},{"id":"action","title":""}],"pages":[{"id":"attraction","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"friction","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"view","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"action","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""}],"closingAdvice":""}
+            {"coverTitle":"","coverSubtitle":"","bestMonth":"$bestMonth","bestMonthReason":"","riskyMonth":"$riskyMonth","riskyMonthReason":"","answerCard":{"question":"","shortAnswer":"","body":["",""]},"toc":[{"id":"attraction","title":""},{"id":"friction","title":""},{"id":"view","title":""},{"id":"action","title":""}],"pages":[{"id":"attraction","ribbon":"","title":"","highlight":"","body":["",""]},{"id":"friction","ribbon":"","title":"","highlight":"","body":["",""]},{"id":"view","ribbon":"","title":"","highlight":"","body":["",""]},{"id":"action","ribbon":"","title":"","highlight":"","body":["",""]}],"closingAdvice":""}
         """.trimIndent()
     }
 
@@ -175,6 +177,7 @@ class GenerateCompatibilityConsultationUseCase(
             - 계산식, 내부 숫자 구조, 초년/중년/말년 같은 표현은 절대 쓰지 마세요.
             - 사주, 타로, 점괘, 괘 같은 단어는 쓰지 마세요.
             - 좋다/나쁘다로 단정하지 말고 “이런 흐름이 강하다”, “이 부분은 조율이 필요하다”처럼 표현하세요.
+            - "복사하면 좋은 문장", "기억할 문장", "공유하기 좋은 문장", "상대에게 보내기 좋은 말" 같은 복사용 문장 섹션은 만들지 마세요.
 
             [페이지별 역할]
             1. answer
@@ -243,32 +246,28 @@ class GenerateCompatibilityConsultationUseCase(
                   "ribbon": "서로 끌리는 이유",
                   "title": "맞닿는 지점",
                   "highlight": "",
-                  "body": ["", ""],
-                  "copyText": ""
+                  "body": ["", ""]
                 },
                 {
                   "id": "friction",
                   "ribbon": "주의사항",
                   "title": "엇갈리는 방식",
                   "highlight": "",
-                  "body": ["", ""],
-                  "copyText": ""
+                  "body": ["", ""]
                 },
                 {
                   "id": "view",
                   "ribbon": "상대가 보는 나",
                   "title": "상대의 눈에 비친 모습",
                   "highlight": "",
-                  "body": ["", ""],
-                  "copyText": ""
+                  "body": ["", ""]
                 },
                 {
                   "id": "action",
                   "ribbon": "오래 가려면",
                   "title": "관계를 살리는 습관",
                   "highlight": "",
-                  "body": ["", ""],
-                  "copyText": ""
+                  "body": ["", ""]
                 }
               ],
               "closingAdvice": ""
@@ -289,17 +288,20 @@ class GenerateCompatibilityConsultationUseCase(
             .let { "{$it}" }
         val json = JSONObject(jsonText)
         val answerCard = parseAnswerCard(json.optJSONObject("answerCard"))
-        val pages = normalizeCompatibilityPages(
-            pages = parsePages(json.optJSONArray("pages")),
-            answerCard = answerCard,
-            relationshipNumber = relationshipNumber
+        val pages = sanitizeCompatibilityPages(
+            normalizeCompatibilityPages(
+                pages = parsePages(json.optJSONArray("pages")),
+                answerCard = answerCard,
+                relationshipNumber = relationshipNumber
+            )
         )
         val toc = parseToc(json.optJSONArray("toc"))
         val attraction = pages.firstOrNull { it.id == "attraction" }
         val friction = pages.firstOrNull { it.id == "friction" }
         val view = pages.firstOrNull { it.id == "view" }
         val action = pages.firstOrNull { it.id == "action" }
-        val closingAdvice = json.optString("closingAdvice")
+        val closingAdvice = json.optString("closingAdvice").withoutTaskAdvice("")
+        val fallbackTone = relationshipToneFallback()
 
         val parsed = CompatibilityConsultation(
             maleEnergy = view?.body?.joinToString("\n\n").orEmpty(),
@@ -307,8 +309,8 @@ class GenerateCompatibilityConsultationUseCase(
             relationshipFlow = answerCard.body.joinToString("\n\n"),
             strengths = attraction?.body?.joinToString("\n\n").orEmpty(),
             friction = friction?.body?.joinToString("\n\n").orEmpty(),
-            homeTone = action?.body?.joinToString("\n\n").orEmpty(),
-            longTermTip = action?.highlight.orEmpty(),
+            homeTone = action?.body?.joinToString("\n\n").orEmpty().withoutTaskAdvice(fallbackTone),
+            longTermTip = action?.highlight.orEmpty().withoutTaskAdvice(fallbackTone),
             oneLineSummary = answerCard.shortAnswer.ifBlank { closingAdvice },
             bestMonth = json.optString("bestMonth"),
             bestMonthReason = json.optString("bestMonthReason"),
@@ -395,8 +397,7 @@ class GenerateCompatibilityConsultationUseCase(
                         ribbon = item.optString("ribbon"),
                         title = item.optString("title"),
                         highlight = item.optString("highlight"),
-                        body = item.optJSONArray("body").toStringList(),
-                        copyText = item.optString("copyText")
+                        body = item.optJSONArray("body").toStringList()
                     )
                 )
             }
@@ -452,6 +453,46 @@ class GenerateCompatibilityConsultationUseCase(
                 )
             )
         )
+    }
+
+    private fun sanitizeCompatibilityPages(pages: List<ConsultationPage>): List<ConsultationPage> {
+        val fallback = relationshipToneFallback()
+        return pages.map { page ->
+            if (page.id != "action") {
+                page
+            } else {
+                page.copy(
+                    ribbon = "관계 흐름",
+                    title = "오래 가는 결",
+                    highlight = page.highlight.withoutTaskAdvice(fallback),
+                    body = page.body.withoutTaskAdvice(fallback)
+                )
+            }
+        }
+    }
+
+    private fun List<String>.withoutTaskAdvice(fallback: String): List<String> {
+        val filtered = map { it.withoutTaskAdvice("") }.filter { it.isNotBlank() }
+        return filtered.ifEmpty { listOf(fallback) }
+    }
+
+    private fun String.withoutTaskAdvice(fallback: String): String {
+        val cleaned = trim()
+        if (cleaned.isBlank()) return fallback
+        return if (cleaned.isTaskLikeAdvice()) fallback else cleaned
+    }
+
+    private fun String.isTaskLikeAdvice(): Boolean {
+        val blocked = listOf(
+            "수첩", "메모", "기록", "적어", "체크", "체크리스트",
+            "오늘은", "오늘 할", "오늘 해야", "이번 주", "한 달 안",
+            "해야", "해보", "정하세요", "만드세요", "나누세요", "실행"
+        )
+        return blocked.any { contains(it) }
+    }
+
+    private fun relationshipToneFallback(): String {
+        return "이 관계는 지시보다, 서로의 속도와 말의 온도를 차분히 읽는 쪽에 가깝습니다."
     }
 
     private fun JSONArray?.toStringList(): List<String> {

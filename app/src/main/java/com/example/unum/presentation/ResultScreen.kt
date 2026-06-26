@@ -15,7 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Insights
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.data.model.NumerologyResultBundle
+import com.example.unum.ui.components.EmptyStateView
 import com.example.unum.ui.components.GradientButton
 import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.components.SurfaceCard
@@ -41,7 +42,8 @@ import com.example.unum.ui.theme.TextSecondary
 @Composable
 fun ResultScreen(
     viewModel: AppViewModel,
-    onOpenFlow: () -> Unit
+    onOpenFlow: () -> Unit,
+    onOpenInput: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val bundle = uiState.latestBundle
@@ -54,10 +56,12 @@ fun ResultScreen(
                     .padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    "아직 리포트가 없어요. 입력 화면에서 생년월일을 먼저 넣어주세요.",
-                    color = TextSecondary,
-                    style = MaterialTheme.typography.bodyLarge
+                EmptyStateView(
+                    title = "아직 리포트가 없어요",
+                    description = "생년월일을 입력하면 오늘의 핵심수와 성향 리포트를 바로 볼 수 있어요.",
+                    actionText = "생년월일 입력하기",
+                    onActionClick = onOpenInput,
+                    icon = Icons.Rounded.Insights
                 )
             }
             return@MysticBackground
@@ -77,7 +81,6 @@ fun ResultScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("나의 성향 결과", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
-                    Icon(Icons.Rounded.Share, contentDescription = "공유", tint = TextSecondary)
                 }
             }
             item { ResultNumberCard(bundle = bundle, onOpenFlow = onOpenFlow) }
@@ -135,23 +138,6 @@ private fun ResultNumberCard(bundle: NumerologyResultBundle, onOpenFlow: () -> U
                     modifier = Modifier.weight(1f)
                 )
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Accent.copy(alpha = 0.06f))
-                    .border(1.dp, Accent.copy(alpha = 0.18f), RoundedCornerShape(12.dp))
-                    .padding(13.dp)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("오늘의 행동", color = Accent, style = MaterialTheme.typography.labelLarge)
-                    Text(
-                        freeReading?.action ?: life.oneLineAdvice,
-                        color = TextSecondary,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
             GradientButton(
                 text = "전체 리포트 보기",
                 onClick = onOpenFlow,
@@ -161,7 +147,7 @@ private fun ResultNumberCard(bundle: NumerologyResultBundle, onOpenFlow: () -> U
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("흐름 리포트와 액션 플랜으로 이어집니다", color = TextMuted, style = MaterialTheme.typography.bodySmall)
+                Text("흐름 리포트와 주의 신호로 이어집니다", color = TextMuted, style = MaterialTheme.typography.bodySmall)
                 Icon(Icons.AutoMirrored.Rounded.ArrowForward, contentDescription = null, tint = TextMuted)
             }
         }

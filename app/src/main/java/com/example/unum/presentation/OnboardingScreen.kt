@@ -31,10 +31,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.unum.ui.components.GradientButton
 import com.example.unum.ui.components.MysticBackground
+import com.example.unum.ui.components.SecondaryButton
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Background
 import com.example.unum.ui.theme.Border
 import com.example.unum.ui.theme.Surface2
+import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
 
@@ -42,6 +44,7 @@ import com.example.unum.ui.theme.TextSecondary
 fun OnboardingScreen(
     isSigningIn: Boolean,
     errorMessage: String?,
+    onStartAsGuest: () -> Unit,
     onStartWithKakao: () -> Unit
 ) {
     MysticBackground(modifier = Modifier.fillMaxSize(), animatedWaves = false) {
@@ -81,13 +84,13 @@ fun OnboardingScreen(
                         Text("7", color = Color.White, style = MaterialTheme.typography.displayMedium)
                     }
                     Text(
-                        text = "카카오 로그인 후\n운세노트 시작",
+                        text = "운세노트",
                         color = Color.White,
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.displayLarge
                     )
                     Text(
-                        text = "내 운세노트와 프리미엄 책자를\n계정별로 안전하게 불러옵니다.",
+                        text = "생년월일로 오늘의 핵심수와\n나의 성향 흐름을 먼저 확인해보세요.",
                         color = Color.White.copy(alpha = 0.78f),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyMedium
@@ -108,7 +111,12 @@ fun OnboardingScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("로그인하지 않으면 앱을 시작할 수 없어요.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        "저장, 공유, 프리미엄 리포트가 필요할 때 로그인할 수 있어요.",
+                        color = TextMuted,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodySmall
+                    )
                     if (!errorMessage.isNullOrBlank()) {
                         Text(
                             text = errorMessage,
@@ -118,7 +126,12 @@ fun OnboardingScreen(
                         )
                     }
                     GradientButton(
-                        text = if (isSigningIn) "카카오 로그인 중..." else "카카오로 로그인하고 앱 시작하기",
+                        text = "생년월일 입력하고 체험하기",
+                        onClick = onStartAsGuest,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    SecondaryButton(
+                        text = if (isSigningIn) "카카오 로그인 중..." else "카카오로 로그인하고 시작하기",
                         onClick = onStartWithKakao,
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !isSigningIn

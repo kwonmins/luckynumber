@@ -124,7 +124,7 @@ class BuildFortuneBookUseCase {
                 lead = page.ribbon,
                 body = page.body.take(3),
                 highlightQuote = page.highlight,
-                actionTip = listOfNotNull(page.copyText.takeIf { it.isNotBlank() })
+                actionTip = emptyList()
             )
         }
 
@@ -169,8 +169,8 @@ class BuildFortuneBookUseCase {
                 actionTip = emptyList()
             ),
             FortuneBookChapter(
-                title = "오늘의 처방",
-                lead = "지금 바로 할 일",
+                title = "흐름 정리",
+                lead = "읽는 포인트",
                 body = listOf(consultation.direction),
                 highlightQuote = consultation.oneLineAdvice,
                 actionTip = emptyList()

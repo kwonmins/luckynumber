@@ -111,7 +111,7 @@ fun LibraryScreen(viewModel: AppViewModel, onOpenBook: (FortuneBook) -> Unit) {
                     SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface2, contentPadding = 18) {
                         androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             androidx.compose.material3.Text("첫 운세노트가 생기면 여기서 다시 볼 수 있어요.", color = TextPrimary)
-                            androidx.compose.material3.Text("무료 결과를 본 뒤 운세노트로 넘어가면 기록이 이어집니다.", color = TextSecondary)
+                            androidx.compose.material3.Text("무료 결과를 본 뒤 운세노트에서 더 깊은 흐름을 볼 수 있어요.", color = TextSecondary)
                         }
                     }
                 }

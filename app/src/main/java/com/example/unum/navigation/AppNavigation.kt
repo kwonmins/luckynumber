@@ -53,19 +53,22 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
     val bottomNavRoute = when {
         currentRoute.startsWith("reader/") -> AppRoute.Library.route
         currentRoute == AppRoute.Notification.route -> AppRoute.Home.route
+        currentRoute == AppRoute.Input.route -> AppRoute.Home.route
         currentRoute == AppRoute.FlowReport.route -> AppRoute.Fortune.route
         currentRoute == AppRoute.ActionPlan.route -> AppRoute.Fortune.route
         currentRoute == AppRoute.Payment.route -> AppRoute.Premium.route
         else -> currentRoute
     }
-    val showBottomNav = !currentRoute.startsWith("reader/") && bottomNavRoute in setOf(
+    // Input and payment are task flows, so the persistent tabs stay out of the way.
+    val showBottomNav = !currentRoute.startsWith("reader/") &&
+        currentRoute !in setOf(AppRoute.Input.route, AppRoute.Notification.route, AppRoute.Payment.route) &&
+        bottomNavRoute in setOf(
             AppRoute.Home.route,
-            AppRoute.Notification.route,
-            AppRoute.Input.route,
             AppRoute.Fortune.route,
+            AppRoute.Library.route,
             AppRoute.Premium.route,
-        AppRoute.Library.route
-    )
+            AppRoute.Settings.route
+        )
 
     Scaffold(
         bottomBar = {
@@ -85,7 +88,7 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = if (uiState.notificationOnboardingSeen) AppRoute.Home.route else AppRoute.Notification.route,
+            startDestination = AppRoute.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(AppRoute.Notification.route) {
@@ -121,7 +124,8 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
             composable(AppRoute.Fortune.route) {
                 ResultScreen(
                     viewModel = viewModel,
-                    onOpenFlow = { navController.navigate(AppRoute.FlowReport.route) }
+                    onOpenFlow = { navController.navigate(AppRoute.FlowReport.route) },
+                    onOpenInput = { navController.navigate(AppRoute.Input.route) }
                 )
             }
             composable(AppRoute.FlowReport.route) {
@@ -144,7 +148,15 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                         navController.navigateToBook(viewModel, book)
                     },
                     onOpenLibrary = { navController.navigate(AppRoute.Library.route) },
-                    onOpenPayment = { navController.navigate(AppRoute.Payment.route) }
+                    onOpenPayment = {
+                        if (viewModel.uiState.value.authState is com.example.unum.data.model.AuthState.SignedIn) {
+                            navController.navigate(AppRoute.Payment.route)
+                        } else {
+                            navController.navigate(AppRoute.Settings.route) {
+                                launchSingleTop = true
+                            }
+                        }
+                    }
                 )
             }
             composable(AppRoute.Payment.route) {
@@ -152,10 +164,16 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() },
                     onComplete = {
-                        navController.popBackStack(AppRoute.Premium.route, inclusive = false)
-                        when (viewModel.uiState.value.premiumMode) {
-                            com.example.unum.data.model.PremiumMode.PERSONAL -> viewModel.preparePremiumQuestionConfirmation()
-                            com.example.unum.data.model.PremiumMode.COMPATIBILITY -> viewModel.runCompatibilityConsultation()
+                        if (viewModel.uiState.value.authState !is com.example.unum.data.model.AuthState.SignedIn) {
+                            navController.navigate(AppRoute.Settings.route) {
+                                launchSingleTop = true
+                            }
+                        } else {
+                            navController.popBackStack(AppRoute.Premium.route, inclusive = false)
+                            when (viewModel.uiState.value.premiumMode) {
+                                com.example.unum.data.model.PremiumMode.PERSONAL -> viewModel.preparePremiumQuestionConfirmation()
+                                com.example.unum.data.model.PremiumMode.COMPATIBILITY -> viewModel.runCompatibilityConsultation()
+                            }
                         }
                     }
                 )

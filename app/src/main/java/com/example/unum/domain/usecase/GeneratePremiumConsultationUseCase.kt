@@ -1,4 +1,4 @@
-package com.example.unum.domain.usecase
+﻿package com.example.unum.domain.usecase
 
 import com.example.unum.data.model.BirthInput
 import com.example.unum.data.model.CalendarType
@@ -97,9 +97,11 @@ class GeneratePremiumConsultationUseCase(
             Write Korean premium counseling JSON for ${topic.label}.
             Input: concern="$concernText"; birth=${displayInput.year}.${displayInput.month}.${displayInput.day}; calendar=${if (displayInput.calendarType == CalendarType.LUNAR) "lunar" else "solar"}; gender=${displayInput.gender.label}; currentMonth=$currentMonth.
             Cues: destiny=${numbers.destiny}; polarity=${NumerologyCalculator.destinyPolarity(numbers.destiny).label}; traits="$traitBrief"; caution="${destiny.cautionKeywords.take(2).joinToString(", ")}"; advice="${life.oneLineAdvice}"; rhythm=${numbers.early}/${numbers.middle}/${numbers.late}/${numbers.code}; hidden="$hiddenCue".
-            Style: polite Korean, direct to the user, concrete scenes/actions, no long personality recap, no system-name terms, no "선생님", no fear-mongering.
+            Style: polite Korean, direct to the user, concrete scenes and emotional cues, no long personality recap, no system-name terms, no "선생님", no fear-mongering.
+            Do not write task lists or "what to do today" advice. Avoid notebook, memo, journaling, recording, checklist, routine-building, "write it down", "try this today", "this week", or "within a month" instructions.
+            Do not create copy-ready/share-ready sections. Avoid labels or phrases like "복사하면 좋은 문장", "기억할 문장", "공유하기 좋은 문장", or "상대에게 보내기 좋은 말".
             Length: each field 2-4 short mobile sentences. Avoid repeated phrasing.
-            Month fields: choose one best and one risky month from now onward, with action-focused reasons. Do not explain calculations.
+            Month fields: choose one best and one risky month from now onward, with timing/context reasons. Do not explain calculations.
             Return only valid JSON:
             {"core":"","interpretation":"","caution":"","direction":"","oneLineAdvice":"","bestMonth":"","bestMonthReason":"","riskyMonth":"","riskyMonthReason":""}
         """.trimIndent()
@@ -120,10 +122,12 @@ class GeneratePremiumConsultationUseCase(
         return """
             Write Korean romance counseling page JSON.
             Input: concern="$concernText"; year=$createdYear; currentMonth=$currentMonth; birth=${displayInput.year}.${displayInput.month}.${displayInput.day}; gender=${displayInput.gender.label}; destiny=${numbers.destiny}; rhythm=${numbers.early}/${numbers.middle}/${numbers.late}/${numbers.code}; traits="$traitBrief"; caution="$cautionKeywords"; bestMonth="$bestMonth"; riskyMonth="$riskyMonth".
-            Style: warm but realistic, mobile-friendly, concrete dating scenes/actions. No long trait recap, no system-name terms, no "선생님", no code block.
+            Style: warm but realistic, mobile-friendly, concrete dating scenes and relationship tone. No long trait recap, no system-name terms, no "선생님", no code block.
             Rules: one message per page; body arrays have 2 short paragraphs; avoid repeated phrasing.
+            Do not write task lists or "what to do today" advice. Avoid notebook, memo, journaling, recording, checklist, routine-building, "write it down", "try this today", "this week", or "within a month" instructions.
+            Do not create copy-ready/share-ready sections. Avoid labels or phrases like "복사하면 좋은 문장", "기억할 문장", "공유하기 좋은 문장", or "상대에게 보내기 좋은 말".
             Return only valid JSON:
-            {"coverTitle":"","coverSubtitle":"","answerCard":{"question":"","shortAnswer":"","body":["",""]},"toc":[{"id":"timing","title":""},{"id":"person","title":""},{"id":"caution","title":""},{"id":"action","title":""}],"pages":[{"id":"timing","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"person","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"caution","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""},{"id":"action","ribbon":"","title":"","highlight":"","body":["",""],"copyText":""}],"closingAdvice":""}
+            {"coverTitle":"","coverSubtitle":"","answerCard":{"question":"","shortAnswer":"","body":["",""]},"toc":[{"id":"timing","title":""},{"id":"person","title":""},{"id":"caution","title":""},{"id":"action","title":""}],"pages":[{"id":"timing","ribbon":"","title":"","highlight":"","body":["",""]},{"id":"person","ribbon":"","title":"","highlight":"","body":["",""]},{"id":"caution","ribbon":"","title":"","highlight":"","body":["",""]},{"id":"action","ribbon":"","title":"","highlight":"","body":["",""]}],"closingAdvice":""}
         """.trimIndent()
     }
 
@@ -166,7 +170,7 @@ class GeneratePremiumConsultationUseCase(
             - core 첫 문장에만 성향을 짧게 연결하고, 바로 고민의 핵심으로 들어가세요.
             - interpretation은 실제로 벌어질 수 있는 상황 2개를 중심으로 쓰세요.
             - caution은 방치했을 때 생길 손해를 구체적으로 쓰세요.
-            - direction은 오늘, 이번 주, 한 달 안에 할 행동으로 나눠 쓰세요.
+            - direction은 행동 지시가 아니라 지금 흐름을 읽는 포인트로 쓰세요.
             - bestMonthReason과 riskyMonthReason은 타이밍 조언만 담당하게 하세요.
             - 같은 의미를 다른 항목에서 반복하지 마세요.
             - 숫자 계산식, 내부 리듬, 초년/중년/말년 같은 표현은 노출하지 마세요.
@@ -174,6 +178,7 @@ class GeneratePremiumConsultationUseCase(
             - 사용자를 "선생님"이라고 부르지 마세요.
             - 공포 조장은 피하되, 안일하게 넘기면 손해가 생길 수 있다는 현실적 경고는 넣으세요.
             - 각 항목은 2~4문장 안에서 끝내세요.
+            - "복사하면 좋은 문장", "기억할 문장", "공유하기 좋은 문장", "상대에게 보내기 좋은 말" 같은 복사용 문장 섹션은 만들지 마세요.
             - JSON 외의 설명은 출력하지 마세요.
 
             [월별 조언]
@@ -234,7 +239,7 @@ class GeneratePremiumConsultationUseCase(
             - timing: 언제 움직이면 좋은지
             - person: 어떤 사람이나 관계 흐름이 들어오기 쉬운지
             - caution: 관계를 꼬이게 만드는 습관
-            - action: 오늘, 이번 주, 이번 달 행동
+            - action: 행동 지시가 아니라 관계의 흐름을 읽는 포인트
 
             [문체]
             - 따뜻하지만 콕 짚는 존댓말
@@ -243,6 +248,7 @@ class GeneratePremiumConsultationUseCase(
             - 연락, 만남, 거리감, 말투, 확인 욕구처럼 실제 연애 장면을 넣기
             - 같은 말을 반복하지 않기
             - 사주, 타로, 점괘, 괘 같은 단어 쓰지 않기
+            - 복사하거나 공유하기 좋은 문장 섹션 만들지 않기
             - JSON만 반환하기
 
             [출력 형식]
@@ -258,7 +264,7 @@ class GeneratePremiumConsultationUseCase(
                 { "id": "timing", "title": "인연이 열리는 시기" },
                 { "id": "person", "title": "끌리는 사람의 결" },
                 { "id": "caution", "title": "관계를 망치는 습관" },
-                { "id": "action", "title": "지금 바로 할 일" }
+                { "id": "action", "title": "읽는 포인트" }
               ],
               "pages": [
                 {
@@ -266,32 +272,28 @@ class GeneratePremiumConsultationUseCase(
                   "ribbon": "언제 움직일까",
                   "title": "인연이 열리는 시기",
                   "highlight": "",
-                  "body": ["", ""],
-                  "copyText": ""
+                  "body": ["", ""]
                 },
                 {
                   "id": "person",
                   "ribbon": "어떤 사람일까",
                   "title": "끌리는 사람의 결",
                   "highlight": "",
-                  "body": ["", ""],
-                  "copyText": ""
+                  "body": ["", ""]
                 },
                 {
                   "id": "caution",
                   "ribbon": "주의사항",
                   "title": "관계를 망치는 습관",
                   "highlight": "",
-                  "body": ["", ""],
-                  "copyText": ""
+                  "body": ["", ""]
                 },
                 {
                   "id": "action",
-                  "ribbon": "오늘의 처방",
-                  "title": "지금 바로 할 일",
+                  "ribbon": "흐름 정리",
+                  "title": "읽는 포인트",
                   "highlight": "",
-                  "body": ["", ""],
-                  "copyText": ""
+                  "body": ["", ""]
                 }
               ],
               "closingAdvice": ""
@@ -333,9 +335,12 @@ class GeneratePremiumConsultationUseCase(
         val json = JSONObject(jsonText)
         if (json.has("pages") || json.has("answerCard")) {
             val answerCard = parseAnswerCard(json.optJSONObject("answerCard"))
-            val pages = normalizePersonalPages(
-                pages = parsePages(json.optJSONArray("pages")),
-                answerCard = answerCard,
+            val pages = sanitizePersonalPages(
+                pages = normalizePersonalPages(
+                    pages = parsePages(json.optJSONArray("pages")),
+                    answerCard = answerCard,
+                    topic = topic
+                ),
                 topic = topic
             )
             val toc = parseToc(json.optJSONArray("toc"))
@@ -343,7 +348,8 @@ class GeneratePremiumConsultationUseCase(
             val actionPage = pages.firstOrNull { it.id == "action" }
             val timingPage = pages.firstOrNull { it.id == "timing" }
             val personPage = pages.firstOrNull { it.id == "person" }
-            val closingAdvice = json.optString("closingAdvice")
+            val closingAdvice = json.optString("closingAdvice").withoutTaskAdvice("")
+            val readingPoint = readingPointFallback(topic)
             val parsed = PremiumConsultation(
                 core = answerCard.shortAnswer.ifBlank { answerCard.body.firstOrNull().orEmpty() },
                 interpretation = listOf(timingPage, personPage)
@@ -351,8 +357,8 @@ class GeneratePremiumConsultationUseCase(
                     .flatMap { it.body }
                     .joinToString("\n\n"),
                 caution = cautionPage?.body?.joinToString("\n\n").orEmpty(),
-                direction = actionPage?.body?.joinToString("\n\n").orEmpty(),
-                oneLineAdvice = closingAdvice.ifBlank { actionPage?.highlight.orEmpty() },
+                direction = actionPage?.body?.joinToString("\n\n").orEmpty().withoutTaskAdvice(readingPoint),
+                oneLineAdvice = closingAdvice.ifBlank { actionPage?.highlight.orEmpty() }.withoutTaskAdvice(""),
                 coverTitle = json.optString("coverTitle"),
                 coverSubtitle = json.optString("coverSubtitle"),
                 answerCard = answerCard,
@@ -366,8 +372,8 @@ class GeneratePremiumConsultationUseCase(
             core = json.optString("core"),
             interpretation = json.optString("interpretation"),
             caution = json.optString("caution"),
-            direction = json.optString("direction"),
-            oneLineAdvice = json.optString("oneLineAdvice"),
+            direction = json.optString("direction").withoutTaskAdvice(readingPointFallback(topic)),
+            oneLineAdvice = json.optString("oneLineAdvice").withoutTaskAdvice(""),
             bestMonth = json.optString("bestMonth"),
             bestMonthReason = json.optString("bestMonthReason"),
             riskyMonth = json.optString("riskyMonth"),
@@ -411,8 +417,7 @@ class GeneratePremiumConsultationUseCase(
                         ribbon = item.optString("ribbon"),
                         title = item.optString("title"),
                         highlight = item.optString("highlight"),
-                        body = item.optJSONArray("body").toStringList(),
-                        copyText = item.optString("copyText")
+                        body = item.optJSONArray("body").toStringList()
                     )
                 )
             }
@@ -459,16 +464,57 @@ class GeneratePremiumConsultationUseCase(
             ),
             byId["action"] ?: ConsultationPage(
                 id = "action",
-                ribbon = "오늘의 처방",
-                title = "지금 바로 할 일",
-                highlight = "오늘은 큰 결론보다 작은 행동 하나가 더 중요합니다.",
+                ribbon = "흐름 정리",
+                title = "읽는 포인트",
+                highlight = "지금은 행동보다 흐름의 결을 읽는 것이 더 중요합니다.",
                 body = listOf(
-                    "오늘은 감정과 사실을 따로 적어보세요.",
-                    "이번 주에는 가장 부담이 작은 행동 하나만 실행하세요.",
-                    "이번 달에는 반복되는 패턴 하나를 줄이는 데 집중하세요."
+                    "지금의 흐름은 결론보다 반복되는 분위기를 차분히 보는 쪽에 가깝습니다.",
+                    "마음이 급해질수록 선택의 폭이 좁아질 수 있으니, 속도보다 온도를 읽는 관점이 중요합니다."
                 )
-            )
+            )        )
+    }
+
+    private fun sanitizePersonalPages(
+        pages: List<ConsultationPage>,
+        topic: PremiumTopic
+    ): List<ConsultationPage> {
+        val fallback = readingPointFallback(topic)
+        return pages.map { page ->
+            if (page.id != "action") {
+                page
+            } else {
+                page.copy(
+                    ribbon = "흐름 정리",
+                    title = "읽는 포인트",
+                    highlight = page.highlight.withoutTaskAdvice(fallback),
+                    body = page.body.withoutTaskAdvice(fallback)
+                )
+            }
+        }
+    }
+
+    private fun List<String>.withoutTaskAdvice(fallback: String): List<String> {
+        val filtered = map { it.withoutTaskAdvice("") }.filter { it.isNotBlank() }
+        return filtered.ifEmpty { listOf(fallback) }
+    }
+
+    private fun String.withoutTaskAdvice(fallback: String): String {
+        val cleaned = trim()
+        if (cleaned.isBlank()) return fallback
+        return if (cleaned.isTaskLikeAdvice()) fallback else cleaned
+    }
+
+    private fun String.isTaskLikeAdvice(): Boolean {
+        val blocked = listOf(
+            "수첩", "메모", "기록", "적어", "체크", "체크리스트",
+            "오늘은", "오늘 할", "오늘 해야", "이번 주", "한 달 안",
+            "해야", "해보", "정하세요", "만드세요", "나누세요", "실행"
         )
+        return blocked.any { contains(it) }
+    }
+
+    private fun readingPointFallback(topic: PremiumTopic): String {
+        return "${topic.label} 흐름은 지시보다, 지금 반복되는 분위기를 차분히 읽는 쪽에 가깝습니다."
     }
 
     private fun JSONArray?.toStringList(): List<String> {
@@ -576,4 +622,5 @@ class GeneratePremiumConsultationUseCase(
         private const val OPENAI_MODEL = "gpt-5.1"
     }
 }
+
 

@@ -95,9 +95,6 @@ object FortuneBookPdfExporter {
             writer.heading("${index + 1}. ${chapter.title}")
             writer.paragraph(chapter.lead)
             chapter.body.forEach(writer::paragraph)
-            if (chapter.highlightQuote.isNotBlank()) {
-                writer.labelBody("기억할 문장", listOf(chapter.highlightQuote))
-            }
             if (chapter.actionTip.isNotEmpty()) {
                 writer.labelBody("실천", chapter.actionTip.map { "- $it" })
             }

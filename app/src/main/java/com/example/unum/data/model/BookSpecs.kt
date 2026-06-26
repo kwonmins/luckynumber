@@ -1,4 +1,4 @@
-package com.example.unum.data.model
+﻿package com.example.unum.data.model
 
 data class BookSpec(
     val id: String,
@@ -26,7 +26,7 @@ object BookSpecs {
             themeId = BookThemeId.ROMANCE,
             archiveKeywords = listOf("연애", "사랑"),
             promptSchemaId = "premium_romance_v1",
-            defaultChapterTitles = listOf("상담소 첫 답변", "상황 해석", "주의사항", "오늘의 처방"),
+            defaultChapterTitles = listOf("상담소 첫 답변", "상황 해석", "주의사항", "흐름 정리"),
             topic = PremiumTopic.ROMANCE,
             coverTitle = "연애 운세노트",
             coverKicker = "PREMIUM ROMANCE NOTE"
@@ -39,7 +39,7 @@ object BookSpecs {
             themeId = BookThemeId.CAREER,
             archiveKeywords = listOf("일", "진로", "직업", "커리어"),
             promptSchemaId = "premium_career_v1",
-            defaultChapterTitles = listOf("상담소 첫 답변", "상황 해석", "주의사항", "오늘의 처방"),
+            defaultChapterTitles = listOf("상담소 첫 답변", "상황 해석", "주의사항", "흐름 정리"),
             topic = PremiumTopic.CAREER,
             coverTitle = "일과 진로 운세노트",
             coverKicker = "PREMIUM CAREER NOTE"
@@ -52,7 +52,7 @@ object BookSpecs {
             themeId = BookThemeId.MONEY,
             archiveKeywords = listOf("돈", "금전", "경제", "재물"),
             promptSchemaId = "premium_money_v1",
-            defaultChapterTitles = listOf("상담소 첫 답변", "상황 해석", "주의사항", "오늘의 처방"),
+            defaultChapterTitles = listOf("상담소 첫 답변", "상황 해석", "주의사항", "흐름 정리"),
             topic = PremiumTopic.MONEY,
             coverTitle = "돈 운세노트",
             coverKicker = "PREMIUM MONEY NOTE"
@@ -65,7 +65,7 @@ object BookSpecs {
             themeId = BookThemeId.SELF_ESTEEM,
             archiveKeywords = listOf("나 자신", "자아", "마음", "자존감"),
             promptSchemaId = "premium_self_v1",
-            defaultChapterTitles = listOf("상담소 첫 답변", "상황 해석", "주의사항", "오늘의 처방"),
+            defaultChapterTitles = listOf("상담소 첫 답변", "상황 해석", "주의사항", "흐름 정리"),
             topic = PremiumTopic.SELF_ESTEEM,
             coverTitle = "나 자신 운세노트",
             coverKicker = "PREMIUM SELF NOTE"
@@ -78,7 +78,7 @@ object BookSpecs {
             themeId = BookThemeId.RELATIONSHIP,
             archiveKeywords = listOf("인간관계", "관계"),
             promptSchemaId = "premium_relationship_v1",
-            defaultChapterTitles = listOf("상담소 첫 답변", "상황 해석", "주의사항", "오늘의 처방"),
+            defaultChapterTitles = listOf("상담소 첫 답변", "상황 해석", "주의사항", "흐름 정리"),
             topic = PremiumTopic.RELATIONSHIP,
             coverTitle = "인간관계 운세노트",
             coverKicker = "PREMIUM RELATION NOTE"
@@ -170,3 +170,4 @@ fun FortuneBook.matchesBookSpec(spec: BookSpec): Boolean {
         searchable.contains(keyword, ignoreCase = true)
     }
 }
+

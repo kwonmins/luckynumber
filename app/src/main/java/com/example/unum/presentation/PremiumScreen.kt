@@ -1297,11 +1297,11 @@ private fun BookDetailScreen(
             )
             DetailBox(if (isCompatibility) "마찰이 생기는 장면" else "주의할 장면", chapter?.highlightQuote ?: book?.summary.orEmpty(), Rose)
             DetailBox(
-                if (isCompatibility) "이번 주 관계 실천" else "이번 주 실천 지침",
+                if (isCompatibility) "관계 흐름 포인트" else "읽는 포인트",
                 chapter?.actionTip?.joinToString("\n") { "• $it" } ?: if (isCompatibility) {
-                    "• 연락 방식 하나를 먼저 합의하기\n• 서운한 점은 하루 안에 짧게 말하기\n• 좋은 흐름이 생긴 순간을 함께 기록하기"
+                    "서로의 속도와 말의 온도가 관계의 편안함을 좌우하는 흐름입니다."
                 } else {
-                    "• 하루 10분 마음 상태를 확인하기\n• 중요한 선택은 하루 뒤 다시 보기\n• 반복되는 패턴을 짧게 기록하기"
+                    "지금 반복되는 분위기를 차분히 읽는 것이 리포트의 핵심입니다."
                 },
                 identity.accent
             )

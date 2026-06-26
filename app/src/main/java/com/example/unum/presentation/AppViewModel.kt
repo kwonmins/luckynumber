@@ -189,7 +189,7 @@ class AppViewModel : ViewModel() {
     fun calculateAndStore(isInitial: Boolean = false, onSuccess: (() -> Unit)? = null) {
         val userBirthInput = NumerologyCalculator.toBirthInput(_uiState.value.formState)
         if (userBirthInput == null) {
-            _uiState.update { it.copy(inputError = "?앸뀈?붿씪???ㅼ떆 ?뺤씤?댁＜?몄슂.") }
+            _uiState.update { it.copy(inputError = "생년월일을 다시 확인해 주세요. 예: 1999 / 03 / 13") }
             return
         }
         userPreferencesStore.saveBirthFormState(_uiState.value.formState)
@@ -236,7 +236,7 @@ class AppViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        inputError = error.message ?: "寃곌낵瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??"
+                        inputError = error.message ?: "리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."
                     )
                 }
             }

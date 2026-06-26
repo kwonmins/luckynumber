@@ -13,12 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.data.model.NumerologyResultBundle
@@ -36,8 +32,6 @@ import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.components.SurfaceCard
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Border
-import com.example.unum.ui.theme.Gold
-import com.example.unum.ui.theme.Mint
 import com.example.unum.ui.theme.Rose
 import com.example.unum.ui.theme.Surface
 import com.example.unum.ui.theme.TextMuted
@@ -60,7 +54,7 @@ fun ActionPlanScreen(
                     .padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("리포트 생성 후 액션 플랜을 확인할 수 있어요.", color = TextSecondary)
+                Text("리포트 생성 후 주의 신호를 확인할 수 있어요.", color = TextSecondary)
             }
             return@MysticBackground
         }
@@ -72,12 +66,10 @@ fun ActionPlanScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item { Spacer(Modifier.height(16.dp)) }
-            item { Text("주의 & 액션 플랜", color = TextPrimary, style = MaterialTheme.typography.titleLarge) }
+            item { Text("주의 신호", color = TextPrimary, style = MaterialTheme.typography.titleLarge) }
             item { WarningCard(bundle) }
             item { CautionTags(bundle) }
-            item { ActionChecklist(bundle) }
-            item { TipCard() }
-            item { GradientButton("프리미엄 책자로 더 깊게 보기", onOpenPremium, Modifier.fillMaxWidth()) }
+            item { GradientButton("프리미엄 리포트로 더 깊게 보기", onOpenPremium, Modifier.fillMaxWidth()) }
             item { Spacer(Modifier.height(90.dp)) }
         }
     }
@@ -125,62 +117,6 @@ private fun CautionTags(bundle: NumerologyResultBundle) {
                     Text(tag, color = Rose, style = MaterialTheme.typography.bodySmall)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ActionChecklist(bundle: NumerologyResultBundle) {
-    val actions = listOf(
-        bundle.freeReading?.action ?: "하루 10분 마음 상태 먼저 체크하기",
-        "중요하지 않은 일은 과감히 거절하기",
-        "반복되는 실수 패턴을 짧게 기록하기"
-    ).distinct()
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("액션 플랜", color = TextMuted, style = MaterialTheme.typography.labelLarge)
-        actions.forEach { action ->
-            ChecklistRow(text = action)
-        }
-    }
-}
-
-@Composable
-private fun ChecklistRow(text: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Surface)
-            .border(1.dp, Border, RoundedCornerShape(12.dp))
-            .padding(13.dp),
-        horizontalArrangement = Arrangement.spacedBy(11.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(22.dp)
-                .clip(CircleShape)
-                .background(Mint)
-                .border(1.dp, Mint, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
-        }
-        Text(text, color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
-    }
-}
-
-@Composable
-private fun TipCard() {
-    SurfaceCard(
-        modifier = Modifier.fillMaxWidth(),
-        tonalColor = Gold.copy(alpha = 0.08f),
-        borderColor = Gold.copy(alpha = 0.24f),
-        contentPadding = 15
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Text("TIP", color = Gold, style = MaterialTheme.typography.labelLarge)
-            Text("작은 신호를 가볍게 넘기지 마세요. 커지기 전에 잡는 게 핵심입니다.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
         }
     }
 }

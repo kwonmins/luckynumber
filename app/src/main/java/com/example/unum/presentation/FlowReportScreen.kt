@@ -124,7 +124,7 @@ fun FlowReportScreen(
                     onClick = { selectedStage = 3 }
                 )
             }
-            item { GradientButton("주의 & 액션 플랜 보기", onOpenActionPlan, Modifier.fillMaxWidth()) }
+            item { GradientButton("주의 신호 보기", onOpenActionPlan, Modifier.fillMaxWidth()) }
             item { Spacer(Modifier.height(90.dp)) }
         }
     }

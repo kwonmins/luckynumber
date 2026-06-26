@@ -1,4 +1,4 @@
-package com.example.unum.presentation
+﻿package com.example.unum.presentation
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -512,8 +512,8 @@ private fun NumberReadingCard(card: NumberCard, focused: Boolean, onClick: () ->
 
 @Composable
 private fun OneLineRoomNote(bundle: NumerologyResultBundle?, onOpenInput: () -> Unit) {
-    val text = bundle?.freeReading?.action ?: bundle?.content?.lifeRecord?.oneLineAdvice
-        ?: "생년월일을 입력하면 오늘 날짜에 맞춘 한 줄 조언이 표시됩니다."
+    val text = bundle?.freeReading?.opening ?: bundle?.freeReading?.core
+        ?: "생년월일을 입력하면 나의 성향 흐름을 짧게 미리볼 수 있어요."
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -524,7 +524,7 @@ private fun OneLineRoomNote(bundle: NumerologyResultBundle?, onOpenInput: () -> 
             .padding(horizontal = 22.dp, vertical = 20.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-            Text(if (bundle == null) "오늘의 한 줄 조언 준비" else "오늘의 한 줄 조언", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+            Text(if (bundle == null) "성향 미리보기 준비" else "성향 한 줄", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
             Text(text, color = TextSecondary, style = MaterialTheme.typography.bodyMedium, maxLines = 3)
             if (bundle == null) {
                 Text("생년월일 입력하기", color = Accent, style = MaterialTheme.typography.labelLarge)
@@ -623,48 +623,48 @@ private fun dailyCoreTitle(number: Int): String = when (number) {
 }
 
 private fun dailyCoreSummary(number: Int, today: LocalDate): String = when (number) {
-    1 -> "오늘은 작게라도 먼저 시작할 때 흐름이 열립니다. 완벽한 계획보다 첫 행동 하나가 더 큰 단서가 돼요."
-    2 -> "오늘은 속도를 내기보다 균형을 맞추는 쪽이 좋습니다. 대화와 조율을 먼저 두면 일이 부드러워집니다."
-    3 -> "오늘은 생각을 밖으로 꺼낼수록 운이 움직입니다. 말, 글, 기록처럼 표현하는 행동에 힘이 붙어요."
-    4 -> "오늘은 정리와 기준 세우기에 알맞습니다. 해야 할 일을 작게 나누면 마음의 압박이 줄어듭니다."
-    5 -> "오늘은 익숙한 루틴에 작은 변화를 주기 좋습니다. 다만 충동보다 실험이라는 마음으로 움직여보세요."
-    6 -> "오늘은 나와 주변을 돌보는 흐름이 강합니다. 책임을 다하되, 혼자 떠안지 않는 균형이 중요해요."
-    7 -> "오늘은 깊게 보고 천천히 결정하는 날입니다. 당장 결론보다 관찰과 확인이 더 좋은 선택을 만듭니다."
-    8 -> "오늘은 현실적인 실행력이 올라옵니다. 돈, 일, 약속처럼 구체적인 결과가 필요한 일에 집중해보세요."
-    else -> "오늘은 마무리와 정리에 힘이 있습니다. 끝낼 것은 끝내고, 남길 것은 차분히 남겨보세요."
+    1 -> "시작의 기운이 선명한 날입니다. 작게 열린 가능성이 다음 흐름을 부를 수 있어요."
+    2 -> "조율의 기운이 강한 날입니다. 속도보다 균형이 맞을 때 일이 부드럽게 이어집니다."
+    3 -> "표현의 기운이 살아나는 날입니다. 생각과 감정이 밖으로 흐를 때 분위기가 가벼워집니다."
+    4 -> "기준의 기운이 또렷한 날입니다. 복잡한 마음도 질서가 잡히면 한결 안정됩니다."
+    5 -> "변화의 기운이 들어오는 날입니다. 익숙한 흐름 안에서 새로운 가능성이 보일 수 있어요."
+    6 -> "돌봄의 기운이 강한 날입니다. 책임감과 다정함이 함께 드러나기 쉽습니다."
+    7 -> "집중의 기운이 깊어지는 날입니다. 서두른 결론보다 관찰의 힘이 더 크게 작용합니다."
+    8 -> "현실 감각이 살아나는 날입니다. 말보다 결과의 결이 더 잘 보이는 흐름입니다."
+    else -> "마무리의 기운이 선명한 날입니다. 남길 것과 흘려보낼 것이 자연스럽게 구분됩니다."
 } + " (${today.monthValue}/${today.dayOfMonth} 기준)"
 
 private fun dailyTopicMessage(topic: PremiumTopic, dailyNumber: Int, today: LocalDate): String {
     val messages = when (topic) {
         PremiumTopic.ROMANCE -> listOf(
-            "마음을 확인하고 싶다면 결론부터 묻기보다 가벼운 안부를 먼저 건네보세요. 오늘은 부드러운 속도가 관계를 살립니다.",
-            "상대의 반응을 해석하기 전에 내가 원하는 온도를 먼저 정리해보세요. 감정의 방향이 훨씬 선명해집니다.",
-            "오늘은 긴 설명보다 짧은 진심이 더 잘 닿습니다. 부담 없는 표현 하나가 관계의 공기를 바꿀 수 있어요.",
-            "기다림이 길어졌다면 혼자 단정하지 않는 게 좋습니다. 확인은 짧게, 기대는 가볍게 두세요."
+            "마음의 온도가 예민하게 느껴지는 흐름입니다. 결론보다 분위기의 변화가 먼저 보일 수 있어요.",
+            "상대의 반응보다 내 마음의 속도가 더 크게 느껴질 수 있습니다. 호감과 부담의 경계가 중요합니다.",
+            "긴 설명보다 짧은 진심이 더 잘 닿는 흐름입니다. 관계의 공기가 조금 부드러워질 수 있어요.",
+            "기다림이 길어질수록 마음이 앞서가기 쉽습니다. 기대가 가벼울수록 관계의 온도도 편안해집니다."
         )
         PremiumTopic.CAREER -> listOf(
-            "큰 결정을 밀어붙이기보다 지금 맡은 일의 우선순위를 다시 세우기 좋은 날입니다. 기준 하나가 다음 선택을 편하게 만듭니다.",
-            "오늘은 새 일을 벌이기보다 이미 시작한 일을 정돈할수록 흐름이 좋아집니다. 작은 완료가 자신감을 만듭니다.",
-            "일의 방향이 흔들린다면 해야 할 일과 하지 않아도 되는 일을 나눠보세요. 덜어내는 선택도 전진입니다.",
-            "진로 고민은 감정만으로 결론 내기 어렵습니다. 오늘은 조건, 시간, 체력의 현실값을 먼저 적어보세요."
+            "큰 결정의 압박보다 일의 우선순위가 더 또렷하게 보이는 흐름입니다. 기준이 잡히면 마음도 가벼워집니다.",
+            "새 일을 늘리는 힘보다 이미 시작한 일을 정돈하는 힘이 강합니다. 작은 완료감이 자신감을 만듭니다.",
+            "일의 방향이 흔들릴 때는 덜어내는 선택도 전진처럼 작용합니다. 모든 부담을 성과로 바꿀 필요는 없어요.",
+            "진로 고민은 감정과 현실 조건이 함께 움직이는 흐름입니다. 체력과 마음의 여유가 중요한 단서가 됩니다."
         )
         PremiumTopic.MONEY -> listOf(
-            "새로운 지출을 막는 것보다 돈이 새는 통로를 찾는 데 운이 붙습니다. 작은 고정비 하나만 점검해도 마음이 가벼워집니다.",
-            "오늘은 크게 벌 생각보다 안전하게 남기는 감각이 중요합니다. 지출 전 한 번 멈추면 후회가 줄어듭니다.",
-            "돈 문제는 감정과 섞일수록 흐려집니다. 필요한 돈, 쓰고 싶은 돈, 미뤄도 되는 돈을 따로 적어보세요.",
-            "작은 수입이나 할인보다 흐름을 안정시키는 선택이 더 좋습니다. 오늘은 기록이 곧 운 관리입니다."
+            "돈이 새는 통로가 눈에 들어오기 쉬운 흐름입니다. 큰 변화보다 안정감의 회복이 더 중요합니다.",
+            "크게 버는 생각보다 안전하게 남기는 감각이 강한 날입니다. 충동보다 기준이 운을 안정시킵니다.",
+            "돈 문제는 감정과 섞일수록 흐려질 수 있습니다. 마음이 급할수록 기준의 존재가 더 중요해집니다.",
+            "작은 수입이나 할인보다 흐름을 안정시키는 선택이 더 잘 맞습니다. 돈의 속도보다 균형이 먼저입니다."
         )
         PremiumTopic.SELF_ESTEEM -> listOf(
-            "비교가 올라오면 잠깐 멈추고 내가 이미 해낸 일을 먼저 세어보세요. 오늘의 운은 나를 몰아붙이지 않을 때 더 잘 열립니다.",
-            "오늘은 나를 증명하려 애쓰기보다 회복시키는 선택이 필요합니다. 잘 쉬는 것도 중요한 흐름입니다.",
-            "마음이 흔들리면 큰 목표 대신 지킬 수 있는 약속 하나만 정해보세요. 작은 성공이 중심을 다시 세웁니다.",
-            "다른 사람의 속도에 맞추느라 내 리듬을 잃기 쉽습니다. 오늘은 내 페이스를 조용히 지켜주세요."
+            "비교의 감각이 올라오기 쉬운 흐름입니다. 스스로를 몰아붙이지 않을 때 중심이 더 잘 살아납니다.",
+            "증명보다 회복의 결이 중요한 날입니다. 쉬어가는 감각도 자기 신뢰의 일부가 될 수 있습니다.",
+            "마음이 흔들릴 때는 큰 목표보다 작은 안정감이 더 크게 작용합니다. 중심이 천천히 돌아오는 흐름입니다.",
+            "다른 사람의 속도가 크게 보일 수 있습니다. 내 리듬을 잃지 않는 감각이 중요합니다."
         )
         PremiumTopic.RELATIONSHIP -> listOf(
-            "오늘은 관계의 거리를 다시 조절하기 좋습니다. 가까워질 사람과 잠시 쉬어갈 사람을 구분해보세요.",
-            "괜찮은 척 넘긴 감정이 있다면 짧게라도 표현해보세요. 말하지 않은 마음은 쉽게 오해가 됩니다.",
-            "부탁과 거절의 선을 부드럽게 세우면 관계 피로가 줄어듭니다. 오늘은 착한 척보다 솔직한 균형이 좋아요.",
-            "오래 미뤄둔 대화가 있다면 결론보다 분위기부터 열어보세요. 작은 시작이 충분합니다."
+            "관계의 거리가 다시 보이는 흐름입니다. 가까움과 피로감의 경계가 조금 더 선명해질 수 있어요.",
+            "괜찮은 척 넘긴 감정이 마음에 남기 쉬운 날입니다. 말하지 않은 마음은 오해처럼 커질 수 있습니다.",
+            "부탁과 거절의 선이 관계 피로를 좌우할 수 있습니다. 착함보다 솔직한 균형이 더 편안합니다.",
+            "오래 미뤄둔 대화의 공기가 떠오를 수 있습니다. 결론보다 분위기가 먼저 움직이는 흐름입니다."
         )
     }
     return messages[dailyMessageIndex(topic.ordinal, dailyNumber, today, messages.size)]
@@ -672,10 +672,10 @@ private fun dailyTopicMessage(topic: PremiumTopic, dailyNumber: Int, today: Loca
 
 private fun dailyStudyMessage(dailyNumber: Int, today: LocalDate): String {
     val messages = listOf(
-        "많이 하는 날보다 다시 잡는 날에 가깝습니다. 익숙한 내용을 한 번 더 정리하면 흩어진 감각이 제자리로 돌아옵니다.",
-        "오늘은 새 내용을 욕심내기보다 핵심 개념 하나를 정확히 붙잡는 게 좋습니다. 깊이가 속도보다 유리해요.",
-        "집중이 흐트러지면 시간을 늘리지 말고 단위를 줄여보세요. 짧은 반복이 오늘의 배움운을 살립니다.",
-        "기록과 복습에 좋은 흐름입니다. 손으로 한 번 정리하면 머릿속 연결이 훨씬 단단해집니다."
+        "많이 넣는 흐름보다 다시 읽는 흐름에 가깝습니다. 익숙한 내용도 다른 결로 보일 수 있어요.",
+        "새 내용을 욕심내기보다 핵심 개념 하나가 또렷해지는 날입니다. 깊이가 속도보다 유리합니다.",
+        "집중이 쉽게 흩어질 수 있지만, 짧은 반복에는 힘이 붙습니다. 작은 단위의 배움이 잘 맞습니다.",
+        "복습의 결이 좋은 흐름입니다. 이미 아는 내용 안에서 새로운 연결이 보일 수 있습니다."
     )
     return messages[dailyMessageIndex(4, dailyNumber, today, messages.size)]
 }
@@ -713,3 +713,4 @@ private data class NumberCard(
     @param:DrawableRes val imageRes: Int,
     val todayMessage: String
 )
+

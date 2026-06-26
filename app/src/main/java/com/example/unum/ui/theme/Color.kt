@@ -20,6 +20,19 @@ val Border = Color(0xFFE5E9F2)
 val BorderStrong = Color(0xFFCBD5E1)
 val Overlay = Color(0xFFFFFFFF)
 
+// Semantic tokens keep screen code focused on intent instead of raw color names.
+val ColorActionPrimary = Accent
+val ColorActionSecondary = Surface2
+val ColorTextPrimary = TextPrimary
+val ColorTextSecondary = TextSecondary
+val ColorTextMuted = TextMuted
+val ColorBorderDefault = Border
+val ColorCategoryLove = Rose
+val ColorCategoryMoney = Mint
+val ColorCategoryPremium = Gold
+val ColorStatusError = Rose
+val ColorStatusSuccess = Success
+
 val BookPaper = Color(0xFFFAF6EE)
 val BookPaperEdge = Color(0xFFE6DAC9)
 val BookLine = Color(0xFFCFBEAA)

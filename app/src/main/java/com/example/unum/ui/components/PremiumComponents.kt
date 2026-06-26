@@ -898,7 +898,6 @@ private fun OverviewPage(book: FortuneBook, fontScale: ReaderFontScale, onBookma
         )
         NotebookSummaryCardLight(
             summaryText = book.summary,
-            oneLineAdvice = book.chapters.firstOrNull()?.highlightQuote ?: "지금 가장 마음에 남는 문장부터 천천히 읽어보세요.",
             fontScale = fontScale,
             accentColor = accentColor,
             tonalColor = paperColor.copy(alpha = 0.92f)
@@ -931,7 +930,6 @@ private fun NotebookGuideCard(
 @Composable
 private fun NotebookSummaryCardLight(
     summaryText: String,
-    oneLineAdvice: String,
     fontScale: ReaderFontScale,
     modifier: Modifier = Modifier,
     accentColor: Color = PremiumTokens.GoldDeep,
@@ -946,7 +944,6 @@ private fun NotebookSummaryCardLight(
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("첫 답변", color = accentColor, style = scaledTextStyle(MaterialTheme.typography.labelLarge, fontScale, 14f, 19f))
             Text(summaryText, color = TextPrimary, style = scaledTextStyle(MaterialTheme.typography.bodyMedium, fontScale, 15f, 23f))
-            Text(oneLineAdvice, color = TextMuted, style = scaledTextStyle(MaterialTheme.typography.bodySmall, fontScale, 13f, 19f))
         }
     }
 }
@@ -1197,19 +1194,6 @@ private fun SalonChapterCard(
                     .height(1.dp)
                     .background(Color(0xFFB7AA92).copy(alpha = 0.45f))
             )
-
-            if (chapter.highlightQuote.isNotBlank()) {
-                Text(
-                    chapter.highlightQuote,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp),
-                    color = ribbonColor,
-                    style = scaledTextStyle(MaterialTheme.typography.titleLarge, fontScale, 22f, 32f).copy(
-                        fontWeight = FontWeight.Bold,
-                    )
-                )
-            }
 
             SequentialParagraphs(
                 paragraphs = chapter.body.filter { it.isNotBlank() }.take(3),
