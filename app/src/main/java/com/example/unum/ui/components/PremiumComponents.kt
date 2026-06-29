@@ -83,7 +83,6 @@ import com.example.unum.data.model.FortuneBookType
 import com.example.unum.data.model.PremiumTopic
 import com.example.unum.data.model.ReaderFontScale
 import com.example.unum.ui.theme.Accent
-import com.example.unum.ui.theme.Blue
 import com.example.unum.ui.theme.BookLine
 import com.example.unum.ui.theme.BookPaper
 import com.example.unum.ui.theme.BookPaperEdge
@@ -136,25 +135,6 @@ private fun scaledTextStyle(
     fontSize = (fontSize * fontScale.multiplier).sp,
     lineHeight = (lineHeight * fontScale.multiplier).sp
 )
-
-@Composable
-fun MiniNumerologySummary(destiny: Int, early: Int, middle: Int, late: Int, modifier: Modifier = Modifier) {
-    SurfaceCard(
-        modifier = modifier.fillMaxWidth(),
-        tonalColor = Surface2,
-        contentPadding = 16
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("이번 해석에 반영되는 숫자", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                NumberPill("운명수", destiny.toString(), Accent, Modifier.weight(1f))
-                NumberPill("초년", early.toString(), Blue, Modifier.weight(1f))
-                NumberPill("중년", middle.toString(), Mint, Modifier.weight(1f))
-                NumberPill("말년", late.toString(), Rose, Modifier.weight(1f))
-            }
-        }
-    }
-}
 
 @Composable
 fun TopicChipGroup(selected: PremiumTopic, onSelected: (PremiumTopic) -> Unit, modifier: Modifier = Modifier) {

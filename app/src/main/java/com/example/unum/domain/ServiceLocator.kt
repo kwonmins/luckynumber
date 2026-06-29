@@ -14,6 +14,7 @@ import com.example.unum.data.repository.user.SupabaseRestUserDatabase
 import com.example.unum.data.repository.user.UserDataRepository
 import com.example.unum.domain.usecase.BuildPremiumDummyConsultationUseCase
 import com.example.unum.domain.usecase.BuildFortuneBookUseCase
+import com.example.unum.domain.usecase.BuildDailyFortuneUseCase
 import com.example.unum.domain.usecase.BuildNumerologyResultBundleUseCase
 import com.example.unum.domain.usecase.BuildSuriSpeechScriptUseCase
 import com.example.unum.domain.usecase.CalculateNumerologyUseCase
@@ -71,6 +72,7 @@ object ServiceLocator {
     val buildNumerologyResultBundleUseCase: BuildNumerologyResultBundleUseCase by lazy {
         BuildNumerologyResultBundleUseCase(numerologyRepository, calculateNumerologyUseCase)
     }
+    val buildDailyFortuneUseCase: BuildDailyFortuneUseCase by lazy { BuildDailyFortuneUseCase() }
     val buildFortuneBookUseCase: BuildFortuneBookUseCase by lazy { BuildFortuneBookUseCase() }
     val buildSuriSpeechScriptUseCase: BuildSuriSpeechScriptUseCase by lazy { BuildSuriSpeechScriptUseCase() }
     val buildPremiumDummyConsultationUseCase: BuildPremiumDummyConsultationUseCase by lazy { BuildPremiumDummyConsultationUseCase() }

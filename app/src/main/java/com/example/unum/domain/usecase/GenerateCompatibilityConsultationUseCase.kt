@@ -110,8 +110,8 @@ class GenerateCompatibilityConsultationUseCase(
         return """
             Write Korean compatibility counseling page JSON.
             Input: status="${relationshipStatus.label}"; concern="$concernText"; date=${createdYear}.${currentMonth}; relationshipNumber=$relationshipNumber; relationshipCue="$relationshipMeaning"; caution="$cautionKeywords"; bestMonth="$bestMonth"; riskyMonth="$riskyMonth".
-            Male: birth=${maleInput.year}.${maleInput.month}.${maleInput.day}; calendar=${calendarTypeLabel(maleInput.calendarType)}; destiny=${maleBundle.numbers.destiny}; rhythm=${maleBundle.numbers.early}/${maleBundle.numbers.middle}/${maleBundle.numbers.late}/${maleBundle.numbers.code}; traits="$maleTrait".
-            Female: birth=${femaleInput.year}.${femaleInput.month}.${femaleInput.day}; calendar=${calendarTypeLabel(femaleInput.calendarType)}; destiny=${femaleBundle.numbers.destiny}; rhythm=${femaleBundle.numbers.early}/${femaleBundle.numbers.middle}/${femaleBundle.numbers.late}/${femaleBundle.numbers.code}; traits="$femaleTrait".
+            Male: birth=${maleInput.year}.${maleInput.month}.${maleInput.day}; calendar=${calendarTypeLabel(maleInput.calendarType)}; destiny=${maleBundle.numbers.destiny}; traits="$maleTrait".
+            Female: birth=${femaleInput.year}.${femaleInput.month}.${femaleInput.day}; calendar=${calendarTypeLabel(femaleInput.calendarType)}; destiny=${femaleBundle.numbers.destiny}; traits="$femaleTrait".
             Relationship status rule: $statusRule
             Style: polite Korean, concrete relationship scenes, no long individual trait recap, no good/bad verdict, no system-name terms, no "선생님", no code block.
             Rules: one message per page; each highlight is one clear sentence; each body has 2 short paragraphs; avoid repeated phrasing. Use the given month values and do not explain calculations.
@@ -148,12 +148,10 @@ class GenerateCompatibilityConsultationUseCase(
             - 남자 생년월일: ${maleInput.year}.${maleInput.month}.${maleInput.day}
             - 남자 달력 구분: ${calendarTypeLabel(maleInput.calendarType)}
             - 남자 운명수: ${maleBundle.numbers.destiny}
-            - 남자 보조 숫자: ${maleBundle.numbers.early}, ${maleBundle.numbers.middle}, ${maleBundle.numbers.late}, ${maleBundle.numbers.code}
             - 남자 성향 요약: $maleTrait
             - 여자 생년월일: ${femaleInput.year}.${femaleInput.month}.${femaleInput.day}
             - 여자 달력 구분: ${calendarTypeLabel(femaleInput.calendarType)}
             - 여자 운명수: ${femaleBundle.numbers.destiny}
-            - 여자 보조 숫자: ${femaleBundle.numbers.early}, ${femaleBundle.numbers.middle}, ${femaleBundle.numbers.late}, ${femaleBundle.numbers.code}
             - 여자 성향 요약: $femaleTrait
             - 관계수: $relationshipNumber
             - 관계 흐름 참고: $relationshipMeaning
@@ -174,7 +172,7 @@ class GenerateCompatibilityConsultationUseCase(
             - 각 페이지는 하나의 메시지만 담으세요.
             - 각 body는 2문장으로 제한하세요.
             - highlight는 한 문장으로 짧고 선명하게 쓰세요.
-            - 계산식, 내부 숫자 구조, 초년/중년/말년 같은 표현은 절대 쓰지 마세요.
+            - 계산식과 내부 숫자 구조는 절대 쓰지 마세요.
             - 사주, 타로, 점괘, 괘 같은 단어는 쓰지 마세요.
             - 좋다/나쁘다로 단정하지 말고 “이런 흐름이 강하다”, “이 부분은 조율이 필요하다”처럼 표현하세요.
             - "복사하면 좋은 문장", "기억할 문장", "공유하기 좋은 문장", "상대에게 보내기 좋은 말" 같은 복사용 문장 섹션은 만들지 마세요.

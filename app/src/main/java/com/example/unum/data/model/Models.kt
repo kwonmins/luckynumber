@@ -50,27 +50,23 @@ data class DestinyProfile(
     val polarity: String,
     val coreKeywords: List<String>,
     val cautionKeywords: List<String>,
-    val destinyText: String,
-    val oneLineAdvice: String
+    val resultTitle: String,
+    val summary: String,
+    val strength: String,
+    val caution: String,
+    val actionGuide: String
 )
 
 data class LifeRecord(
     val code: String,
     val destiny: Int,
-    val early: Int,
-    val middle: Int,
-    val late: Int,
     val destinyProfileKey: Int,
     val lifeTitle: String,
     val destinyText: String = "",
-    val earlyText: String,
-    val middleText: String,
-    val lateText: String,
     val lifeText: String,
     val summaryText: String,
     val keywords: List<String>,
-    val cautionKeywords: List<String>,
-    val oneLineAdvice: String
+    val cautionKeywords: List<String>
 )
 
 data class NumerologyContent(

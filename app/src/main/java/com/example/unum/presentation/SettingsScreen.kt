@@ -198,11 +198,7 @@ private fun MyNumbersCard(uiState: AppUiState) {
                 Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = Accent)
                 Text("나의 수리 번호", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                NumberTile("핵심수", numbers?.destiny?.toString() ?: "?", Modifier.weight(1f))
-                NumberTile("생애수", numbers?.early?.toString() ?: "?", Modifier.weight(1f))
-                NumberTile("운명수", numbers?.late?.toString() ?: "?", Modifier.weight(1f))
-            }
+            NumberTile("핵심수", numbers?.destiny?.toString() ?: "?", Modifier.fillMaxWidth())
         }
     }
 }

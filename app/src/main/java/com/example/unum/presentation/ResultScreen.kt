@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Insights
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.ui.components.EmptyStateView
-import com.example.unum.ui.components.GradientButton
 import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.components.SurfaceCard
 import com.example.unum.ui.theme.Accent
@@ -42,7 +39,6 @@ import com.example.unum.ui.theme.TextSecondary
 @Composable
 fun ResultScreen(
     viewModel: AppViewModel,
-    onOpenFlow: () -> Unit,
     onOpenInput: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -83,14 +79,14 @@ fun ResultScreen(
                     Text("나의 성향 결과", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
                 }
             }
-            item { ResultNumberCard(bundle = bundle, onOpenFlow = onOpenFlow) }
+            item { ResultNumberCard(bundle = bundle) }
             item { Spacer(Modifier.height(90.dp)) }
         }
     }
 }
 
 @Composable
-private fun ResultNumberCard(bundle: NumerologyResultBundle, onOpenFlow: () -> Unit) {
+private fun ResultNumberCard(bundle: NumerologyResultBundle) {
     val destiny = bundle.numbers.destiny
     val profile = bundle.content.destinyProfile
     val life = bundle.content.lifeRecord
@@ -110,7 +106,7 @@ private fun ResultNumberCard(bundle: NumerologyResultBundle, onOpenFlow: () -> U
             Text(destiny.toString(), color = Accent, style = MaterialTheme.typography.displayLarge)
             Text(profile.title, color = Accent, style = MaterialTheme.typography.titleLarge)
             Text(
-                freeReading?.opening ?: life.summaryText.ifBlank { profile.destinyText },
+                freeReading?.opening ?: profile.resultTitle,
                 color = TextMuted,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -137,18 +133,6 @@ private fun ResultNumberCard(bundle: NumerologyResultBundle, onOpenFlow: () -> U
                     color = Rose,
                     modifier = Modifier.weight(1f)
                 )
-            }
-            GradientButton(
-                text = "전체 리포트 보기",
-                onClick = onOpenFlow,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("흐름 리포트와 주의 신호로 이어집니다", color = TextMuted, style = MaterialTheme.typography.bodySmall)
-                Icon(Icons.AutoMirrored.Rounded.ArrowForward, contentDescription = null, tint = TextMuted)
             }
         }
     }

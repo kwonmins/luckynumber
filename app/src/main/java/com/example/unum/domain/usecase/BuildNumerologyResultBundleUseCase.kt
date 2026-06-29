@@ -40,12 +40,12 @@ private object FreeReadingRecordComposer {
         val record = content.lifeRecord
         val profile = content.destinyProfile
         return FreeReadingResult(
-            opening = concisePreview(record.destinyText.ifBlank { profile.destinyText }),
-            core = concisePreview(record.lifeText.ifBlank { record.summaryText }, sentenceLimit = 2),
-            strength = strengthPreview(record.keywords, profile.title),
-            caution = cautionPreview(record.cautionKeywords),
+            opening = profile.resultTitle,
+            core = concisePreview(profile.summary, sentenceLimit = 2),
+            strength = concisePreview(profile.strength, sentenceLimit = 2),
+            caution = concisePreview(profile.caution, sentenceLimit = 2),
             // Free results should preview the tone only. Task-style advice belongs nowhere in the basic reading.
-            action = concisePreview(record.summaryText, sentenceLimit = 1),
+            action = concisePreview(profile.actionGuide, sentenceLimit = 1),
             relationship = concisePreview(record.summaryText, sentenceLimit = 1),
             career = strengthPreview(record.keywords.drop(1), profile.title),
             money = cautionPreview(record.cautionKeywords.drop(1))

@@ -8,6 +8,7 @@ import com.example.unum.BuildConfig
 import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.CompatibilityFormState
 import com.example.unum.data.model.CompatibilityRelationshipStatus
+import com.example.unum.data.model.DailyFortuneResult
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.data.model.FortuneBookType
 import com.example.unum.data.model.GenderOption
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 /**
  * Screen-facing orchestration for the app.
@@ -42,6 +44,7 @@ class AppViewModel : ViewModel() {
     // Grouped here to make the eventual move from ServiceLocator to DI simple.
     private val repository = ServiceLocator.numerologyRepository
     private val buildNumerologyResultBundle = ServiceLocator.buildNumerologyResultBundleUseCase
+    private val buildDailyFortune = ServiceLocator.buildDailyFortuneUseCase
     private val buildFortuneBook = ServiceLocator.buildFortuneBookUseCase
     private val buildSuriSpeechScript = ServiceLocator.buildSuriSpeechScriptUseCase
     private val buildPremiumDummyConsultation = ServiceLocator.buildPremiumDummyConsultationUseCase
@@ -56,6 +59,12 @@ class AppViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
+
+    fun dailyFortune(date: LocalDate = LocalDate.now()): DailyFortuneResult? {
+        return _uiState.value.latestBundle?.numbers?.let { numbers ->
+            buildDailyFortune(numbers, date)
+        }
+    }
 
     init {
         val savedBooks = sortBooks(fortuneBookStore.loadBooks())

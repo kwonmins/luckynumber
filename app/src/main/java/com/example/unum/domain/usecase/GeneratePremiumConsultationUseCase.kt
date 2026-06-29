@@ -92,11 +92,10 @@ class GeneratePremiumConsultationUseCase(
         val displayInput = bundle.displayInput
         val numbers = bundle.numbers
         val destiny = bundle.content.destinyProfile
-        val life = bundle.content.lifeRecord
         return """
             Write Korean premium counseling JSON for ${topic.label}.
             Input: concern="$concernText"; birth=${displayInput.year}.${displayInput.month}.${displayInput.day}; calendar=${if (displayInput.calendarType == CalendarType.LUNAR) "lunar" else "solar"}; gender=${displayInput.gender.label}; currentMonth=$currentMonth.
-            Cues: destiny=${numbers.destiny}; polarity=${NumerologyCalculator.destinyPolarity(numbers.destiny).label}; traits="$traitBrief"; caution="${destiny.cautionKeywords.take(2).joinToString(", ")}"; advice="${life.oneLineAdvice}"; rhythm=${numbers.early}/${numbers.middle}/${numbers.late}/${numbers.code}; hidden="$hiddenCue".
+            Cues: destiny=${numbers.destiny}; polarity=${NumerologyCalculator.destinyPolarity(numbers.destiny).label}; traits="$traitBrief"; caution="${destiny.cautionKeywords.take(2).joinToString(", ")}"; hidden="$hiddenCue".
             Style: polite Korean, direct to the user, concrete scenes and emotional cues, no long personality recap, no system-name terms, no "선생님", no fear-mongering.
             Do not write task lists or "what to do today" advice. Avoid notebook, memo, journaling, recording, checklist, routine-building, "write it down", "try this today", "this week", or "within a month" instructions.
             Do not create copy-ready/share-ready sections. Avoid labels or phrases like "복사하면 좋은 문장", "기억할 문장", "공유하기 좋은 문장", or "상대에게 보내기 좋은 말".
@@ -121,7 +120,7 @@ class GeneratePremiumConsultationUseCase(
         val numbers = bundle.numbers
         return """
             Write Korean romance counseling page JSON.
-            Input: concern="$concernText"; year=$createdYear; currentMonth=$currentMonth; birth=${displayInput.year}.${displayInput.month}.${displayInput.day}; gender=${displayInput.gender.label}; destiny=${numbers.destiny}; rhythm=${numbers.early}/${numbers.middle}/${numbers.late}/${numbers.code}; traits="$traitBrief"; caution="$cautionKeywords"; bestMonth="$bestMonth"; riskyMonth="$riskyMonth".
+            Input: concern="$concernText"; year=$createdYear; currentMonth=$currentMonth; birth=${displayInput.year}.${displayInput.month}.${displayInput.day}; gender=${displayInput.gender.label}; destiny=${numbers.destiny}; traits="$traitBrief"; caution="$cautionKeywords"; bestMonth="$bestMonth"; riskyMonth="$riskyMonth".
             Style: warm but realistic, mobile-friendly, concrete dating scenes and relationship tone. No long trait recap, no system-name terms, no "선생님", no code block.
             Rules: one message per page; body arrays have 2 short paragraphs; avoid repeated phrasing.
             Do not write task lists or "what to do today" advice. Avoid notebook, memo, journaling, recording, checklist, routine-building, "write it down", "try this today", "this week", or "within a month" instructions.
@@ -142,7 +141,6 @@ class GeneratePremiumConsultationUseCase(
         val displayInput = bundle.displayInput
         val numbers = bundle.numbers
         val destiny = bundle.content.destinyProfile
-        val life = bundle.content.lifeRecord
         return """
             사용자의 프리미엄 운세 상담 JSON을 작성하세요.
 
@@ -157,8 +155,6 @@ class GeneratePremiumConsultationUseCase(
             - 기운: ${NumerologyCalculator.destinyPolarity(numbers.destiny).label}
             - 성향 요약: $traitBrief
             - 주의 키워드: ${destiny.cautionKeywords.take(2).joinToString(", ")}
-            - 참고 조언: ${life.oneLineAdvice}
-            - 내부 리듬: ${numbers.early}, ${numbers.middle}, ${numbers.late}, ${numbers.code}
             - 보조 힌트: $hiddenCue
 
             [작성 목표]
@@ -173,7 +169,7 @@ class GeneratePremiumConsultationUseCase(
             - direction은 행동 지시가 아니라 지금 흐름을 읽는 포인트로 쓰세요.
             - bestMonthReason과 riskyMonthReason은 타이밍 조언만 담당하게 하세요.
             - 같은 의미를 다른 항목에서 반복하지 마세요.
-            - 숫자 계산식, 내부 리듬, 초년/중년/말년 같은 표현은 노출하지 마세요.
+            - 숫자 계산식과 내부 구조는 노출하지 마세요.
             - 사주, 타로, 점괘, 괘 같은 특정 전통 체계 이름은 쓰지 마세요.
             - 사용자를 "선생님"이라고 부르지 마세요.
             - 공포 조장은 피하되, 안일하게 넘기면 손해가 생길 수 있다는 현실적 경고는 넣으세요.
@@ -223,7 +219,6 @@ class GeneratePremiumConsultationUseCase(
             - 생년월일: ${displayInput.year}.${displayInput.month}.${displayInput.day}
             - 성별: ${displayInput.gender.label}
             - 운명수: ${numbers.destiny}
-            - 보조 숫자: ${numbers.early}, ${numbers.middle}, ${numbers.late}, ${numbers.code}
             - 성향 요약: $traitBrief
             - 주의 키워드: $cautionKeywords
             - 추천 흐름 월: $bestMonth

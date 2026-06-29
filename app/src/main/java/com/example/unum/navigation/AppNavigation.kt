@@ -13,9 +13,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.unum.data.model.FortuneBook
-import com.example.unum.presentation.ActionPlanScreen
 import com.example.unum.presentation.AppViewModel
-import com.example.unum.presentation.FlowReportScreen
 import com.example.unum.presentation.HomeScreen
 import com.example.unum.presentation.InputScreen
 import com.example.unum.presentation.LibraryScreen
@@ -32,8 +30,6 @@ sealed class AppRoute(val route: String) {
     data object Notification : AppRoute("notification")
     data object Input : AppRoute("input")
     data object Fortune : AppRoute("fortune")
-    data object FlowReport : AppRoute("flow")
-    data object ActionPlan : AppRoute("action")
     data object Premium : AppRoute("premium")
     data object Payment : AppRoute("payment")
     data object Library : AppRoute("library")
@@ -54,8 +50,6 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
         currentRoute.startsWith("reader/") -> AppRoute.Library.route
         currentRoute == AppRoute.Notification.route -> AppRoute.Home.route
         currentRoute == AppRoute.Input.route -> AppRoute.Home.route
-        currentRoute == AppRoute.FlowReport.route -> AppRoute.Fortune.route
-        currentRoute == AppRoute.ActionPlan.route -> AppRoute.Fortune.route
         currentRoute == AppRoute.Payment.route -> AppRoute.Premium.route
         else -> currentRoute
     }
@@ -107,7 +101,6 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                 HomeScreen(
                     viewModel = viewModel,
                     onOpenInput = { navController.navigate(AppRoute.Input.route) },
-                    onOpenResult = { navController.navigate(AppRoute.Fortune.route) },
                     onOpenPremium = { navController.navigate(AppRoute.Premium.route) },
                     onOpenLibrary = { navController.navigate(AppRoute.Library.route) },
                     onOpenSettings = { navController.navigate(AppRoute.Settings.route) },
@@ -124,20 +117,7 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
             composable(AppRoute.Fortune.route) {
                 ResultScreen(
                     viewModel = viewModel,
-                    onOpenFlow = { navController.navigate(AppRoute.FlowReport.route) },
                     onOpenInput = { navController.navigate(AppRoute.Input.route) }
-                )
-            }
-            composable(AppRoute.FlowReport.route) {
-                FlowReportScreen(
-                    viewModel = viewModel,
-                    onOpenActionPlan = { navController.navigate(AppRoute.ActionPlan.route) }
-                )
-            }
-            composable(AppRoute.ActionPlan.route) {
-                ActionPlanScreen(
-                    viewModel = viewModel,
-                    onOpenPremium = { navController.navigate(AppRoute.Premium.route) }
                 )
             }
             composable(AppRoute.Premium.route) {
