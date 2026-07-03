@@ -1,5 +1,6 @@
 package com.example.unum.presentation
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -18,11 +20,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Bookmarks
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +36,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.data.model.BookSpecs
@@ -46,22 +53,32 @@ import com.example.unum.ui.components.MascotGuideCard
 import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.components.InteractiveBookArchiveShelf
 import com.example.unum.ui.components.SurfaceCard
+import com.example.unum.ui.components.EmptyStateView
 import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.Border
+import com.example.unum.ui.theme.Gold
 import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
 
 @Composable
-fun LibraryScreen(viewModel: AppViewModel, onOpenBook: (FortuneBook) -> Unit) {
+fun LibraryScreen(
+    viewModel: AppViewModel,
+    onOpenBook: (FortuneBook) -> Unit,
+    onOpenPremium: () -> Unit
+) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val shareBook = rememberFortuneBookShareHandler()
     var filter by rememberSaveable { mutableStateOf(LibrarySection.ALL) }
     var pendingDeleteBookId by rememberSaveable { mutableStateOf<String?>(null) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
 
     val allBooks = uiState.savedBooks
     val pendingDeleteBook = pendingDeleteBookId?.let { id -> allBooks.firstOrNull { it.bookId == id } }
-    val filteredBooks = allBooks.filter { it.matchesFilter(filter) }
+    val filteredBooks = allBooks.filter {
+        it.matchesFilter(filter) &&
+            (searchQuery.isBlank() || it.coverTitle.contains(searchQuery, ignoreCase = true))
+    }
 
     MysticBackground(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -77,43 +94,47 @@ fun LibraryScreen(viewModel: AppViewModel, onOpenBook: (FortuneBook) -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextPrimaryHeader("보관함")
-                    Icon(Icons.Rounded.Search, contentDescription = "검색", tint = TextMuted)
+                    androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        TextPrimaryHeader("보관함")
+                        androidx.compose.material3.Text("수리가 정리해둔 나만의 운세노트", color = TextMuted, style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+                    }
+                    Image(
+                        painter = painterResource(MascotArt.Library),
+                        contentDescription = "운세노트를 정리하는 수리",
+                        modifier = Modifier.size(78.dp),
+                        contentScale = ContentScale.Fit
+                    )
                 }
             }
             item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(com.example.unum.ui.theme.Surface)
-                        .border(1.dp, Border, RoundedCornerShape(12.dp))
-                        .padding(horizontal = 14.dp, vertical = 13.dp)
-                ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.Search, contentDescription = null, tint = TextMuted)
-                        androidx.compose.material3.Text("리포트 검색", color = TextMuted, style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
-                    }
-                }
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, tint = TextMuted) },
+                    placeholder = { Text("리포트 검색", color = TextMuted) },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = com.example.unum.ui.theme.Surface,
+                        unfocusedContainerColor = com.example.unum.ui.theme.Surface,
+                        focusedBorderColor = com.example.unum.ui.theme.Accent,
+                        unfocusedBorderColor = Border
+                    )
+                )
             }
             item {
                 LibraryFilterRow(selected = filter, onSelected = { filter = it })
             }
             if (allBooks.isEmpty()) {
                 item {
-                    MascotGuideCard(
-                        title = "저장된 운세노트가 없어요",
-                        message = "운세노트를 만들면 이곳에 자동으로 저장됩니다.",
-                        imageRes = MascotArt.Library
+                    EmptyStateView(
+                        title = "아직 저장된 운세노트가 없어요",
+                        description = "상세 리포트를 만들면 이곳에서 언제든 다시 볼 수 있어요.",
+                        actionText = "나만의 상세 리포트 만들기",
+                        onActionClick = onOpenPremium,
+                        icon = Icons.Rounded.Bookmarks
                     )
-                }
-                item {
-                    SurfaceCard(modifier = Modifier.fillMaxWidth(), tonalColor = Surface2, contentPadding = 18) {
-                        androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            androidx.compose.material3.Text("첫 운세노트가 생기면 여기서 다시 볼 수 있어요.", color = TextPrimary)
-                            androidx.compose.material3.Text("무료 결과를 본 뒤 운세노트에서 더 깊은 흐름을 볼 수 있어요.", color = TextSecondary)
-                        }
-                    }
                 }
             } else if (filteredBooks.isEmpty()) {
                 item {
@@ -216,8 +237,8 @@ private fun LibraryFilterRow(selected: LibrarySection, onSelected: (LibrarySecti
                 modifier = Modifier
                     .padding(bottom = 2.dp)
                     .width(filter.chipWidthDp.dp),
-                tonalColor = if (isSelected) com.example.unum.ui.theme.Accent else Surface2,
-                borderColor = if (isSelected) com.example.unum.ui.theme.Accent.copy(alpha = 0.42f) else com.example.unum.ui.theme.Border,
+                tonalColor = if (isSelected) Gold.copy(alpha = 0.13f) else Surface2,
+                borderColor = if (isSelected) Gold.copy(alpha = 0.40f) else com.example.unum.ui.theme.Border,
                 contentPadding = 0
             ) {
                 androidx.compose.foundation.layout.Box(
@@ -229,7 +250,7 @@ private fun LibraryFilterRow(selected: LibrarySection, onSelected: (LibrarySecti
                 ) {
                     androidx.compose.material3.Text(
                         text = filter.label,
-                        color = if (isSelected) androidx.compose.ui.graphics.Color.White else TextSecondary,
+                        color = if (isSelected) Gold else TextSecondary,
                         style = androidx.compose.material3.MaterialTheme.typography.labelMedium
                     )
                 }

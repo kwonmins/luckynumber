@@ -439,6 +439,10 @@ private fun spriteStageColors(mode: PremiumMode, topic: PremiumTopic): List<Colo
             Color(0xFFFFF3D9),
             Color(0xFFFBE5B2)
         )
+        PremiumTopic.STUDY -> listOf(Color(0xFFFAFBFE), Color(0xFFEEF3FB), Color(0xFFDDE8F8))
+        PremiumTopic.HEALTH -> listOf(Color(0xFFF5FFFA), Color(0xFFE8F7EF), Color(0xFFD8EFE3))
+        PremiumTopic.BUSINESS -> listOf(Color(0xFFFFFCF3), Color(0xFFFFF3D9), Color(0xFFFBE5B2))
+        PremiumTopic.GENERAL -> listOf(Color(0xFFFFFAF6), Color(0xFFF8EFE8), Color(0xFFEFE2D8))
         PremiumTopic.SELF_ESTEEM -> listOf(
             Color(0xFFF9FAFF),
             Color(0xFFEFF1FF),
@@ -470,6 +474,10 @@ private fun animationBundleFor(mode: PremiumMode, topic: PremiumTopic): SuriAnim
         PremiumTopic.ROMANCE -> romanceAnimationBundle()
         PremiumTopic.CAREER -> writerAnimationBundle()
         PremiumTopic.MONEY -> moneyAnimationBundle()
+        PremiumTopic.STUDY -> writerAnimationBundle()
+        PremiumTopic.HEALTH -> consultAnimationBundle()
+        PremiumTopic.BUSINESS -> moneyAnimationBundle()
+        PremiumTopic.GENERAL -> consultAnimationBundle()
         PremiumTopic.SELF_ESTEEM -> numbersAnimationBundle()
         PremiumTopic.RELATIONSHIP -> consultAnimationBundle()
     }
@@ -480,6 +488,10 @@ private fun sceneSteps(mode: PremiumMode, topic: PremiumTopic): List<SuriSceneSt
         PremiumTopic.ROMANCE -> "연애 흐름을 중심으로"
         PremiumTopic.CAREER -> "일과 진로 흐름을 중심으로"
         PremiumTopic.MONEY -> "돈의 흐름을 중심으로"
+        PremiumTopic.STUDY -> "학업과 시험 흐름을 중심으로"
+        PremiumTopic.HEALTH -> "건강과 생활 리듬을 중심으로"
+        PremiumTopic.BUSINESS -> "사업과 계약 흐름을 중심으로"
+        PremiumTopic.GENERAL -> "이번 달 전체 흐름을 중심으로"
         PremiumTopic.SELF_ESTEEM -> "마음의 중심과 자신감을 중심으로"
         PremiumTopic.RELATIONSHIP -> "인간관계의 결을 중심으로"
     }

@@ -39,6 +39,12 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                LaunchedEffect(uiState.latestBundle) {
+                    if (uiState.latestBundle != null) {
+                        enteredAsGuest = true
+                    }
+                }
+
                 Box(Modifier.fillMaxSize()) {
                     if (enteredAsGuest || uiState.authState is AuthState.SignedIn) {
                         UnumAppNavigation(viewModel = viewModel)

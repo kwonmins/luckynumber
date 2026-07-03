@@ -1,6 +1,7 @@
 package com.example.unum.presentation
 
 import android.app.Activity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,12 +27,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.data.model.AuthState
 import com.example.unum.data.model.AuthUser
 import com.example.unum.data.model.ReaderFontScale
 import com.example.unum.ui.components.AppHeader
+import com.example.unum.ui.components.AppTopBar
 import com.example.unum.ui.components.GradientButton
 import com.example.unum.ui.components.MascotArt
 import com.example.unum.ui.components.MascotGuideCard
@@ -42,6 +47,8 @@ import com.example.unum.ui.components.SettingsSwitchRow
 import com.example.unum.ui.components.SurfaceCard
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Border
+import com.example.unum.ui.theme.Gold
+import com.example.unum.ui.theme.Mint
 import com.example.unum.ui.theme.Rose
 import com.example.unum.ui.theme.Surface
 import com.example.unum.ui.theme.Surface2
@@ -64,10 +71,9 @@ fun SettingsScreen(viewModel: AppViewModel) {
         ) {
             item { Spacer(Modifier.height(18.dp)) }
             item {
-                AppHeader(
+                AppTopBar(
                     title = "마이페이지",
-                    subtitle = "프로필 & 설정",
-                    eyebrow = "MY PAGE"
+                    subtitle = "프로필과 앱 설정을 관리하세요"
                 )
             }
             item { MyPageProfileCard(uiState = uiState) }
@@ -83,7 +89,7 @@ fun SettingsScreen(viewModel: AppViewModel) {
             item {
                 SettingsSwitchRow(
                     title = "알림 받기",
-                    subtitle = "새 리포트 흐름이나 읽기 리마인드를 받을 수 있게 준비해둡니다.",
+                    subtitle = "매일 오늘의 핵심수를 알려드려요.",
                     checked = uiState.notificationsEnabled,
                     onCheckedChange = viewModel::setNotificationsEnabled
                 )
@@ -93,21 +99,14 @@ fun SettingsScreen(viewModel: AppViewModel) {
             item {
                 SettingsRow(
                     title = "문의하기",
-                    subtitle = "오류 제보와 기능 의견을 정리해둘 자리입니다.",
+                    subtitle = "오류 제보와 기능 의견을 보내주세요.",
                     accentColor = Accent
                 )
             }
             item {
                 SettingsRow(
                     title = "결제 복원",
-                    subtitle = "추후 결제 연동 시 이 위치에서 복원 흐름을 연결합니다."
-                )
-            }
-            item {
-                MascotGuideCard(
-                    title = "개발 메모",
-                    message = "계정 데이터는 저장소 인터페이스를 통해 흐르므로, Supabase에서 라즈베리파이 서버 DB로 바꿀 때 화면 코드는 거의 건드리지 않게 설계했습니다.",
-                    imageRes = MascotArt.Settings
+                    subtitle = "이전에 구매한 프리미엄 이용권을 확인합니다."
                 )
             }
             item { Spacer(Modifier.height(90.dp)) }
@@ -132,9 +131,10 @@ private fun MyPageProfileCard(uiState: AppUiState) {
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.linearGradient(listOf(Accent, Color(0xFF1E40AF))),
+                    Brush.linearGradient(listOf(Gold.copy(alpha = 0.22f), Color(0xFF0A0B1A), Color(0xFF060710))),
                     RoundedCornerShape(18.dp)
                 )
+                .background(Color.Transparent)
                 .padding(18.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -146,13 +146,16 @@ private fun MyPageProfileCard(uiState: AppUiState) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .height(48.dp)
-                                .padding(0.dp)
-                                .background(Color.White.copy(alpha = 0.18f), CircleShape)
-                                .padding(12.dp),
+                                .size(72.dp)
+                                .background(Gold.copy(alpha = 0.12f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Rounded.Person, contentDescription = null, tint = Color.White)
+                            Image(
+                                painter = painterResource(MascotArt.Settings),
+                                contentDescription = "내 프로필을 안내하는 수리",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
                         }
                         Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Text(user?.displayName ?: "운세노트 사용자", color = Color.White, style = MaterialTheme.typography.titleMedium)
@@ -161,10 +164,10 @@ private fun MyPageProfileCard(uiState: AppUiState) {
                     }
                     Text(
                         "프리미엄",
-                        color = Color.White,
+                        color = Gold,
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier
-                            .background(Color.White.copy(alpha = 0.18f), RoundedCornerShape(999.dp))
+                            .background(Gold.copy(alpha = 0.13f), RoundedCornerShape(999.dp))
                             .padding(horizontal = 10.dp, vertical = 5.dp)
                     )
                 }
@@ -198,22 +201,26 @@ private fun MyNumbersCard(uiState: AppUiState) {
                 Icon(Icons.Rounded.CalendarMonth, contentDescription = null, tint = Accent)
                 Text("나의 수리 번호", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
             }
-            NumberTile("핵심수", numbers?.destiny?.toString() ?: "?", Modifier.fillMaxWidth())
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                NumberTile("핵심수", numbers?.destiny?.toString() ?: "?", Gold, Modifier.weight(1f))
+                NumberTile("초년수", numbers?.early?.toString() ?: "?", Color(0xFFA78BFA), Modifier.weight(1f))
+                NumberTile("중년수", numbers?.middle?.toString() ?: "?", Accent, Modifier.weight(1f))
+            }
         }
     }
 }
 
 @Composable
-private fun NumberTile(label: String, value: String, modifier: Modifier = Modifier) {
+private fun NumberTile(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
-            .background(Surface2, RoundedCornerShape(14.dp))
+            .background(color.copy(alpha = 0.10f), RoundedCornerShape(14.dp))
             .padding(vertical = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text(value, color = Accent, style = MaterialTheme.typography.titleLarge)
-        Text(label, color = Accent, style = MaterialTheme.typography.labelMedium)
+        Text(value, color = color, style = MaterialTheme.typography.titleLarge)
+        Text(label, color = TextSecondary, style = MaterialTheme.typography.labelMedium)
     }
 }
 

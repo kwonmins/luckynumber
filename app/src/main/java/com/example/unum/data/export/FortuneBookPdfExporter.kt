@@ -94,6 +94,9 @@ object FortuneBookPdfExporter {
         book.chapters.forEachIndexed { index, chapter ->
             writer.heading("${index + 1}. ${chapter.title}")
             writer.paragraph(chapter.lead)
+            if (chapter.highlightQuote.isNotBlank()) {
+                writer.labelBody("이 장의 핵심", listOf(chapter.highlightQuote))
+            }
             chapter.body.forEach(writer::paragraph)
             if (chapter.actionTip.isNotEmpty()) {
                 writer.labelBody("실천", chapter.actionTip.map { "- $it" })

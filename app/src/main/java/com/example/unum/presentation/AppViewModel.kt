@@ -276,7 +276,13 @@ class AppViewModel : ViewModel() {
     }
 
     fun setPremiumMode(mode: PremiumMode) {
-        _uiState.update { it.copy(premiumMode = mode, inputError = null) }
+        _uiState.update {
+            it.copy(
+                premiumMode = mode,
+                premiumEssentialQuestion = "",
+                inputError = null
+            )
+        }
     }
 
     fun updatePremiumConcern(value: String) {
@@ -305,17 +311,37 @@ class AppViewModel : ViewModel() {
     fun preparePremiumQuestionConfirmation(): Boolean {
         val current = _uiState.value
         if (current.latestBundle == null) {
-            _uiState.update { it.copy(inputError = "癒쇱? ?앸뀈?붿씪 寃곌낵瑜?留뚮뱺 ???꾨━誘몄뾼 梨낆옄瑜??좎껌??二쇱꽭??") }
+            _uiState.update { it.copy(inputError = "먼저 생년월일을 입력해 기본 결과를 만들어 주세요.") }
             return false
         }
 
-        val normalizedConcern = current.premiumConcern.trim().replace(Regex("\\s+"), " ")
+        if (current.premiumMode == PremiumMode.COMPATIBILITY) {
+            val partner = current.compatibilityForm.partner
+            if (partner.year.length != 4 || partner.month.isBlank() || partner.day.isBlank()) {
+                _uiState.update { it.copy(inputError = "상대방의 생년월일을 모두 입력해 주세요.") }
+                return false
+            }
+        }
+
+        val originalConcern = if (current.premiumMode == PremiumMode.COMPATIBILITY) {
+            current.compatibilityConcern
+        } else {
+            current.premiumConcern
+        }
+        val normalizedConcern = originalConcern.trim().replace(Regex("\\s+"), " ")
         if (normalizedConcern.length < 6) {
-            _uiState.update { it.copy(inputError = "?섎━媛 吏덈Ц??蹂몄쭏???≪쓣 ???덈룄濡?怨좊?????臾몄옣 ?댁긽 ?곸뼱二쇱꽭??") }
+            _uiState.update { it.copy(inputError = "AI가 질문을 명확하게 이해할 수 있도록 고민을 6자 이상 적어주세요.") }
             return false
         }
 
-        val essentialQuestion = buildEssentialQuestion(current.premiumTopic, normalizedConcern)
+        val essentialQuestion = if (current.premiumMode == PremiumMode.COMPATIBILITY) {
+            buildCompatibilityEssentialQuestion(
+                status = current.compatibilityForm.relationshipStatus,
+                concern = normalizedConcern
+            )
+        } else {
+            buildEssentialQuestion(current.premiumTopic, normalizedConcern)
+        }
         _uiState.update {
             it.copy(
                 premiumEssentialQuestion = essentialQuestion,
@@ -327,7 +353,13 @@ class AppViewModel : ViewModel() {
     }
 
     fun updateCompatibilityConcern(value: String) {
-        _uiState.update { it.copy(compatibilityConcern = value) }
+        _uiState.update {
+            it.copy(
+                compatibilityConcern = value,
+                premiumEssentialQuestion = "",
+                inputError = null
+            )
+        }
     }
 
     fun setCompatibilityRelationshipStatus(status: CompatibilityRelationshipStatus) = updateCompatibilityForm {
@@ -381,7 +413,7 @@ class AppViewModel : ViewModel() {
     fun runPremiumConsultation() {
         val bundle = _uiState.value.latestBundle ?: return
         if (!premiumAccessGate.canUsePremiumForTest()) {
-            _uiState.update { it.copy(inputError = "?꾨━誘몄뾼 ?댁슜 沅뚰븳???뺤씤?????놁뒿?덈떎.") }
+            _uiState.update { it.copy(inputError = "프리미엄 이용 권한을 확인할 수 없습니다.") }
             return
         }
 
@@ -433,7 +465,7 @@ class AppViewModel : ViewModel() {
                     it.copy(
                         isPremiumLoading = false,
                         premiumFlowStep = PremiumFlowStep.FORM,
-                        inputError = error.message ?: "?댁꽭?명듃瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??"
+                        inputError = error.message ?: "운세노트를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
                     )
                 }
             }
@@ -442,11 +474,12 @@ class AppViewModel : ViewModel() {
 
     fun runCompatibilityConsultation() {
         if (!premiumAccessGate.canUsePremiumForTest()) {
-            _uiState.update { it.copy(inputError = "?꾨━誘몄뾼 ?댁슜 沅뚰븳???뺤씤?????놁뒿?덈떎.") }
+            _uiState.update { it.copy(inputError = "프리미엄 이용 권한을 확인할 수 없습니다.") }
             return
         }
 
         val current = _uiState.value
+        val confirmedConcern = current.premiumEssentialQuestion.ifBlank { current.compatibilityConcern }
         val myInput = current.latestBundle?.displayInput
         val partnerInput = current.compatibilityForm.partner.toBirthInput(current.compatibilityForm.partnerGender)
 
@@ -474,7 +507,7 @@ class AppViewModel : ViewModel() {
                     apiKey = BuildConfig.OPENAI_API_KEY,
                     maleBundle = maleBundle,
                     femaleBundle = femaleBundle,
-                    concern = current.compatibilityConcern,
+                    concern = confirmedConcern,
                     relationshipStatus = current.compatibilityForm.relationshipStatus
                 )
                 Triple(maleBundle, femaleBundle, consultation)
@@ -483,7 +516,7 @@ class AppViewModel : ViewModel() {
                     consultation = consultation,
                     maleBundle = maleBundle,
                     femaleBundle = femaleBundle,
-                    concern = current.compatibilityConcern,
+                    concern = confirmedConcern,
                     relationshipStatus = current.compatibilityForm.relationshipStatus
                 )
                 val nextBooks = saveNewBook(book)
@@ -500,7 +533,7 @@ class AppViewModel : ViewModel() {
                     it.copy(
                         isPremiumLoading = false,
                         premiumFlowStep = PremiumFlowStep.FORM,
-                        inputError = error.message ?: "沅곹빀?명듃瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??"
+                        inputError = error.message ?: "궁합노트를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
                     )
                 }
             }
@@ -714,14 +747,18 @@ class AppViewModel : ViewModel() {
     ): String {
         val monthText = selection.toDisplayText()
         val base = when (topic) {
-            PremiumTopic.ROMANCE -> "${monthText}?먮뒗 留덉쓬???덈∼寃??닿퀬 愿怨꾩쓽 ?⑤룄瑜??ㅼ떆 留욎텛湲?醫뗭뒿?덈떎. 臾닿굅???뺤씤蹂대떎 援ъ껜?곸씤 留뚮궓 ?쒖븞???먮쫫??遺?쒕읇寃?留뚮벊?덈떎."
-            PremiumTopic.CAREER -> "${monthText}?먮뒗 以鍮꾪븳 寃껋쓣 ?ㅼ젣 ?쒖븞, 吏?? 硫대떞?쇰줈 ??린湲?醫뗭뒿?덈떎. 議곌굔怨???븷???좊챸?섍쾶 ?뺣━?섎㈃ 湲고쉶媛 ??遺꾨챸?댁쭛?덈떎."
-            PremiumTopic.MONEY -> "${monthText}?먮뒗 ?섏엯怨?吏異?援ъ“瑜??ㅼ떆 ?↔린 醫뗭뒿?덈떎. ???뺤떖蹂대떎 湲곗????몄슦???됰룞???덉쓽 ?먮쫫???덉젙?쒗궢?덈떎."
-            PremiumTopic.SELF_ESTEEM -> "${monthText}?먮뒗 ?ㅼ뒪濡쒕? ?ㅼ떆 ?몄슦???섏씠 ?댁븘?⑸땲?? ?묒? ?쎌냽??吏?ㅻ뒗 寃쏀뿕??諛섎났?섎㈃ 留덉쓬??以묒떖???⑤떒?댁쭛?덈떎."
-            PremiumTopic.RELATIONSHIP -> "${monthText}?먮뒗 ?щ엺?ㅺ낵???묒젏???먯뿰?ㅻ읇寃??대┰?덈떎. ?ㅻ옒 誘몃쨪????붾굹 愿怨??뚮났??遺?쒕읇寃??쒖옉?섍린 醫뗭뒿?덈떎."
+            PremiumTopic.ROMANCE -> "${monthText}에는 마음을 편안하게 열고 관계의 온도를 다시 맞추기 좋습니다. 부담스러운 확인보다 구체적인 만남 제안이 자연스럽게 이어집니다."
+            PremiumTopic.CAREER -> "${monthText}에는 준비한 내용을 지원, 제안, 면접으로 옮기기 좋습니다. 조건과 역할을 선명하게 정리하면 기회가 더 분명해집니다."
+            PremiumTopic.MONEY -> "${monthText}에는 수입과 지출 구조를 다시 세우기 좋습니다. 큰 결정보다 기준을 세우는 행동이 돈의 흐름을 안정시킵니다."
+            PremiumTopic.STUDY -> "${monthText}에는 집중 범위를 정리하고 취약 영역을 보완하기 좋습니다. 반복 학습이 시험과 과제의 실수를 줄여줍니다."
+            PremiumTopic.HEALTH -> "${monthText}에는 수면과 활동 리듬을 회복하기 좋습니다. 무리한 변화보다 꾸준한 생활 시간이 컨디션을 안정시킵니다."
+            PremiumTopic.BUSINESS -> "${monthText}에는 거래 조건과 수익 구조를 점검하기 좋습니다. 제안과 계약의 책임 범위를 분명히 하면 기회가 안정적으로 이어집니다."
+            PremiumTopic.GENERAL -> "${monthText}에는 일, 돈, 관계의 우선순위가 선명해집니다. 가장 영향이 큰 한 영역에 힘을 모으기 좋습니다."
+            PremiumTopic.SELF_ESTEEM -> "${monthText}에는 스스로를 다시 세우는 힘이 살아납니다. 작은 약속을 지키는 경험이 마음의 중심을 단단하게 합니다."
+            PremiumTopic.RELATIONSHIP -> "${monthText}에는 사람들과의 접점이 자연스럽게 열립니다. 미뤄둔 대화나 관계 회복을 부드럽게 시작하기 좋습니다."
         }
         val passedMonth = selection.replacedPastMonth ?: return base
-        return "?ы빐 媛??異붿쿇 ?먮쫫??媛뺥뻽??${passedMonth}?붿? ?대? 吏?ъ뒿?덈떎. 吏湲??댄썑?먮뒗 ${monthText}??異붿쿇 援ш컙?쇰줈 蹂닿퀬 ?吏곸뿬蹂댁꽭?? $base"
+        return "올해 가장 추천 흐름이 강했던 ${passedMonth}월은 이미 지났습니다. 지금 이후에는 ${monthText}을 다음 추천 구간으로 보세요. $base"
     }
 
     private fun buildStoredRiskyMonthReason(
@@ -730,17 +767,21 @@ class AppViewModel : ViewModel() {
     ): String {
         val monthText = selection.toDisplayText()
         val base = when (topic) {
-            PremiumTopic.ROMANCE -> "${monthText}?먮뒗 留덉쓬???욎꽌 寃곕줎???ъ큺?섍린 ?쎌뒿?덈떎. ?곷????띾룄? ?щ갚??媛곷퀎??議곗떖?섏꽭??"
-            PremiumTopic.CAREER -> "${monthText}?먮뒗 蹂???뺢뎄媛 而ㅼ졇 ?깃툒??寃곗젙?쇰줈 ?먮Ⅴ湲??쎌뒿?덈떎. ???좏깮? ??踰???寃?좏븳 ???吏곸씠???몄씠 ?덉쟾?⑸땲??"
-            PremiumTopic.MONEY -> "${monthText}?먮뒗 鍮좊Ⅸ ?댁씡??醫뉖뒗 留덉쓬??媛뺥빐吏????덉뒿?덈떎. ?뺤씤?섏? ?딆? ?쒖븞怨?異⑸룞 吏異쒖? 諛섎뱶??嫄곕━瑜??먯꽭??"
-            PremiumTopic.SELF_ESTEEM -> "${monthText}?먮뒗 鍮꾧탳? 議곌툒?⑥씠 而ㅼ?湲??쎌뒿?덈떎. 紐멸낵 留덉쓬??由щ벉??癒쇱? ?뚮났?섎뒗 ??吏묒쨷?섏꽭??"
-            PremiumTopic.RELATIONSHIP -> "${monthText}?먮뒗 ?щ엺 ?ъ씠???ㅽ빐媛 鍮⑤━ 踰덉쭏 ???덉뒿?덈떎. 以묒슂????붾뒗 李⑤텇???쒓컙???먮뒗 ?몄씠 醫뗭뒿?덈떎."
+            PremiumTopic.ROMANCE -> "${monthText}에는 마음이 앞서 결론을 재촉하기 쉽습니다. 상대의 반응 속도와 여백을 함께 살피는 편이 안전합니다."
+            PremiumTopic.CAREER -> "${monthText}에는 변화 욕구가 커져 성급한 결정을 내리기 쉽습니다. 큰 선택은 조건을 다시 확인한 뒤 움직이는 편이 안전합니다."
+            PremiumTopic.MONEY -> "${monthText}에는 빠른 이익을 좇고 싶은 마음이 커질 수 있습니다. 확인되지 않은 제안과 충동 지출은 거리를 두는 편이 안전합니다."
+            PremiumTopic.STUDY -> "${monthText}에는 불안 때문에 계획만 늘리거나 밤샘으로 밀어붙이기 쉽습니다. 범위를 줄이고 수면을 지키는 편이 안전합니다."
+            PremiumTopic.HEALTH -> "${monthText}에는 피로 신호를 무시하기 쉽습니다. 불편함이 지속되면 운세보다 의료진의 진료를 우선하세요."
+            PremiumTopic.BUSINESS -> "${monthText}에는 확장 욕구가 커져 비용과 계약 조건을 낙관적으로 보기 쉽습니다. 문서와 숫자를 확인하기 전에는 큰 결정을 미루는 편이 안전합니다."
+            PremiumTopic.GENERAL -> "${monthText}에는 여러 문제를 한 번에 해결하려다 판단이 흐려질 수 있습니다. 큰 결정을 겹치지 않는 편이 안전합니다."
+            PremiumTopic.SELF_ESTEEM -> "${monthText}에는 비교와 조급함이 커지기 쉽습니다. 몸과 마음의 리듬을 먼저 회복하는 데 집중하세요."
+            PremiumTopic.RELATIONSHIP -> "${monthText}에는 오해가 빠르게 번질 수 있습니다. 중요한 대화는 단정하지 말고 시간을 두는 편이 좋습니다."
         }
         val passedMonth = selection.replacedPastMonth ?: return base
         return if (selection.isNextYear) {
-            "?ы빐 媛??媛뺥븯寃?議곗떖???ъ씤 ${passedMonth}?붿? ?대? 吏?ш퀬, ?ы빐 ?⑥? 援ш컙?먮뒗 媛숈? 寃곗씠 ?쏀븯寃?吏?섍컩?덈떎. 洹몃옒???ㅼ쓬 ??${selection.month}?붿쓣 ?ㅼ쓬 二쇱쓽 援ш컙?쇰줈 遊낅땲?? $base"
+            "올해 가장 강하게 조심할 달인 ${passedMonth}월은 이미 지났습니다. 다음 해 ${selection.month}월을 다음 주의 구간으로 봅니다. $base"
         } else {
-            "?ы빐 媛??媛뺥븯寃?議곗떖???ъ씤 ${passedMonth}?붿? ?대? 吏?ъ쑝?? 吏湲??댄썑?먮뒗 ${monthText}???ㅼ쓬 二쇱쓽 援ш컙?쇰줈 蹂댁꽭?? $base"
+            "올해 가장 강하게 조심할 달인 ${passedMonth}월은 이미 지났습니다. 지금 이후에는 ${monthText}을 다음 주의 구간으로 보세요. $base"
         }
     }
 
@@ -762,21 +803,43 @@ class AppViewModel : ViewModel() {
     }
 
     private fun buildEssentialQuestion(topic: PremiumTopic, concern: String): String {
-        val firstSentence = concern
-            .split(".", "?", "!", "\n")
-            .map { it.trim() }
-            .firstOrNull { it.isNotBlank() }
-            ?: concern
-        val shortened = firstSentence.take(72).trim()
+        val shortened = concernForQuestion(concern)
         val topicHint = when (topic) {
-            PremiumTopic.ROMANCE -> "연애에서"
-            PremiumTopic.CAREER -> "일과 진로에서"
-            PremiumTopic.MONEY -> "돈의 흐름에서"
-            PremiumTopic.SELF_ESTEEM -> "나 자신을 대하는 방식에서"
-            PremiumTopic.RELATIONSHIP -> "인간관계에서"
+            PremiumTopic.ROMANCE -> "연애"
+            PremiumTopic.CAREER -> "일과 진로"
+            PremiumTopic.MONEY -> "재물"
+            PremiumTopic.STUDY -> "학업과 시험"
+            PremiumTopic.HEALTH -> "건강과 생활 리듬"
+            PremiumTopic.BUSINESS -> "사업과 계약"
+            PremiumTopic.GENERAL -> "이번 달 종합운"
+            PremiumTopic.SELF_ESTEEM -> "마음과 자존감"
+            PremiumTopic.RELATIONSHIP -> "인간관계"
         }
-        val sentence = if (shortened.endsWith("?")) shortened.dropLast(1) else shortened
-        return "$topicHint 지금 가장 조정해야 할 핵심은 '$sentence'가 맞나요?"
+        return "$topicHint 상담에서 '$shortened' 상황을 중심으로 현재 흐름과 주의점, 현실적인 대응 방법은 무엇인가요?"
+    }
+
+    private fun buildCompatibilityEssentialQuestion(
+        status: CompatibilityRelationshipStatus,
+        concern: String
+    ): String {
+        val shortened = concernForQuestion(concern)
+        return when (status) {
+            CompatibilityRelationshipStatus.COUPLE ->
+                "현재 연인 관계에서 '$shortened' 상황을 어떻게 해석하고 조율하면 좋을까요?"
+            CompatibilityRelationshipStatus.CRUSH ->
+                "짝사랑 관계에서 '$shortened' 상황을 어떻게 해석하고, 부담 없이 관계를 발전시키려면 어떻게 해야 할까요?"
+            CompatibilityRelationshipStatus.REUNION ->
+                "재회를 고민하는 관계에서 '$shortened' 상황을 어떻게 해석하고, 다시 연락하기 전에 무엇을 살펴야 할까요?"
+        }
+    }
+
+    private fun concernForQuestion(concern: String): String {
+        val firstSentence = concern
+            .split(Regex("[.!?。！？\\n]+"))
+            .map(String::trim)
+            .firstOrNull(String::isNotBlank)
+            ?: concern.trim()
+        return firstSentence.take(90).trim().trim('"', '\'', '“', '”')
     }
 
     private fun CompatibilityFormState.hasAnyInput(): Boolean {

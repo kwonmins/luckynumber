@@ -32,7 +32,9 @@ import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.Bookmarks
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Insights
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -87,12 +89,37 @@ fun MysticBackground(
     content: @Composable () -> Unit
 ) {
     Box(
-        modifier = modifier.background(
-            Brush.verticalGradient(
-                listOf(Color.White, Background, Color(0xFFEFF4FB))
-            )
-        )
+        modifier = modifier.background(Background)
     ) {
+        Canvas(Modifier.fillMaxSize()) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(Gold.copy(alpha = 0.14f), Color.Transparent),
+                    center = Offset(size.width * 0.82f, size.height * 0.12f),
+                    radius = size.width * 0.58f
+                ),
+                radius = size.width * 0.58f,
+                center = Offset(size.width * 0.82f, size.height * 0.12f)
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(Color(0xFFA78BFA).copy(alpha = 0.10f), Color.Transparent),
+                    center = Offset(size.width * 0.12f, size.height * 0.76f),
+                    radius = size.width * 0.52f
+                ),
+                radius = size.width * 0.52f,
+                center = Offset(size.width * 0.12f, size.height * 0.76f)
+            )
+            repeat(12) { index ->
+                val x = size.width * (((index * 37) % 101) / 100f)
+                val y = size.height * (0.08f + (((index * 61) % 83) / 100f))
+                drawCircle(
+                    color = Gold.copy(alpha = if (index % 3 == 0) 0.28f else 0.14f),
+                    radius = if (index % 3 == 0) 2.1f else 1.3f,
+                    center = Offset(x, y)
+                )
+            }
+        }
         if (animatedWaves) {
             FortuneWaveField(Modifier.fillMaxSize())
         }
@@ -213,11 +240,11 @@ fun SurfaceCard(
     borderColor: Color = Border,
     content: @Composable () -> Unit
 ) {
-    val cardShape = RoundedCornerShape(16.dp)
+    val cardShape = RoundedCornerShape(14.dp)
     Box(
         modifier = modifier
             .shadow(
-                elevation = 4.dp,
+                elevation = 2.dp,
                 shape = cardShape,
                 clip = false,
                 ambientColor = Color.Black.copy(alpha = 0.08f),
@@ -413,7 +440,14 @@ fun GenderSelector(selected: GenderOption, onSelected: (GenderOption) -> Unit, m
 }
 
 @Composable
-fun GradientButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+fun GradientButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    color: Color = Accent,
+    contentColor: Color = Color.White
+) {
     val shape = RoundedCornerShape(12.dp)
     Box(
         modifier = modifier
@@ -421,11 +455,11 @@ fun GradientButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
                 elevation = if (enabled) 6.dp else 0.dp,
                 shape = shape,
                 clip = false,
-                ambientColor = Accent.copy(alpha = 0.16f),
-                spotColor = Accent.copy(alpha = 0.22f)
+                ambientColor = color.copy(alpha = 0.16f),
+                spotColor = color.copy(alpha = 0.22f)
             )
             .clip(shape)
-            .background(if (enabled) Accent else Accent.copy(alpha = 0.32f))
+            .background(if (enabled) color else color.copy(alpha = 0.32f))
             .clickable(
                 enabled = enabled,
                 interactionSource = remember { MutableInteractionSource() },
@@ -435,7 +469,7 @@ fun GradientButton(text: String, onClick: () -> Unit, modifier: Modifier = Modif
             .padding(vertical = 16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = Color.White, style = MaterialTheme.typography.labelLarge)
+        Text(text, color = if (enabled) contentColor else contentColor.copy(alpha = 0.42f), style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -458,30 +492,37 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
 data class BottomNavItem(val route: String, val label: String, val icon: ImageVector)
 
 val bottomNavItems = listOf(
-    BottomNavItem("home", "홈", Icons.Rounded.Home),
-    BottomNavItem("fortune", "오늘운세", Icons.Rounded.Insights),
+    BottomNavItem("home", "오늘", Icons.Rounded.Home),
+    BottomNavItem("fortune", "오라클", Icons.Rounded.Shuffle),
     BottomNavItem("library", "보관함", Icons.Rounded.Bookmarks),
-    BottomNavItem("premium", "프리미엄", Icons.Rounded.AutoStories),
-    BottomNavItem("settings", "설정", Icons.Rounded.Settings)
+    BottomNavItem("premium", "노트", Icons.Rounded.AutoStories),
+    BottomNavItem("settings", "나", Icons.Rounded.Person)
 )
 
 @Composable
-fun BottomNavBar(currentRoute: String, onNavigate: (String) -> Unit, modifier: Modifier = Modifier) {
-    val navShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+fun BottomNavBar(
+    currentRoute: String,
+    onNavigate: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    dark: Boolean = false
+) {
+    val navShape = RoundedCornerShape(20.dp)
+    val inactiveColor = Color.White.copy(alpha = 0.34f)
     NavigationBar(
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(76.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
             .shadow(
-                elevation = 10.dp,
+                elevation = 18.dp,
                 shape = navShape,
                 clip = false,
-                ambientColor = Color.Black.copy(alpha = 0.08f),
-                spotColor = Color.Black.copy(alpha = 0.10f)
+                ambientColor = Color.Black.copy(alpha = 0.42f),
+                spotColor = Color.Black.copy(alpha = 0.54f)
             )
             .clip(navShape)
-            .border(1.dp, Border, navShape),
-        containerColor = Overlay,
+            .border(1.dp, Color.White.copy(alpha = 0.12f), navShape),
+        containerColor = Color(0xFF060710),
         tonalElevation = 0.dp
     ) {
         bottomNavItems.forEach { item ->
@@ -493,22 +534,22 @@ fun BottomNavBar(currentRoute: String, onNavigate: (String) -> Unit, modifier: M
                     Icon(
                         item.icon,
                         item.label,
-                        tint = if (selected) Accent else TextMuted
+                        tint = if (selected) Gold else inactiveColor
                     )
                 },
                 label = {
                     Text(
                         item.label,
-                        color = if (selected) Accent else TextMuted,
+                        color = if (selected) Gold else inactiveColor,
                         style = MaterialTheme.typography.bodySmall
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Accent,
-                    selectedTextColor = Accent,
-                    indicatorColor = Accent.copy(alpha = 0.08f),
-                    unselectedIconColor = TextMuted,
-                    unselectedTextColor = TextMuted
+                    selectedIconColor = Gold,
+                    selectedTextColor = Gold,
+                    indicatorColor = Gold.copy(alpha = 0.10f),
+                    unselectedIconColor = inactiveColor,
+                    unselectedTextColor = inactiveColor
                 )
             )
         }

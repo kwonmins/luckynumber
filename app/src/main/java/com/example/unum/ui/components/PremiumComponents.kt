@@ -11,6 +11,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -729,12 +730,12 @@ fun FortuneBookReader(
         ) {
             Text(
                 readerPageTitle(book, pagerState.currentPage),
-                color = TextPrimary,
+                color = PremiumTokens.TextCream,
                 style = scaledTextStyle(MaterialTheme.typography.titleMedium, fontScale, 18f, 24f)
             )
             Text(
                 "${pagerState.currentPage + 1} / $pageCount",
-                color = TextMuted,
+                color = PremiumTokens.TextMuted,
                 style = scaledTextStyle(MaterialTheme.typography.bodySmall, fontScale, 13f, 18f)
             )
         }
@@ -748,16 +749,18 @@ fun FortuneBookReader(
             val rawOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
             val pageOffset = rawOffset.absoluteValue.coerceIn(0f, 1f)
             ReaderPageScaffold(
+                coverTheme = book.coverTheme,
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
+                    .zIndex(1f - pageOffset)
                     .graphicsLayer {
-                        cameraDistance = 18f * density
-                        rotationY = rawOffset * 42f
-                        translationX = rawOffset * -18f
-                        scaleX = 1f - pageOffset * 0.045f
-                        scaleY = 1f - pageOffset * 0.030f
-                        alpha = 1f - pageOffset * 0.12f
-                        shadowElevation = (18f + pageOffset * 18f) * density
+                        cameraDistance = 14f * density
+                        rotationY = rawOffset * 68f
+                        translationX = rawOffset * -30f
+                        scaleX = 1f - pageOffset * 0.055f
+                        scaleY = 1f - pageOffset * 0.025f
+                        alpha = 1f - pageOffset * 0.08f
+                        shadowElevation = (20f + pageOffset * 28f) * density
                         transformOrigin = TransformOrigin(
                             pivotFractionX = if (rawOffset > 0) 0f else 1f,
                             pivotFractionY = 0.5f
@@ -803,18 +806,23 @@ fun FortuneBookReader(
 
 @Composable
 private fun ReaderPageScaffold(
+    coverTheme: String,
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val theme = themeSpecFor(coverTheme)
+    val pageTop = theme.readerPageTopColor.toThemeColor()
+    val pageBottom = theme.readerPageColor.toThemeColor()
+    val pageEdge = theme.readerEdgeColor.toThemeColor()
     Box(
         modifier = modifier
             .fillMaxSize()
             .shadow(12.dp, RoundedCornerShape(8.dp), clip = false)
             .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xFFFFF8EA))
+            .background(Brush.verticalGradient(listOf(pageTop, pageBottom)))
             .border(
                 1.dp,
-                Color(0xFFD7C9AA),
+                pageEdge,
                 RoundedCornerShape(8.dp)
             )
             .padding(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 18.dp)
@@ -1086,18 +1094,33 @@ private fun ChapterPage(
     fontScale: ReaderFontScale,
     coverTheme: String
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+    var visible by remember(chapter.title) { mutableStateOf(false) }
+    LaunchedEffect(chapter.title) {
+        visible = false
+        delay((index.coerceAtMost(6) * 45L) + 60L)
+        visible = true
+    }
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) +
+            slideInVertically(
+                initialOffsetY = { it / 8 },
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+            )
     ) {
-        SalonChapterCard(
-            index = index,
-            chapter = chapter,
-            fontScale = fontScale,
-            coverTheme = coverTheme
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            SalonChapterCard(
+                index = index,
+                chapter = chapter,
+                fontScale = fontScale,
+                coverTheme = coverTheme
+            )
+        }
     }
 }
 
@@ -1176,7 +1199,7 @@ private fun SalonChapterCard(
             )
 
             SequentialParagraphs(
-                paragraphs = chapter.body.filter { it.isNotBlank() }.take(3),
+                paragraphs = chapter.body.filter { it.isNotBlank() },
                 bodyStyle = bodyStyle
             )
 
@@ -1190,7 +1213,7 @@ private fun SalonChapterCard(
                         .padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("복사하기 좋은 문장", color = ribbonColor, style = scaledTextStyle(MaterialTheme.typography.labelLarge, fontScale, 14f, 19f))
+                    Text("실천 포인트", color = ribbonColor, style = scaledTextStyle(MaterialTheme.typography.labelLarge, fontScale, 14f, 19f))
                     chapter.actionTip.forEach { tip ->
                         Text(tip, color = TextPrimary, style = scaledTextStyle(MaterialTheme.typography.bodyMedium, fontScale, 15f, 23f))
                     }
@@ -1287,7 +1310,11 @@ private fun SequentialParagraphs(
         paragraphs.forEachIndexed { index, paragraph ->
             AnimatedVisibility(
                 visible = index < visibleCount,
-                enter = fadeIn(tween(240)) + expandVertically()
+                enter = fadeIn(spring(stiffness = Spring.StiffnessLow)) +
+                    slideInVertically(
+                        initialOffsetY = { it / 6 },
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                    ) + expandVertically(spring(stiffness = Spring.StiffnessLow))
             ) {
                 Text(paragraph, color = TextSecondary, style = bodyStyle)
             }
@@ -1565,7 +1592,7 @@ private fun chapterMascotRes(theme: String, chapterIndex: Int): Int {
             R.drawable.suri_reader_compatibility,
             R.drawable.suri_reader_caution,
             R.drawable.suri_reader_action,
-            R.drawable.suri_scroll
+            R.drawable.suri_anim_romance_06
         )
         BookThemeId.COMPATIBILITY,
         BookThemeId.COMPATIBILITY_COUPLE,
@@ -1576,7 +1603,7 @@ private fun chapterMascotRes(theme: String, chapterIndex: Int): Int {
             R.drawable.suri_reader_caution,
             R.drawable.suri_anim_consult_07,
             R.drawable.suri_reader_action,
-            R.drawable.suri_hanbok
+            R.drawable.suri_pose_02
         )
         BookThemeId.MONEY -> listOf(
             R.drawable.suri_reader_money_cutout,
@@ -1588,18 +1615,18 @@ private fun chapterMascotRes(theme: String, chapterIndex: Int): Int {
         BookThemeId.CAREER -> listOf(
             R.drawable.suri_reader_action,
             R.drawable.suri_anim_writer_hero,
-            R.drawable.suri_writer,
+            R.drawable.suri_anim_writer_07,
             R.drawable.suri_reader_caution
         )
         BookThemeId.RELATIONSHIP,
         BookThemeId.SELF_ESTEEM,
         BookThemeId.CALM -> listOf(
             premiumThemeMascot(theme),
-            R.drawable.suri_scroll,
-            R.drawable.suri_writer,
-            R.drawable.suri_tea,
+            R.drawable.suri_anim_numbers_hero,
+            R.drawable.suri_anim_writer_07,
+            R.drawable.suri_expression_04,
             R.drawable.suri_reader_caution,
-            R.drawable.suri_hanbok
+            R.drawable.suri_pose_06
         )
     }.distinct()
     return orderedMascots[chapterIndex % orderedMascots.size]

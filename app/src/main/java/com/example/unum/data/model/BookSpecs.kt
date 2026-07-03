@@ -58,6 +58,58 @@ object BookSpecs {
             coverKicker = "PREMIUM MONEY NOTE"
         ),
         BookSpec(
+            id = "study",
+            bookType = FortuneBookType.PERSONAL,
+            label = "학업",
+            bookLabel = "학업과 시험",
+            themeId = BookThemeId.CAREER,
+            archiveKeywords = listOf("학업", "시험", "공부"),
+            promptSchemaId = "premium_study_v1",
+            defaultChapterTitles = listOf("현재 학습 상태", "집중과 기억", "시험 흐름", "공부 전략"),
+            topic = PremiumTopic.STUDY,
+            coverTitle = "학업 운세노트",
+            coverKicker = "PREMIUM STUDY NOTE"
+        ),
+        BookSpec(
+            id = "health",
+            bookType = FortuneBookType.PERSONAL,
+            label = "건강",
+            bookLabel = "건강과 컨디션",
+            themeId = BookThemeId.SELF_ESTEEM,
+            archiveKeywords = listOf("건강", "컨디션", "수면", "피로"),
+            promptSchemaId = "premium_health_v1",
+            defaultChapterTitles = listOf("현재 컨디션", "회복 신호", "주의 습관", "생활 관리"),
+            topic = PremiumTopic.HEALTH,
+            coverTitle = "건강 운세노트",
+            coverKicker = "PREMIUM WELLNESS NOTE"
+        ),
+        BookSpec(
+            id = "business",
+            bookType = FortuneBookType.PERSONAL,
+            label = "사업",
+            bookLabel = "사업과 계약",
+            themeId = BookThemeId.MONEY,
+            archiveKeywords = listOf("사업", "창업", "거래처", "계약"),
+            promptSchemaId = "premium_business_v1",
+            defaultChapterTitles = listOf("현재 사업 흐름", "기회와 확장", "계약과 거래", "리스크 관리"),
+            topic = PremiumTopic.BUSINESS,
+            coverTitle = "사업 운세노트",
+            coverKicker = "PREMIUM BUSINESS NOTE"
+        ),
+        BookSpec(
+            id = "general",
+            bookType = FortuneBookType.PERSONAL,
+            label = "종합운",
+            bookLabel = "나의 종합운",
+            themeId = BookThemeId.RELATIONSHIP,
+            archiveKeywords = listOf("종합운", "전체 운세", "종합"),
+            promptSchemaId = "premium_general_v1",
+            defaultChapterTitles = listOf("전체 흐름", "가장 좋은 운", "주의할 운", "이번 달 방향"),
+            topic = PremiumTopic.GENERAL,
+            coverTitle = "종합 운세노트",
+            coverKicker = "PREMIUM FORTUNE NOTE"
+        ),
+        BookSpec(
             id = "self",
             bookType = FortuneBookType.PERSONAL,
             label = "나 자신",
@@ -140,13 +192,13 @@ object BookSpecs {
 
     fun forBook(book: FortuneBook): BookSpec {
         val themeId = book.resolvedThemeId()
-        forTheme(themeId)?.let { return it }
-
         val searchable = "${book.concernTopic} ${book.coverTitle}"
-        return all.firstOrNull { spec ->
+        all.firstOrNull { spec ->
             spec.bookType == book.bookType &&
                 spec.archiveKeywords.any { keyword -> searchable.contains(keyword, ignoreCase = true) }
-        } ?: if (book.bookType == FortuneBookType.COMPATIBILITY) {
+        }?.let { return it }
+        forTheme(themeId)?.let { return it }
+        return if (book.bookType == FortuneBookType.COMPATIBILITY) {
             compatibilitySpecs.first()
         } else {
             personalSpecs.first()

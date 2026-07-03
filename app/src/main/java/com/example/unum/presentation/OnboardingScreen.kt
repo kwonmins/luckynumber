@@ -1,6 +1,7 @@
 package com.example.unum.presentation
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -27,14 +28,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.unum.ui.components.GradientButton
+import com.example.unum.ui.components.MascotArt
 import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.components.SecondaryButton
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Background
 import com.example.unum.ui.theme.Border
+import com.example.unum.ui.theme.Gold
 import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
@@ -56,42 +63,53 @@ fun OnboardingScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(236.dp)
+                    .height(352.dp)
                     .background(
                         Brush.linearGradient(
-                            listOf(Color(0xFF3B82F6), Accent, Color(0xFF1E3A8A))
+                            listOf(Color(0xFF030409), Color(0xFF0A0B1A), Color(0xFF060710))
                         )
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Canvas(Modifier.fillMaxSize()) {
-                    drawCircle(Color.White.copy(alpha = 0.10f), radius = size.minDimension * 0.20f, center = Offset(size.width * 0.18f, size.height * 0.26f))
-                    drawCircle(Color.White.copy(alpha = 0.08f), radius = size.minDimension * 0.28f, center = Offset(size.width * 0.86f, size.height * 0.18f))
-                    drawCircle(Color.White.copy(alpha = 0.08f), radius = size.minDimension * 0.34f, center = Offset(size.width * 0.74f, size.height * 0.82f))
+                    drawCircle(Gold.copy(alpha = 0.06f), radius = size.minDimension * 0.42f, center = Offset(size.width * 0.50f, size.height * 0.48f), style = Stroke(1.dp.toPx()))
+                    drawCircle(Gold.copy(alpha = 0.12f), radius = size.minDimension * 0.30f, center = Offset(size.width * 0.50f, size.height * 0.48f), style = Stroke(1.dp.toPx()))
+                    drawCircle(Gold.copy(alpha = 0.20f), radius = size.minDimension * 0.20f, center = Offset(size.width * 0.50f, size.height * 0.48f), style = Stroke(1.dp.toPx()))
+                    repeat(14) { index ->
+                        drawCircle(
+                            color = Gold.copy(alpha = if (index % 3 == 0) 0.34f else 0.17f),
+                            radius = if (index % 3 == 0) 2.2f else 1.3f,
+                            center = Offset(
+                                size.width * (((index * 37) % 97) / 100f),
+                                size.height * (0.08f + (((index * 53) % 80) / 100f))
+                            )
+                        )
+                    }
                 }
+                Image(
+                    painter = painterResource(MascotArt.Home),
+                    contentDescription = "운세노트를 안내하는 수리",
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 18.dp, bottom = 8.dp)
+                        .size(136.dp),
+                    contentScale = ContentScale.Fit
+                )
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .shadow(8.dp, RoundedCornerShape(16.dp), clip = false)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.White.copy(alpha = 0.20f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("7", color = Color.White, style = MaterialTheme.typography.displayMedium)
-                    }
+                    Text("수리의 운세노트", color = TextMuted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
+                    Text("7", color = Gold, fontSize = 104.sp, lineHeight = 104.sp, fontWeight = FontWeight.Black)
                     Text(
-                        text = "운세노트",
-                        color = Color.White,
+                        text = "당신의 수리를 읽습니다",
+                        color = TextPrimary,
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.displayLarge
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black)
                     )
                     Text(
-                        text = "생년월일로 오늘의 핵심수와\n나의 성향 흐름을 먼저 확인해보세요.",
-                        color = Color.White.copy(alpha = 0.78f),
+                        text = "생년월일로 오늘의 에너지와\n인생의 흐름, 숨겨진 비책을 발견해요.",
+                        color = TextSecondary,
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -105,7 +123,7 @@ fun OnboardingScreen(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 AppExplanationPanel()
-                WaveArtwork(modifier = Modifier.fillMaxWidth())
+                Box(Modifier.weight(1f))
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -128,7 +146,9 @@ fun OnboardingScreen(
                     GradientButton(
                         text = "생년월일 입력하고 체험하기",
                         onClick = onStartAsGuest,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Gold,
+                        contentColor = Background
                     )
                     SecondaryButton(
                         text = if (isSigningIn) "카카오 로그인 중..." else "카카오로 로그인하고 시작하기",
@@ -154,7 +174,7 @@ private fun AppExplanationPanel() {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text("무엇을 해주나요?", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
-        OnboardingDescriptionLine("생년월일로 성향, 선택 리듬, 시기별 흐름을 정리해요.")
+        OnboardingDescriptionLine("생년월일로 핵심 번호와 기본 성향을 정리해요.")
         OnboardingDescriptionLine("오늘의 연애, 일, 돈, 배움, 자기관리 운세를 짧게 확인해요.")
         OnboardingDescriptionLine("숫자는 높고 낮음이 아니라 각자 다른 역할과 기질로 읽어요.")
     }

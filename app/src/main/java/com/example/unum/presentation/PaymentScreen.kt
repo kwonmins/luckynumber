@@ -105,7 +105,7 @@ fun PaymentScreen(
                     Text("포함된 기능", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
                     FeatureLine("무제한 프리미엄 책자 제작")
                     FeatureLine("맞춤 핵심 질문 & 비책")
-                    FeatureLine("전체 인생 흐름 리포트")
+                    FeatureLine("분야별 상세 운세 리포트")
                     FeatureLine("리포트 무제한 저장")
                 }
             }

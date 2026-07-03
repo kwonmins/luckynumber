@@ -36,26 +36,178 @@ class GeneratePremiumConsultationUseCase(
     }
 
     private fun buildPrompt(topic: PremiumTopic, concern: String, bundle: NumerologyResultBundle): String {
-        if (topic == PremiumTopic.ROMANCE) {
-            return buildRomanceSalonPrompt(topic, concern, bundle)
-        }
-
         val input = bundle.input
         val destiny = bundle.content.destinyProfile
         val hiddenCue = buildHiddenBirthCue(input)
         val concernText = concern.ifBlank { "요즘 마음에 가장 자주 떠오르는 고민을 아직 구체적으로 적지 않았습니다." }
         val traitBrief = buildTraitBrief(destiny.title, destiny.coreKeywords, destiny.cautionKeywords)
         val currentMonth = PremiumMonthPlanner.currentMonth()
-
-        return buildCompactPremiumPrompt(
+        val bestMonth = PremiumMonthPlanner.pickBestMonth(topic, bundle.numbers, currentMonth).toDisplayText()
+        val riskyMonth = PremiumMonthPlanner.pickRiskyMonth(topic, bundle.numbers, currentMonth).toDisplayText()
+        return buildDetailedPremiumPrompt(
             topic = topic,
             concernText = concernText,
             bundle = bundle,
             hiddenCue = hiddenCue,
             traitBrief = traitBrief,
-            currentMonth = currentMonth
+            currentMonth = currentMonth,
+            bestMonth = bestMonth,
+            riskyMonth = riskyMonth
         )
+    }
 
+    private fun buildDetailedPremiumPrompt(
+        topic: PremiumTopic,
+        concernText: String,
+        bundle: NumerologyResultBundle,
+        hiddenCue: String,
+        traitBrief: String,
+        currentMonth: Int,
+        bestMonth: String,
+        riskyMonth: String
+    ): String {
+        val displayInput = bundle.displayInput
+        val profile = bundle.content.destinyProfile
+        val sections = premiumSections(topic)
+        val sectionGuide = sections.mapIndexed { index, section ->
+            "${index + 1}. id=${section.id}, ribbon=${section.ribbon}, title=${section.title}: ${section.requirements}"
+        }.joinToString("\n")
+        val tocSchema = sections.joinToString(prefix = "[", postfix = "]") {
+            "{\"id\":\"${it.id}\",\"title\":\"${it.title}\"}"
+        }
+        val pagesSchema = sections.joinToString(prefix = "[", postfix = "]") {
+            "{\"id\":\"${it.id}\",\"ribbon\":\"${it.ribbon}\",\"title\":\"${it.title}\",\"highlight\":\"\",\"body\":[\"\"]}"
+        }
+
+        return """
+            당신은 20년 이상 상담 경험이 있는 한국어 프리미엄 운세 상담사입니다.
+            미래를 단정하지 말고 현재의 가능성과 흐름을 상담하듯 설명하세요. 사용자가 실제 자기 이야기처럼 느낄 수 있도록 고민 속 장면과 이유를 구체적으로 연결하세요.
+
+            [상담 입력]
+            - 분야: ${topic.label}
+            - 고민: $concernText
+            - 생년월일: ${displayInput.year}.${displayInput.month}.${displayInput.day}
+            - 달력: ${if (displayInput.calendarType == CalendarType.LUNAR) "음력" else "양력"}
+            - 성별: ${displayInput.gender.label}
+            - 기준 월: ${currentMonth}월
+            - 핵심수: ${bundle.numbers.destiny}
+            - 성향: $traitBrief
+            - 강점 키워드: ${profile.coreKeywords.joinToString(", ")}
+            - 주의 키워드: ${profile.cautionKeywords.joinToString(", ")}
+            - 보조 해석: $hiddenCue
+            - 추천 시기: $bestMonth
+            - 주의 시기: $riskyMonth
+
+            [필수 상담 구조]
+            $sectionGuide
+
+            [작성 규칙]
+            - 결과 JSON에 작성하는 모든 상담 문구의 합계는 반드시 한국어 기준 2,500자 이내로 제한하세요.
+            - 8개 page의 body는 각각 160~220자, 한 문단, 2~3문장으로 작성하세요.
+            - answerCard와 월별 이유는 각각 120자 이내, closingAdvice는 40자 이내로 작성하세요.
+            - 같은 표현과 같은 문장 시작을 반복하지 마세요. 특히 "흐름이 강합니다", "할 수 있습니다", "좋습니다"의 연속 사용을 피하세요.
+            - 추상적인 기운 설명만 하지 말고 연락, 약속, 업무, 계약, 소비, 휴식처럼 사용자가 알아볼 수 있는 장면을 쓰세요.
+            - 좋은 부분은 왜 좋은지, 주의점은 무엇이 문제이며 어떻게 조절할 수 있는지까지 설명하세요.
+            - 불안을 조성하거나 성공, 재회, 합격, 수익, 건강 결과를 확정하지 마세요.
+            - 추천 행동은 바로 실행할 수 있는 구체적인 행동 1~2개만 자연스러운 문장으로 제안하세요.
+            - 수첩, 메모, 일기, 기록, 체크리스트 작성이나 "적어두세요" 같은 조언은 사용하지 마세요.
+            - 복사해서 보내는 문장, 공유용 문장, 상대에게 보낼 문구 섹션은 만들지 마세요.
+            - 행운 요소는 숫자, 색상, 방향, 시간, 요일을 모두 포함하되 상징적인 참고 정보라고 밝혀주세요.
+            - 각 page의 highlight는 해당 장을 한 문장으로 요약하고, closingAdvice는 짧고 기억에 남되 과장하지 마세요.
+            - 이모지는 ribbon 또는 title에만 절제해서 사용하고 본문에는 과하게 반복하지 마세요.
+            - 추천 시기와 주의 시기는 입력값을 그대로 사용하고 계산식을 노출하지 마세요.
+            - JSON 외의 문장이나 코드 블록을 출력하지 마세요.
+
+            [출력 JSON]
+            {"coverTitle":"","coverSubtitle":"","bestMonth":"$bestMonth","bestMonthReason":"","riskyMonth":"$riskyMonth","riskyMonthReason":"","answerCard":{"question":"","shortAnswer":"","body":["",""]},"toc":$tocSchema,"pages":$pagesSchema,"closingAdvice":""}
+        """.trimIndent()
+    }
+
+    private fun premiumSections(topic: PremiumTopic): List<PremiumSectionSpec> {
+        val focus = when (topic) {
+            PremiumTopic.ROMANCE -> listOf(
+                "현재 연애 흐름, 새로운 인연, 기존 연인 관계를 구분해 현재 상태를 진단",
+                "연락운, 데이트운, 고백운이 살아나는 장면과 연애 성공 포인트",
+                "갈등 가능성, 감정 확인 속도, 과한 기대처럼 관계를 흔드는 원인과 조절법",
+                "새 인연과 기존 관계에서 실제로 열릴 수 있는 기회 및 추천 시기",
+                "압박, 떠보기, 단정적인 연락 등 피해야 할 행동과 그 이유",
+                "솔로와 연인 모두 적용 가능한 구체적인 행동 및 이번 달 연애운 총평"
+            )
+            PremiumTopic.CAREER -> listOf(
+                "현재 취업운, 직장운, 이직운을 나누어 지금의 위치를 진단",
+                "면접운, 승진운, 상사운, 동료운에서 유리하게 작용하는 강점",
+                "직장 내 오해, 성급한 퇴사, 준비 부족, 계약 조건에서 조심할 부분",
+                "지원, 면접, 이직, 승진, 계약 중 가장 현실적인 기회와 시기",
+                "감정적인 결정, 조건 미확인, 과도한 자기 증명처럼 피해야 할 행동",
+                "취업 준비자와 재직자 모두 적용 가능한 행동 및 이번 달 커리어 총평"
+            )
+            PremiumTopic.MONEY -> listOf(
+                "현재 금전 흐름, 수입운, 지출운을 구분하고 돈이 움직이는 구조를 진단",
+                "부업운, 계약운, 수입이 늘어날 수 있는 기회와 활용 조건",
+                "투자운의 위험 요소, 돈이 새는 원인, 반복되는 소비 습관과 조절법",
+                "돈이 들어오는 현실적인 경로와 계약·협상에서 확인할 기회",
+                "충동 소비, 검증되지 않은 투자, 급한 대출이나 보증처럼 피해야 할 행동",
+                "소비 습관을 바꾸는 구체적인 행동 및 이번 달 재물운 총평"
+            )
+            PremiumTopic.STUDY -> listOf(
+                "현재 집중력, 암기력, 학습 리듬과 슬럼프 여부를 구분해 진단",
+                "시험운과 이해력이 살아나는 과목, 시간대, 공부 방식",
+                "실수 가능성, 피로, 불안, 계획 과다처럼 성과를 떨어뜨리는 원인",
+                "시험, 과제, 자격증 준비에서 활용할 수 있는 현실적인 기회",
+                "밤샘, 계획만 늘리기, 취약 부분 회피처럼 피해야 할 행동",
+                "집중력과 기억력을 높이는 공부법, 컨디션 관리 및 이번 달 학업운 총평"
+            )
+            PremiumTopic.HEALTH -> listOf(
+                "현재 컨디션, 피로, 수면, 스트레스 상태를 생활 장면 중심으로 진단",
+                "회복이 잘 되는 시간과 몸의 긍정적인 신호, 유지하면 좋은 생활 조건",
+                "운동 부족, 수면 불규칙, 식습관, 과로에서 조심할 부분과 관리법",
+                "생활 리듬과 컨디션을 회복하기 좋은 시기와 환경",
+                "무리한 운동, 증상 방치, 극단적인 식단처럼 피해야 할 행동",
+                "오늘부터 가능한 수면·운동·식습관 관리와 이번 달 건강운 총평. 의료 진단이 아니라 생활 참고임을 명시"
+            )
+            PremiumTopic.BUSINESS -> listOf(
+                "현재 창업운, 사업 흐름, 현금 흐름과 운영 상태를 구분해 진단",
+                "투자, 계약, 거래처, 직원운에서 유리하게 작용하는 강점",
+                "확장 리스크, 비용 누수, 거래처 갈등, 계약 조건에서 조심할 부분",
+                "새 고객, 제휴, 계약, 확장 중 가장 현실적인 기회와 시기",
+                "검증 없는 확장, 구두 계약, 감정적 투자처럼 피해야 할 행동",
+                "의사결정과 리스크를 줄이는 구체적인 행동 및 이번 달 사업운 총평"
+            )
+            PremiumTopic.GENERAL -> listOf(
+                "전체적인 흐름과 이번 달 핵심 키워드를 일, 돈, 관계, 마음으로 나누어 진단",
+                "현재 가장 좋은 운과 그 기운이 실제 생활에서 나타나는 장면",
+                "가장 조심할 운, 무리하면 손해가 커질 영역과 조절법",
+                "이번 달 활용할 기회와 중요한 날짜의 의미",
+                "반드시 피해야 하는 선택과 그 이유",
+                "반드시 해야 하는 현실적인 행동, 행운의 숫자·색·날짜·방향 및 인생 조언"
+            )
+            PremiumTopic.SELF_ESTEEM -> listOf(
+                "현재 심리, 스트레스, 자존감, 감정 기복을 구분해 마음 상태를 진단",
+                "회복력과 성장 가능성, 지금 스스로를 다시 신뢰할 수 있는 근거",
+                "비교, 자기비난, 피로 누적, 감정 억압이 심해질 때 나타나는 신호",
+                "회복이 빨라지는 환경, 쉬어야 하는 시기, 성장 포인트",
+                "무리한 자기 증명, 관계에 맞춘 희생, 감정을 무시하는 행동을 피해야 하는 이유",
+                "몸과 마음을 회복하는 구체적인 방법 및 이번 달 자아운 총평"
+            )
+            PremiumTopic.RELATIONSHIP -> listOf(
+                "가족, 친구, 직장 관계와 새로운 인연을 나누어 현재 관계 상태를 진단",
+                "도움을 주는 사람의 특징, 협력과 신뢰가 잘 형성되는 장면",
+                "갈등 가능성, 조심해야 하는 사람과 관계 피로가 커지는 원인",
+                "새로운 인연과 관계 회복에서 열릴 수 있는 현실적인 기회",
+                "사람을 성급히 단정하거나 지나치게 맞춰주는 등 피해야 할 행동",
+                "관계별 거리와 대화 방식을 조절하는 행동 및 이번 달 인간관계운 총평"
+            )
+        }
+        return listOf(
+            PremiumSectionSpec("current_flow", "현재 흐름", "지금 어디에 서 있나", focus[0]),
+            PremiumSectionSpec("good_energy", "좋은 기운 ★★★★★", "잘 풀릴 수 있는 이유", focus[1]),
+            PremiumSectionSpec("caution", "주의할 점 ★★★★★", "조심하면 달라지는 부분", focus[2]),
+            PremiumSectionSpec("opportunity", "기회", "이번 시기에 열리는 문", focus[3]),
+            PremiumSectionSpec("avoid", "피해야 할 행동", "흐름을 막는 선택", focus[4]),
+            PremiumSectionSpec("recommendation", "추천 행동", "오늘부터 가능한 변화", focus[5]),
+            PremiumSectionSpec("lucky_elements", "행운의 요소", "상징으로 보는 생활 힌트", "행운의 숫자, 색상, 방향, 시간, 요일을 빠짐없이 설명하고 각각이 현재 상담과 어떻게 연결되는지 이유를 제시"),
+            PremiumSectionSpec("closing", "한줄 조언", "상담을 마치며", "전체 상담을 반복하지 말고 핵심을 짧게 정리한 뒤 현실적이고 희망적인 관점으로 마무리")
+        )
     }
 
     private fun buildRomanceSalonPrompt(topic: PremiumTopic, concern: String, bundle: NumerologyResultBundle): String {
@@ -329,7 +481,7 @@ class GeneratePremiumConsultationUseCase(
             .let { "{$it}" }
         val json = JSONObject(jsonText)
         if (json.has("pages") || json.has("answerCard")) {
-            val answerCard = parseAnswerCard(json.optJSONObject("answerCard"))
+            val answerCard = parseAnswerCard(json.optJSONObject("answerCard")).limitPremiumLength()
             val pages = sanitizePersonalPages(
                 pages = normalizePersonalPages(
                     pages = parsePages(json.optJSONArray("pages")),
@@ -337,25 +489,27 @@ class GeneratePremiumConsultationUseCase(
                     topic = topic
                 ),
                 topic = topic
-            )
-            val toc = parseToc(json.optJSONArray("toc"))
+            ).limitPremiumPages()
+            val toc = pages.map { ConsultationTocItem(id = it.id, title = it.title) }
             val cautionPage = pages.firstOrNull { it.id == "caution" }
-            val actionPage = pages.firstOrNull { it.id == "action" }
-            val timingPage = pages.firstOrNull { it.id == "timing" }
-            val personPage = pages.firstOrNull { it.id == "person" }
-            val closingAdvice = json.optString("closingAdvice").withoutTaskAdvice("")
+            val actionPage = pages.firstOrNull { it.id == "recommendation" }
+            val currentPage = pages.firstOrNull { it.id == "current_flow" }
+            val opportunityPage = pages.firstOrNull { it.id == "opportunity" }
+            val closingAdvice = json.optString("closingAdvice")
+                .withoutJournalingAdvice("")
+                .limitPremiumText(50)
             val readingPoint = readingPointFallback(topic)
             val parsed = PremiumConsultation(
                 core = answerCard.shortAnswer.ifBlank { answerCard.body.firstOrNull().orEmpty() },
-                interpretation = listOf(timingPage, personPage)
+                interpretation = listOf(currentPage, opportunityPage)
                     .filterNotNull()
                     .flatMap { it.body }
                     .joinToString("\n\n"),
                 caution = cautionPage?.body?.joinToString("\n\n").orEmpty(),
-                direction = actionPage?.body?.joinToString("\n\n").orEmpty().withoutTaskAdvice(readingPoint),
-                oneLineAdvice = closingAdvice.ifBlank { actionPage?.highlight.orEmpty() }.withoutTaskAdvice(""),
-                coverTitle = json.optString("coverTitle"),
-                coverSubtitle = json.optString("coverSubtitle"),
+                direction = actionPage?.body?.joinToString("\n\n").orEmpty().withoutJournalingAdvice(readingPoint),
+                oneLineAdvice = closingAdvice.ifBlank { actionPage?.highlight.orEmpty() }.withoutJournalingAdvice(""),
+                coverTitle = json.optString("coverTitle").limitPremiumText(30),
+                coverSubtitle = json.optString("coverSubtitle").limitPremiumText(60),
                 answerCard = answerCard,
                 toc = toc,
                 pages = pages,
@@ -367,8 +521,8 @@ class GeneratePremiumConsultationUseCase(
             core = json.optString("core"),
             interpretation = json.optString("interpretation"),
             caution = json.optString("caution"),
-            direction = json.optString("direction").withoutTaskAdvice(readingPointFallback(topic)),
-            oneLineAdvice = json.optString("oneLineAdvice").withoutTaskAdvice(""),
+            direction = json.optString("direction").withoutJournalingAdvice(readingPointFallback(topic)),
+            oneLineAdvice = json.optString("oneLineAdvice").withoutJournalingAdvice(""),
             bestMonth = json.optString("bestMonth"),
             bestMonthReason = json.optString("bestMonthReason"),
             riskyMonth = json.optString("riskyMonth"),
@@ -425,48 +579,15 @@ class GeneratePremiumConsultationUseCase(
         topic: PremiumTopic
     ): List<ConsultationPage> {
         val byId = pages.associateBy { it.id }
-        val topicLabel = topic.label
-        return listOf(
-            byId["timing"] ?: ConsultationPage(
-                id = "timing",
-                ribbon = "언제 움직일까",
-                title = "흐름이 열리는 시기",
-                highlight = answerCard.shortAnswer.ifBlank { "$topicLabel 고민은 속도보다 타이밍을 맞추는 쪽이 중요합니다." },
-                body = listOf(
-                    "지금은 결론을 재촉하기보다 움직일 수 있는 구간을 차분히 고르는 편이 좋습니다.",
-                    "추천 월에는 작게라도 행동을 만들고, 주의 월에는 충동적인 선택을 하루 늦추는 쪽이 안전합니다."
-                )
-            ),
-            byId["person"] ?: ConsultationPage(
-                id = "person",
-                ribbon = "어떤 결일까",
-                title = "끌리는 흐름의 모양",
-                highlight = "$topicLabel 안에서 반복되는 선택의 결을 먼저 봐야 합니다.",
-                body = listOf(
-                    "당장 좋아 보이는 조건보다 실제로 마음이 편해지는 장면을 기준으로 보는 편이 좋습니다.",
-                    "겉으로 드러난 말보다 반복되는 행동, 약속을 지키는 방식, 부담을 다루는 태도를 살펴보세요."
-                )
-            ),
-            byId["caution"] ?: ConsultationPage(
-                id = "caution",
-                ribbon = "주의사항",
-                title = "흐름을 망치는 습관",
-                highlight = "혼자 결론을 내리고 급하게 움직이면 좋은 흐름도 쉽게 꼬일 수 있습니다.",
-                body = listOf(
-                    "확인하고 싶은 마음이 커질수록 말투가 강해지거나 선택이 급해질 수 있습니다.",
-                    "이때 바로 밀어붙이면 상대나 상황이 닫힐 수 있으니, 하루 정도 여백을 두고 다시 보는 편이 좋습니다."
-                )
-            ),
-            byId["action"] ?: ConsultationPage(
-                id = "action",
-                ribbon = "흐름 정리",
-                title = "읽는 포인트",
-                highlight = "지금은 행동보다 흐름의 결을 읽는 것이 더 중요합니다.",
-                body = listOf(
-                    "지금의 흐름은 결론보다 반복되는 분위기를 차분히 보는 쪽에 가깝습니다.",
-                    "마음이 급해질수록 선택의 폭이 좁아질 수 있으니, 속도보다 온도를 읽는 관점이 중요합니다."
-                )
-            )        )
+        val sections = premiumSections(topic)
+        return sections.mapIndexed { index, section ->
+            val source = byId[section.id] ?: pages.getOrNull(index)
+            source?.copy(
+                id = section.id,
+                ribbon = source.ribbon.ifBlank { section.ribbon },
+                title = source.title.ifBlank { section.title }
+            ) ?: premiumPageFallback(section, topic, answerCard.shortAnswer)
+        }
     }
 
     private fun sanitizePersonalPages(
@@ -475,37 +596,49 @@ class GeneratePremiumConsultationUseCase(
     ): List<ConsultationPage> {
         val fallback = readingPointFallback(topic)
         return pages.map { page ->
-            if (page.id != "action") {
-                page
-            } else {
-                page.copy(
-                    ribbon = "흐름 정리",
-                    title = "읽는 포인트",
-                    highlight = page.highlight.withoutTaskAdvice(fallback),
-                    body = page.body.withoutTaskAdvice(fallback)
-                )
-            }
+            page.copy(
+                highlight = page.highlight.withoutJournalingAdvice(fallback),
+                body = page.body.map { it.withoutJournalingAdvice("") }.filter { it.isNotBlank() }
+                    .ifEmpty { listOf(fallback) }
+            )
         }
     }
 
-    private fun List<String>.withoutTaskAdvice(fallback: String): List<String> {
-        val filtered = map { it.withoutTaskAdvice("") }.filter { it.isNotBlank() }
-        return filtered.ifEmpty { listOf(fallback) }
+    private fun premiumPageFallback(
+        section: PremiumSectionSpec,
+        topic: PremiumTopic,
+        answerSummary: String
+    ): ConsultationPage {
+        val summary = answerSummary.ifBlank {
+            "${topic.label}은 한 번의 결과보다 현재 반복되는 선택과 생활 장면을 함께 살필 때 더 정확하게 읽힙니다."
+        }
+        val body = when (section.id) {
+            "current_flow" -> listOf(summary, "지금의 고민이 커진 이유와 최근 반복된 장면을 나누어 보면 현재 위치가 조금 더 선명해집니다.")
+            "good_energy" -> listOf("이미 잘하고 있는 부분은 쉽게 사라지지 않습니다.", "익숙해서 대수롭지 않게 여겼던 강점이 이번 시기에는 실제 기회를 붙잡는 기반이 됩니다.")
+            "caution" -> listOf("불안할수록 결론을 서두르거나 한 가지 반응만 보고 전체를 판단하기 쉽습니다.", "문제가 커지기 전에 속도와 범위를 조절하면 충분히 다른 결과를 만들 수 있습니다.")
+            "opportunity" -> listOf("기회는 갑작스러운 행운보다 이미 이어지고 있는 제안과 관계 속에서 먼저 보입니다.", "반복해서 눈에 들어오는 선택지를 현실 조건과 함께 살피는 것이 중요합니다.")
+            "avoid" -> listOf("확인되지 않은 기대만으로 큰 결정을 내리는 행동은 피하는 편이 안전합니다.", "감정이 가장 큰 순간보다 사실과 조건이 함께 보이는 순간의 판단이 오래갑니다.")
+            "recommendation" -> listOf("오늘 할 수 있는 행동은 가장 영향이 큰 한 가지를 먼저 처리하는 것입니다.", "필요한 대화나 확인을 미루지 않되, 상대와 상황이 받아들일 수 있는 크기로 시작하세요.")
+            "lucky_elements" -> listOf("행운의 숫자와 색상, 방향, 시간, 요일은 결정을 대신하는 예언이 아니라 마음을 정돈하는 상징으로 활용할 수 있습니다.", "생활 속에서 부담 없이 떠올리는 정도가 가장 적절합니다.")
+            else -> listOf("지금의 흐름은 고정된 결론이 아닙니다.", "현재의 선택을 조금 더 분명하게 바라보는 것만으로도 다음 장면은 달라질 수 있습니다.")
+        }
+        return ConsultationPage(
+            id = section.id,
+            ribbon = section.ribbon,
+            title = section.title,
+            highlight = body.first(),
+            body = body
+        )
     }
 
-    private fun String.withoutTaskAdvice(fallback: String): String {
+    private fun String.withoutJournalingAdvice(fallback: String): String {
         val cleaned = trim()
         if (cleaned.isBlank()) return fallback
-        return if (cleaned.isTaskLikeAdvice()) fallback else cleaned
-    }
-
-    private fun String.isTaskLikeAdvice(): Boolean {
-        val blocked = listOf(
-            "수첩", "메모", "기록", "적어", "체크", "체크리스트",
-            "오늘은", "오늘 할", "오늘 해야", "이번 주", "한 달 안",
-            "해야", "해보", "정하세요", "만드세요", "나누세요", "실행"
-        )
-        return blocked.any { contains(it) }
+        val blocked = listOf("수첩", "메모하세요", "기록하세요", "적어두세요", "일기를", "체크리스트", "복사하기 좋은", "상대에게 보낼")
+        val sentences = cleaned
+            .split(Regex("(?<=[.!?。])\\s+"))
+            .filter { sentence -> blocked.none(sentence::contains) }
+        return sentences.joinToString(" ").ifBlank { fallback }
     }
 
     private fun readingPointFallback(topic: PremiumTopic): String {
@@ -542,9 +675,9 @@ class GeneratePremiumConsultationUseCase(
 
         return consultation.copy(
             bestMonth = expectedBestMonth,
-            bestMonthReason = bestReason,
+            bestMonthReason = bestReason.limitPremiumText(80),
             riskyMonth = expectedRiskyMonth,
-            riskyMonthReason = riskyReason
+            riskyMonthReason = riskyReason.limitPremiumText(80)
         )
     }
 
@@ -579,6 +712,14 @@ class GeneratePremiumConsultationUseCase(
                 "${monthText}에는 방향을 정리하고 실제 행동으로 옮기기 좋은 기운이 모입니다. 준비해둔 포트폴리오, 지원, 제안처럼 손에 잡히는 움직임을 만들기 좋습니다."
             PremiumTopic.MONEY ->
                 "${monthText}에는 돈의 흐름을 구조화하기 좋습니다. 큰 욕심보다 수입과 지출의 길을 또렷하게 나누면 기회가 안정적으로 이어집니다."
+            PremiumTopic.STUDY ->
+                "${monthText}에는 집중해야 할 범위가 선명해지고 학습 리듬을 안정시키기 좋습니다. 취약한 영역을 반복해서 보완하면 시험과 과제에서 실수가 줄어듭니다."
+            PremiumTopic.HEALTH ->
+                "${monthText}에는 수면과 활동 리듬을 다시 맞추기 좋습니다. 무리한 변화보다 꾸준한 휴식과 식사 시간을 지키는 쪽이 컨디션 회복에 도움이 됩니다."
+            PremiumTopic.BUSINESS ->
+                "${monthText}에는 거래 조건을 정리하고 제안이나 계약을 구체화하기 좋습니다. 확장보다 수익 구조와 책임 범위를 분명히 하면 기회가 안정적으로 이어집니다."
+            PremiumTopic.GENERAL ->
+                "${monthText}에는 일, 돈, 관계의 우선순위가 선명해집니다. 가장 중요한 한 영역에 힘을 모으면 다른 문제도 함께 정리되기 쉽습니다."
             PremiumTopic.SELF_ESTEEM ->
                 "${monthText}에는 스스로를 다시 세우는 힘이 살아납니다. 남의 반응보다 작은 약속을 지키는 경험을 쌓을수록 마음의 중심이 단단해집니다."
             PremiumTopic.RELATIONSHIP ->
@@ -598,6 +739,14 @@ class GeneratePremiumConsultationUseCase(
                 "${monthText}에는 변화 욕구가 커져 성급한 결정으로 흐르기 쉽습니다. 퇴사, 이직, 계약을 급하게 밀어붙이면 커리어가 예상보다 더 힘들어질 수 있으니, 큰 선택은 한 번 더 검토한 뒤 움직이는 편이 안전합니다."
             PremiumTopic.MONEY ->
                 "${monthText}에는 빠른 이익을 좇고 싶은 마음이 강해질 수 있습니다. 무리한 투자나 충동 지출을 가볍게 보면 돈의 흐름이 한 번에 무너질 수 있으니, 확인되지 않은 제안은 반드시 거리를 두는 것이 좋습니다."
+            PremiumTopic.STUDY ->
+                "${monthText}에는 불안 때문에 계획만 늘리거나 밤샘으로 밀어붙이기 쉽습니다. 학습량보다 수면과 복습의 질이 떨어지면 실수가 커질 수 있으니 범위를 줄이는 편이 안전합니다."
+            PremiumTopic.HEALTH ->
+                "${monthText}에는 피로 신호를 무시하고 일정을 이어가기 쉽습니다. 몸의 불편함이 계속되면 운세 해석보다 의료진의 진료를 우선하고 생활 강도를 낮추는 편이 안전합니다."
+            PremiumTopic.BUSINESS ->
+                "${monthText}에는 확장 욕구가 커져 계약 조건과 비용을 낙관적으로 보기 쉽습니다. 구두 약속이나 검증되지 않은 투자 제안은 문서와 숫자를 확인하기 전까지 거리를 두는 편이 안전합니다."
+            PremiumTopic.GENERAL ->
+                "${monthText}에는 여러 문제를 한 번에 해결하려다 판단이 흐려질 수 있습니다. 큰 결정을 겹쳐 진행하기보다 가장 영향이 큰 한 가지부터 확인하는 편이 안전합니다."
             PremiumTopic.SELF_ESTEEM ->
                 "${monthText}에는 비교와 조급함이 커지기 쉽습니다. 결과를 빨리 증명하려고 무리하면 자존감과 컨디션이 같이 무너질 수 있으니, 몸과 마음의 리듬을 먼저 회복하는 데 집중하세요."
             PremiumTopic.RELATIONSHIP ->
@@ -611,9 +760,16 @@ class GeneratePremiumConsultationUseCase(
         }
     }
 
+    private data class PremiumSectionSpec(
+        val id: String,
+        val ribbon: String,
+        val title: String,
+        val requirements: String
+    )
+
     companion object {
         private const val SYSTEM_PROMPT =
-            "Write concise Korean counseling JSON. Be concrete and polite. No system-name terms, no '선생님'. JSON only."
+            "Write concise Korean premium counseling JSON in a natural human voice. Keep all counseling text within 2,500 Korean characters total. Avoid repeated expressions, abstract filler, deterministic predictions, and fear-mongering. JSON only."
         private const val OPENAI_MODEL = "gpt-5.1"
     }
 }

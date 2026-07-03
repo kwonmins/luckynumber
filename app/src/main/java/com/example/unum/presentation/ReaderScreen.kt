@@ -22,13 +22,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.unum.data.model.FortuneBookType
 import com.example.unum.data.model.ReaderFontScale
 import com.example.unum.ui.components.FortuneBookReader
-import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Border
 import com.example.unum.ui.theme.TextMuted
@@ -41,7 +42,16 @@ fun ReaderScreen(viewModel: AppViewModel, bookId: String?) {
     val book = uiState.savedBooks.firstOrNull { it.bookId == bookId } ?: uiState.savedBooks.firstOrNull()
     val shareBook = rememberFortuneBookShareHandler()
 
-    MysticBackground(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.radialGradient(
+                    colors = listOf(Color(0xFF30271F), Color(0xFF17130F), Color(0xFF090807)),
+                    radius = 1100f
+                )
+            )
+    ) {
         if (book == null) {
             Box(
                 modifier = Modifier
@@ -51,11 +61,11 @@ fun ReaderScreen(viewModel: AppViewModel, bookId: String?) {
             ) {
                 Text(
                     "열 수 있는 운세노트가 아직 없어요. 프리미엄 운세노트를 먼저 만들어주세요.",
-                    color = TextSecondary,
+                    color = Color(0xFFD8C8A8),
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
-            return@MysticBackground
+            return@Box
         }
 
         Column(
@@ -103,8 +113,8 @@ private fun CompactReaderHeader(
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(999.dp))
-                .background(Accent.copy(alpha = 0.08f))
-                .border(1.dp, Accent.copy(alpha = 0.22f), RoundedCornerShape(999.dp))
+                .background(Color(0xFFF0C96A).copy(alpha = 0.08f))
+                .border(1.dp, Color(0xFFF0C96A).copy(alpha = 0.24f), RoundedCornerShape(999.dp))
                 .padding(horizontal = 10.dp, vertical = 5.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -112,11 +122,11 @@ private fun CompactReaderHeader(
             Box(
                 modifier = Modifier
                     .size(7.dp)
-                    .background(Accent, CircleShape)
+                    .background(Color(0xFFF0C96A), CircleShape)
             )
             Text(
                 "수리의 운세노트",
-                color = Accent,
+                color = Color(0xFFF0C96A),
                 style = MaterialTheme.typography.labelMedium.copy(fontSize = (12f * fontScale.multiplier).sp)
             )
         }
@@ -127,7 +137,7 @@ private fun CompactReaderHeader(
         ) {
             Text(
                 title,
-                color = TextPrimary,
+                color = Color(0xFFF7EED8),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontSize = (22f * fontScale.multiplier).sp,
                     lineHeight = (28f * fontScale.multiplier).sp
@@ -135,12 +145,12 @@ private fun CompactReaderHeader(
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onShare) {
-                Icon(Icons.Rounded.Share, contentDescription = "공유", tint = TextSecondary)
+                Icon(Icons.Rounded.Share, contentDescription = "PDF 저장 및 공유", tint = Color(0xFFD8C8A8))
             }
         }
         Text(
             subtitle,
-            color = TextMuted,
+            color = Color(0xFFA99A80),
             style = MaterialTheme.typography.bodySmall.copy(
                 fontSize = (12f * fontScale.multiplier).sp,
                 lineHeight = (18f * fontScale.multiplier).sp

@@ -115,6 +115,10 @@ object PremiumMonthPlanner {
             PremiumTopic.ROMANCE -> listOf(1, 3, 6, 2)
             PremiumTopic.CAREER -> listOf(4, 8, 1, 5)
             PremiumTopic.MONEY -> listOf(8, 4, 6, 1)
+            PremiumTopic.STUDY -> listOf(7, 4, 3, 1)
+            PremiumTopic.HEALTH -> listOf(6, 2, 4, 9)
+            PremiumTopic.BUSINESS -> listOf(8, 1, 4, 6)
+            PremiumTopic.GENERAL -> listOf(1, 6, 8, 3)
             PremiumTopic.SELF_ESTEEM -> listOf(7, 1, 4, 3)
             PremiumTopic.RELATIONSHIP -> listOf(2, 8, 3, 6)
         }
@@ -125,6 +129,10 @@ object PremiumMonthPlanner {
             PremiumTopic.ROMANCE -> listOf(8, 7, 9, 0)
             PremiumTopic.CAREER -> listOf(5, 9, 7, 0)
             PremiumTopic.MONEY -> listOf(5, 8, 9, 0)
+            PremiumTopic.STUDY -> listOf(5, 9, 0, 8)
+            PremiumTopic.HEALTH -> listOf(5, 8, 9, 0)
+            PremiumTopic.BUSINESS -> listOf(5, 9, 7, 0)
+            PremiumTopic.GENERAL -> listOf(5, 9, 0, 7)
             PremiumTopic.SELF_ESTEEM -> listOf(9, 8, 5, 0)
             PremiumTopic.RELATIONSHIP -> listOf(8, 5, 9, 7)
         }

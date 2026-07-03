@@ -122,7 +122,7 @@ class BuildFortuneBookUseCase {
             FortuneBookChapter(
                 title = page.title.ifBlank { page.ribbon.ifBlank { "상담 페이지" } },
                 lead = page.ribbon,
-                body = page.body.take(3),
+                body = page.body,
                 highlightQuote = page.highlight,
                 actionTip = emptyList()
             )
@@ -216,6 +216,10 @@ class BuildFortuneBookUseCase {
             PremiumTopic.ROMANCE -> "$createdYear 수리 연애 상담소"
             PremiumTopic.CAREER -> "일과 방향 상담소"
             PremiumTopic.MONEY -> "돈의 흐름 상담소"
+            PremiumTopic.STUDY -> "학업과 시험 상담소"
+            PremiumTopic.HEALTH -> "건강과 생활 리듬 상담소"
+            PremiumTopic.BUSINESS -> "사업과 계약 상담소"
+            PremiumTopic.GENERAL -> "이번 달 종합운 상담소"
             PremiumTopic.SELF_ESTEEM -> "마음 기준 상담소"
             PremiumTopic.RELATIONSHIP -> "관계 패턴 상담소"
         }

@@ -41,7 +41,14 @@ class GenerateCompatibilityConsultationUseCase(
             userPrompt = prompt,
             failureLabel = "궁합노트"
         )
-        parseConsultation(content, maleBundle, femaleBundle, concern, relationshipNumber)
+        parseConsultation(
+            rawContent = content,
+            maleBundle = maleBundle,
+            femaleBundle = femaleBundle,
+            concern = concern,
+            relationshipNumber = relationshipNumber,
+            relationshipStatus = relationshipStatus
+        )
     }
 
     private fun buildPrompt(
@@ -99,6 +106,16 @@ class GenerateCompatibilityConsultationUseCase(
     ): String {
         val maleInput = maleBundle.displayInput
         val femaleInput = femaleBundle.displayInput
+        val narrativePlan = compatibilityNarrativePlan(relationshipStatus, relationshipNumber, concernText)
+        val sectionGuide = narrativePlan.sections.mapIndexed { index, section ->
+            "${index + 1}. id=${section.id}, ribbon=${section.ribbon}, title=${section.title}: ${section.focus}"
+        }.joinToString("\n")
+        val tocSchema = narrativePlan.sections.joinToString(prefix = "[", postfix = "]") { section ->
+            "{\"id\":\"${section.id}\",\"title\":\"${section.title}\"}"
+        }
+        val pagesSchema = narrativePlan.sections.joinToString(prefix = "[", postfix = "]") { section ->
+            "{\"id\":\"${section.id}\",\"ribbon\":\"${section.ribbon}\",\"title\":\"${section.title}\",\"highlight\":\"\",\"body\":[\"\"]}"
+        }
         val statusRule = when (relationshipStatus) {
             CompatibilityRelationshipStatus.COUPLE ->
                 "They are already a couple. Focus on warmth, friction repair, communication tone, and emotional rhythm."
@@ -113,12 +130,16 @@ class GenerateCompatibilityConsultationUseCase(
             Male: birth=${maleInput.year}.${maleInput.month}.${maleInput.day}; calendar=${calendarTypeLabel(maleInput.calendarType)}; destiny=${maleBundle.numbers.destiny}; traits="$maleTrait".
             Female: birth=${femaleInput.year}.${femaleInput.month}.${femaleInput.day}; calendar=${calendarTypeLabel(femaleInput.calendarType)}; destiny=${femaleBundle.numbers.destiny}; traits="$femaleTrait".
             Relationship status rule: $statusRule
+            Narrative angle: ${narrativePlan.angle}
             Style: polite Korean, concrete relationship scenes, no long individual trait recap, no good/bad verdict, no system-name terms, no "선생님", no code block.
-            Rules: one message per page; each highlight is one clear sentence; each body has 2 short paragraphs; avoid repeated phrasing. Use the given month values and do not explain calculations.
-            Do not write task lists or "what to do today" advice. Avoid notebook, memo, journaling, recording, checklist, routine-building, "write it down", "try this today", "this week", or "within a month" instructions.
+            Rules: keep all counseling text within 2,500 Korean characters total. Use one message per page, one clear highlight, and one 160-220 character body paragraph with 2-3 sentences. Keep the answer card and each month reason under 120 characters and closingAdvice under 40 characters. Avoid repeated phrasing. Use the given month values and do not explain calculations.
+            Do not fall back to the generic order "끌림-충돌-상대 시선-행동". Follow this relationship-specific section blueprint exactly:
+            $sectionGuide
+            Make the opening scene, vocabulary, and conclusion different for every section. Do not begin two sections with the same grammatical pattern.
+            Give practical relationship advice only in the recommendation section. Avoid notebook, memo, journaling, recording, checklist, routine-building, or "write it down" instructions.
             Do not create copy-ready/share-ready sections. Avoid labels or phrases like "복사하면 좋은 문장", "기억할 문장", "공유하기 좋은 문장", or "상대에게 보내기 좋은 말".
             Return only valid JSON:
-            {"coverTitle":"","coverSubtitle":"","bestMonth":"$bestMonth","bestMonthReason":"","riskyMonth":"$riskyMonth","riskyMonthReason":"","answerCard":{"question":"","shortAnswer":"","body":["",""]},"toc":[{"id":"attraction","title":""},{"id":"friction","title":""},{"id":"view","title":""},{"id":"action","title":""}],"pages":[{"id":"attraction","ribbon":"","title":"","highlight":"","body":["",""]},{"id":"friction","ribbon":"","title":"","highlight":"","body":["",""]},{"id":"view","ribbon":"","title":"","highlight":"","body":["",""]},{"id":"action","ribbon":"","title":"","highlight":"","body":["",""]}],"closingAdvice":""}
+            {"coverTitle":"${narrativePlan.coverTitle}","coverSubtitle":"${narrativePlan.coverSubtitle}","bestMonth":"$bestMonth","bestMonthReason":"","riskyMonth":"$riskyMonth","riskyMonthReason":"","answerCard":{"question":"","shortAnswer":"","body":["",""]},"toc":$tocSchema,"pages":$pagesSchema,"closingAdvice":""}
         """.trimIndent()
     }
 
@@ -278,27 +299,33 @@ class GenerateCompatibilityConsultationUseCase(
         maleBundle: NumerologyResultBundle,
         femaleBundle: NumerologyResultBundle,
         concern: String,
-        relationshipNumber: Int
+        relationshipNumber: Int,
+        relationshipStatus: CompatibilityRelationshipStatus
     ): CompatibilityConsultation {
         val jsonText = rawContent
             .substringAfter("{", rawContent)
             .substringBeforeLast("}", rawContent)
             .let { "{$it}" }
         val json = JSONObject(jsonText)
-        val answerCard = parseAnswerCard(json.optJSONObject("answerCard"))
+        val answerCard = parseAnswerCard(json.optJSONObject("answerCard")).limitPremiumLength()
+        val narrativePlan = compatibilityNarrativePlan(relationshipStatus, relationshipNumber, concern)
         val pages = sanitizeCompatibilityPages(
             normalizeCompatibilityPages(
                 pages = parsePages(json.optJSONArray("pages")),
                 answerCard = answerCard,
-                relationshipNumber = relationshipNumber
+                relationshipNumber = relationshipNumber,
+                relationshipStatus = relationshipStatus,
+                narrativePlan = narrativePlan
             )
-        )
-        val toc = parseToc(json.optJSONArray("toc"))
-        val attraction = pages.firstOrNull { it.id == "attraction" }
-        val friction = pages.firstOrNull { it.id == "friction" }
-        val view = pages.firstOrNull { it.id == "view" }
-        val action = pages.firstOrNull { it.id == "action" }
-        val closingAdvice = json.optString("closingAdvice").withoutTaskAdvice("")
+        ).limitPremiumPages()
+        val toc = pages.map { ConsultationTocItem(id = it.id, title = it.title) }
+        val attraction = pages.getOrNull(0)
+        val friction = pages.getOrNull(1)
+        val view = pages.getOrNull(2)
+        val action = pages.firstOrNull { it.id == "recommendation" } ?: pages.getOrNull(3)
+        val closingAdvice = json.optString("closingAdvice")
+            .withoutJournalingAdvice("")
+            .limitPremiumText(50)
         val fallbackTone = relationshipToneFallback()
 
         val parsed = CompatibilityConsultation(
@@ -307,21 +334,28 @@ class GenerateCompatibilityConsultationUseCase(
             relationshipFlow = answerCard.body.joinToString("\n\n"),
             strengths = attraction?.body?.joinToString("\n\n").orEmpty(),
             friction = friction?.body?.joinToString("\n\n").orEmpty(),
-            homeTone = action?.body?.joinToString("\n\n").orEmpty().withoutTaskAdvice(fallbackTone),
-            longTermTip = action?.highlight.orEmpty().withoutTaskAdvice(fallbackTone),
+            homeTone = action?.body?.joinToString("\n\n").orEmpty().withoutJournalingAdvice(fallbackTone),
+            longTermTip = action?.highlight.orEmpty().withoutJournalingAdvice(fallbackTone),
             oneLineSummary = answerCard.shortAnswer.ifBlank { closingAdvice },
             bestMonth = json.optString("bestMonth"),
             bestMonthReason = json.optString("bestMonthReason"),
             riskyMonth = json.optString("riskyMonth"),
             riskyMonthReason = json.optString("riskyMonthReason"),
-            coverTitle = json.optString("coverTitle"),
-            coverSubtitle = json.optString("coverSubtitle"),
+            coverTitle = json.optString("coverTitle").limitPremiumText(30),
+            coverSubtitle = json.optString("coverSubtitle").limitPremiumText(60),
             answerCard = answerCard,
             toc = toc,
             pages = pages,
             closingAdvice = closingAdvice
         )
-        return normalizeConsultation(parsed, maleBundle, femaleBundle, concern, relationshipNumber)
+        return normalizeConsultation(
+            consultation = parsed,
+            maleBundle = maleBundle,
+            femaleBundle = femaleBundle,
+            concern = concern,
+            relationshipNumber = relationshipNumber,
+            relationshipStatus = relationshipStatus
+        )
     }
 
     private fun normalizeConsultation(
@@ -329,7 +363,8 @@ class GenerateCompatibilityConsultationUseCase(
         maleBundle: NumerologyResultBundle,
         femaleBundle: NumerologyResultBundle,
         concern: String,
-        relationshipNumber: Int
+        relationshipNumber: Int,
+        relationshipStatus: CompatibilityRelationshipStatus
     ): CompatibilityConsultation {
         val concernText = concern.takeIf { it.isNotBlank() } ?: "두 사람의 관계"
         val fallbackSummary = "두 사람은 ${relationshipMeaning(relationshipNumber)} 다만 $concernText 안에서는 속도와 표현 방식을 맞추지 않으면 작은 오해가 오래 갈 수 있습니다."
@@ -339,6 +374,7 @@ class GenerateCompatibilityConsultationUseCase(
         val riskySelection = PremiumMonthPlanner.pickRiskyMonth(PremiumTopic.ROMANCE, relationshipNumbers, currentMonth)
         val bestMonth = bestSelection.toDisplayText()
         val riskyMonth = riskySelection.toDisplayText()
+        val narrativePlan = compatibilityNarrativePlan(relationshipStatus, relationshipNumber, concern)
         return consultation.copy(
             relationshipFlow = consultation.relationshipFlow.ifBlank { fallbackSummary },
             strengths = consultation.strengths.ifBlank {
@@ -355,13 +391,13 @@ class GenerateCompatibilityConsultationUseCase(
             },
             oneLineSummary = consultation.oneLineSummary.ifBlank { fallbackSummary },
             bestMonth = bestMonth,
-            bestMonthReason = consultation.bestMonthReason.takeIf { consultation.bestMonth == bestMonth && it.isNotBlank() }
-                ?: buildCompatibilityBestMonthReason(bestMonth, bestSelection),
+            bestMonthReason = (consultation.bestMonthReason.takeIf { consultation.bestMonth == bestMonth && it.isNotBlank() }
+                ?: buildCompatibilityBestMonthReason(bestMonth, bestSelection)).limitPremiumText(80),
             riskyMonth = riskyMonth,
-            riskyMonthReason = consultation.riskyMonthReason.takeIf { consultation.riskyMonth == riskyMonth && it.isNotBlank() }
-                ?: buildCompatibilityRiskyMonthReason(riskyMonth, riskySelection),
-            coverTitle = consultation.coverTitle.ifBlank { "수리 궁합 상담소" },
-            coverSubtitle = consultation.coverSubtitle.ifBlank { "두 사람 사이의 흐름을 읽어볼게요." }
+            riskyMonthReason = (consultation.riskyMonthReason.takeIf { consultation.riskyMonth == riskyMonth && it.isNotBlank() }
+                ?: buildCompatibilityRiskyMonthReason(riskyMonth, riskySelection)).limitPremiumText(80),
+            coverTitle = consultation.coverTitle.ifBlank { narrativePlan.coverTitle },
+            coverSubtitle = consultation.coverSubtitle.ifBlank { narrativePlan.coverSubtitle }
         )
     }
 
@@ -405,88 +441,260 @@ class GenerateCompatibilityConsultationUseCase(
     private fun normalizeCompatibilityPages(
         pages: List<ConsultationPage>,
         answerCard: ConsultationAnswerCard,
-        relationshipNumber: Int
+        relationshipNumber: Int,
+        relationshipStatus: CompatibilityRelationshipStatus,
+        narrativePlan: CompatibilityNarrativePlan
     ): List<ConsultationPage> {
         val byId = pages.associateBy { it.id }
-        return listOf(
-            byId["attraction"] ?: ConsultationPage(
-                id = "attraction",
-                ribbon = "서로 끌리는 이유",
-                title = "맞닿는 지점",
-                highlight = answerCard.shortAnswer.ifBlank { "두 사람은 서로 다른 속도 안에서 필요한 균형을 줄 수 있습니다." },
-                body = listOf(
-                    "관계수 $relationshipNumber 흐름은 두 사람이 같은 방식으로 움직인다기보다, 서로의 빈틈을 건드리며 가까워지는 결에 가깝습니다.",
-                    "말투, 반응 속도, 생활 리듬이 완전히 같지 않아도 상대에게서 낯선 안정감이나 자극을 느낄 수 있습니다."
+        return narrativePlan.sections.mapIndexed { index, section ->
+            val source = byId[section.id] ?: pages.getOrNull(index)
+            if (source != null) {
+                source.copy(
+                    id = section.id,
+                    ribbon = source.ribbon.ifBlank { section.ribbon },
+                    title = source.title.ifBlank { section.title }
                 )
-            ),
-            byId["friction"] ?: ConsultationPage(
-                id = "friction",
-                ribbon = "주의사항",
-                title = "엇갈리는 방식",
-                highlight = "감정 확인 속도가 어긋나면 작은 말도 크게 번질 수 있습니다.",
-                body = listOf(
-                    "한쪽은 바로 확인하고 싶고, 다른 한쪽은 시간을 두고 정리하고 싶어질 수 있습니다.",
-                    "이 차이를 성의 부족으로 단정하면 관계가 차갑게 굳을 수 있으니, 대화 전 숨을 고르는 시간이 필요합니다."
-                )
-            ),
-            byId["view"] ?: ConsultationPage(
-                id = "view",
-                ribbon = "상대가 보는 나",
-                title = "상대의 눈에 비친 모습",
-                highlight = "상대는 당신에게 끌리면서도 때로는 속도나 표현의 압박을 느낄 수 있습니다.",
-                body = listOf(
-                    "당신의 진심은 장점이지만, 확인이 잦아지면 상대에게는 부담으로 읽힐 수 있습니다.",
-                    "좋아하는 마음을 증명하려 하기보다 편안한 반복을 보여주는 쪽이 더 오래 남습니다."
-                )
-            ),
-            byId["action"] ?: ConsultationPage(
-                id = "action",
-                ribbon = "오래 가려면",
-                title = "관계를 살리는 습관",
-                highlight = "좋은 관계는 맞는 사람을 찾는 것보다 맞춰가는 방식을 잃지 않는 데서 오래 갑니다.",
-                body = listOf(
-                    "중요한 말은 문자보다 직접 대화로 짧게 확인하세요.",
-                    "서운함이 생기면 바로 결론 내리지 말고 감정과 요청을 나눠 말하세요.",
-                    "다툰 뒤에는 누가 맞았는지보다 어떻게 회복할지부터 정하세요."
-                )
-            )
-        )
-    }
-
-    private fun sanitizeCompatibilityPages(pages: List<ConsultationPage>): List<ConsultationPage> {
-        val fallback = relationshipToneFallback()
-        return pages.map { page ->
-            if (page.id != "action") {
-                page
             } else {
-                page.copy(
-                    ribbon = "관계 흐름",
-                    title = "오래 가는 결",
-                    highlight = page.highlight.withoutTaskAdvice(fallback),
-                    body = page.body.withoutTaskAdvice(fallback)
+                val fallback = compatibilityPageFallback(
+                    relationshipStatus = relationshipStatus,
+                    sectionIndex = index,
+                    relationshipNumber = relationshipNumber,
+                    answerSummary = answerCard.shortAnswer,
+                    sectionId = section.id
+                )
+                ConsultationPage(
+                    id = section.id,
+                    ribbon = section.ribbon,
+                    title = section.title,
+                    highlight = fallback.first,
+                    body = fallback.second
                 )
             }
         }
     }
 
-    private fun List<String>.withoutTaskAdvice(fallback: String): List<String> {
-        val filtered = map { it.withoutTaskAdvice("") }.filter { it.isNotBlank() }
-        return filtered.ifEmpty { listOf(fallback) }
+    private fun sanitizeCompatibilityPages(pages: List<ConsultationPage>): List<ConsultationPage> {
+        val fallback = relationshipToneFallback()
+        return pages.map { page ->
+            page.copy(
+                highlight = page.highlight.withoutJournalingAdvice(fallback),
+                body = page.body.map { it.withoutJournalingAdvice("") }.filter { it.isNotBlank() }
+                    .ifEmpty { listOf(fallback) }
+            )
+        }
     }
 
-    private fun String.withoutTaskAdvice(fallback: String): String {
+    private fun compatibilityNarrativePlan(
+        relationshipStatus: CompatibilityRelationshipStatus,
+        relationshipNumber: Int,
+        concern: String
+    ): CompatibilityNarrativePlan {
+        val concernSeed = concern.trim()
+            .ifBlank { "두 사람의 관계가 잘 이어질 수 있을지 궁금합니다." }
+            .lowercase()
+            .hashCode()
+            .floorMod(3)
+        val variant = (relationshipNumber + concernSeed).floorMod(3)
+        val angle = when (relationshipNumber) {
+            0, 5 -> "자유와 안정 사이에서 두 사람이 허용할 수 있는 거리"
+            1, 4, 8 -> "주도권, 약속, 생활 속 책임이 관계의 온도에 미치는 영향"
+            2, 6 -> "배려가 편안함이 되는 순간과 부담으로 바뀌는 순간의 차이"
+            3, 7 -> "말과 침묵, 답장 속도처럼 표현 방식이 만드는 친밀감"
+            else -> "지나간 감정의 정리와 다음 관계 단계로 넘어가는 속도"
+        }
+        val statusSections = when (relationshipStatus) {
+            CompatibilityRelationshipStatus.COUPLE -> when (variant) {
+                0 -> listOf(
+                    CompatibilitySectionSpec("comfort", "함께 있을 때", "편안함이 생기는 순간", "둘만의 일상에서 애정이 자연스럽게 드러나는 장면"),
+                    CompatibilitySectionSpec("rhythm", "생활의 온도차", "서로 다른 리듬", "연락, 약속, 혼자 있는 시간에서 생기는 속도 차이"),
+                    CompatibilitySectionSpec("repair", "서운함 이후", "다시 가까워지는 방식", "다툰 뒤 두 사람이 회복을 받아들이는 방식"),
+                    CompatibilitySectionSpec("future", "관계의 다음 장", "함께 갈 수 있는 방향", "현재 관계가 오래 가기 위해 필요한 정서적 조건")
+                )
+                1 -> listOf(
+                    CompatibilitySectionSpec("affection", "사랑의 표현", "마음을 확인하는 방식", "각자가 사랑받는다고 느끼는 구체적인 반응"),
+                    CompatibilitySectionSpec("balance", "주도권의 균형", "한쪽이 앞서갈 때", "결정과 책임이 한 사람에게 몰리는 장면"),
+                    CompatibilitySectionSpec("language", "말이 닿는 거리", "오해가 풀리는 말투", "같은 말이 다르게 들리는 이유와 감정의 번역"),
+                    CompatibilitySectionSpec("continuity", "오래 남는 힘", "관계를 지키는 기반", "설렘 이후에도 관계를 지탱하는 현실적인 강점")
+                )
+                else -> listOf(
+                    CompatibilitySectionSpec("spark", "요즘의 두 사람", "다시 설레는 지점", "익숙함 속에서도 관계가 살아나는 순간"),
+                    CompatibilitySectionSpec("distance", "가까움과 여백", "거리감이 생기는 순간", "함께 있고 싶은 마음과 혼자 있고 싶은 마음의 차이"),
+                    CompatibilitySectionSpec("trust", "믿음의 모양", "안심이 필요한 부분", "확인, 약속, 반복되는 행동이 신뢰에 미치는 영향"),
+                    CompatibilitySectionSpec("chapter", "다음 계절", "관계가 향하는 곳", "두 사람이 지금 함께 선택하고 있는 관계의 방향")
+                )
+            }
+            CompatibilityRelationshipStatus.CRUSH -> when (variant) {
+                0 -> listOf(
+                    CompatibilitySectionSpec("signal", "호감의 단서", "마음이 보이는 순간", "말투와 반응에서 드러나는 실제 호감 신호"),
+                    CompatibilitySectionSpec("uncertainty", "헷갈리는 이유", "기대와 현실의 간격", "친절과 호감을 혼동하기 쉬운 장면"),
+                    CompatibilitySectionSpec("distance", "지금의 거리", "다가가도 되는 범위", "상대가 편안하게 받아들일 접근 속도"),
+                    CompatibilitySectionSpec("turning", "마음의 분기점", "관계가 달라지는 조건", "고백보다 먼저 확인해야 할 상호성")
+                )
+                1 -> listOf(
+                    CompatibilitySectionSpec("attraction", "처음 끌린 이유", "시선이 머무는 지점", "두 사람 사이에서 호감이 자라기 쉬운 장면"),
+                    CompatibilitySectionSpec("response", "답장의 온도", "반응 속도가 말해주는 것", "연락 빈도와 대화 지속성에서 읽히는 거리"),
+                    CompatibilitySectionSpec("approach", "부담 없는 접근", "친밀감이 자라는 방식", "상대가 압박 없이 마음을 열 수 있는 관계 리듬"),
+                    CompatibilitySectionSpec("choice", "기다림의 기준", "내 마음을 지킬 선", "관계 가능성과 일방적인 소모를 구분하는 기준")
+                )
+                else -> listOf(
+                    CompatibilitySectionSpec("chemistry", "두 사람의 공기", "말하지 않아도 통하는 부분", "짧은 만남에서도 친밀감이 생기는 이유"),
+                    CompatibilitySectionSpec("ambiguity", "애매함의 정체", "확신이 늦어지는 이유", "상대의 상황과 표현 방식이 만드는 모호함"),
+                    CompatibilitySectionSpec("timing", "마음의 속도", "지금 표현해도 될까", "감정을 드러낼 때 관계가 받아들일 수 있는 온도"),
+                    CompatibilitySectionSpec("outcome", "가능성의 방향", "이어질 때와 멈출 때", "서로의 반응으로 확인되는 다음 단계")
+                )
+            }
+            CompatibilityRelationshipStatus.REUNION -> when (variant) {
+                0 -> listOf(
+                    CompatibilitySectionSpec("remaining", "아직 남은 것", "감정이 끝나지 않은 이유", "그리움과 미해결 감정을 구분하는 장면"),
+                    CompatibilitySectionSpec("breakpoint", "관계가 멈춘 곳", "헤어진 이유의 핵심", "반복되던 갈등과 놓쳤던 감정"),
+                    CompatibilitySectionSpec("contact", "다시 닿는 온도", "연락이 받아들여질 조건", "재촉과 진심이 다르게 읽히는 연락 방식"),
+                    CompatibilitySectionSpec("boundary", "재회의 문턱", "다시 만나기 전 필요한 변화", "예전 관계로 돌아가지 않기 위한 조건")
+                )
+                1 -> listOf(
+                    CompatibilitySectionSpec("memory", "추억의 무게", "좋았던 기억이 남긴 것", "현재의 외로움과 실제 관계 가치를 구분하는 관점"),
+                    CompatibilitySectionSpec("pattern", "반복된 장면", "다시 만나도 부딪힐 부분", "사과만으로 바뀌지 않는 관계 습관"),
+                    CompatibilitySectionSpec("welcome", "상대의 현재", "연락을 열어둘 가능성", "상대가 여지를 보이는 반응과 경계를 세우는 반응"),
+                    CompatibilitySectionSpec("renewal", "새 관계의 조건", "재회가 아니라 새로 시작하기", "두 사람이 실제로 달라졌는지 확인할 지점")
+                )
+                else -> listOf(
+                    CompatibilitySectionSpec("unfinished", "미완의 마음", "자꾸 돌아보게 되는 이유", "후회, 미련, 애정이 섞여 있는 현재 감정"),
+                    CompatibilitySectionSpec("cause", "멀어진 과정", "마음이 닫힌 순간", "관계가 끝난 결정적 장면과 누적된 피로"),
+                    CompatibilitySectionSpec("window", "연락의 창", "대화가 가능한 시기", "상대의 경계를 존중하면서 대화가 열릴 조건"),
+                    CompatibilitySectionSpec("decision", "다시 선택한다면", "같은 결말을 피할 기준", "재회 여부보다 먼저 확인할 관계의 안전성")
+                )
+            }
+        }
+        val extraSections = listOf(
+            CompatibilitySectionSpec(
+                "opportunity",
+                "기회",
+                "관계가 움직일 가능성",
+                when (relationshipStatus) {
+                    CompatibilityRelationshipStatus.COUPLE -> "둘 사이의 신뢰, 데이트, 대화가 좋아질 실제 기회와 추천 시기"
+                    CompatibilityRelationshipStatus.CRUSH -> "상대 관심도, 호감 가능성, 경쟁자 여부, 관계 발전 가능성과 고백 타이밍"
+                    CompatibilityRelationshipStatus.REUNION -> "상대의 현재 심리, 연락 가능성, 재회 가능성과 대화가 열릴 조건"
+                }
+            ),
+            CompatibilitySectionSpec(
+                "avoid",
+                "피해야 할 행동",
+                "관계를 더 멀게 만드는 선택",
+                when (relationshipStatus) {
+                    CompatibilityRelationshipStatus.COUPLE -> "떠보기, 압박, 과거 갈등 반복, 일방적 결론처럼 현재 관계를 흔드는 행동과 이유"
+                    CompatibilityRelationshipStatus.CRUSH -> "과한 연락, 의미 부여, 경쟁심, 성급한 고백처럼 부담을 키우는 행동과 이유"
+                    CompatibilityRelationshipStatus.REUNION -> "반복 연락, 감정 호소, 답을 재촉하기, 과거 미화처럼 재회를 방해하는 요소"
+                }
+            ),
+            CompatibilitySectionSpec(
+                "recommendation",
+                "추천 행동",
+                "지금 가능한 현실적인 선택",
+                when (relationshipStatus) {
+                    CompatibilityRelationshipStatus.COUPLE -> "연락, 데이트, 갈등 회복에서 오늘부터 가능한 구체적인 행동 2~3개와 관계 총평"
+                    CompatibilityRelationshipStatus.CRUSH -> "먼저 연락할지, 고백 시점, 관계 발전을 높이는 구체적인 행동 2~3개와 총평"
+                    CompatibilityRelationshipStatus.REUNION -> "먼저 연락할지 기다릴지 판단 기준, 재회 가능성을 높이는 행동 2~3개와 총평"
+                }
+            ),
+            CompatibilitySectionSpec(
+                "lucky_elements",
+                "행운의 요소",
+                "관계의 상징과 한줄 조언",
+                "행운의 숫자, 색상, 방향, 시간, 요일을 모두 포함하고 상징적 참고 정보임을 밝힌 뒤 짧고 희망적인 상담 한마디로 마무리"
+            )
+        )
+        val coverTitle = when (relationshipStatus) {
+            CompatibilityRelationshipStatus.COUPLE -> "우리 사이의 리듬"
+            CompatibilityRelationshipStatus.CRUSH -> "마음이 닿을 가능성"
+            CompatibilityRelationshipStatus.REUNION -> "다시 이어질 조건"
+        }
+        return CompatibilityNarrativePlan(
+            coverTitle = coverTitle,
+            coverSubtitle = "두 사람의 ${angle}을 중심으로 읽었습니다.",
+            angle = angle,
+            sections = statusSections + extraSections
+        )
+    }
+
+    private fun compatibilityPageFallback(
+        relationshipStatus: CompatibilityRelationshipStatus,
+        sectionIndex: Int,
+        relationshipNumber: Int,
+        answerSummary: String,
+        sectionId: String
+    ): Pair<String, List<String>> {
+        val meaning = relationshipMeaning(relationshipNumber)
+        val highlights = when (relationshipStatus) {
+            CompatibilityRelationshipStatus.COUPLE -> listOf(
+                answerSummary.ifBlank { "두 사람의 친밀감은 거창한 표현보다 반복되는 편안함에서 선명해집니다." },
+                "감정의 크기보다 확인하는 속도가 다를 때 서운함이 커질 수 있습니다.",
+                "갈등 뒤에 얼마나 빨리 답을 내느냐보다 안전하게 다시 말할 수 있느냐가 중요합니다.",
+                "이 관계의 지속성은 서로의 생활과 감정을 함께 존중할 때 살아납니다."
+            )
+            CompatibilityRelationshipStatus.CRUSH -> listOf(
+                answerSummary.ifBlank { "호감은 말보다 대화를 이어가려는 반복에서 먼저 드러납니다." },
+                "친절한 반응과 관계를 향한 관심은 같은 모습처럼 보여도 지속성에서 차이가 납니다.",
+                "지금은 감정을 크게 증명하기보다 서로 편안한 거리를 확인하는 구간입니다.",
+                "가능성은 한 사람의 확신보다 두 사람의 반응이 함께 움직일 때 선명해집니다."
+            )
+            CompatibilityRelationshipStatus.REUNION -> listOf(
+                answerSummary.ifBlank { "남아 있는 감정이 곧 다시 만날 준비를 뜻하는 것은 아닙니다." },
+                "헤어진 이유가 해결되지 않았다면 그리움이 커도 같은 장면이 반복될 수 있습니다.",
+                "연락의 의미는 답장 여부보다 상대가 대화를 편안하게 이어가는지에서 드러납니다.",
+                "재회 가능성은 과거로 돌아가는 힘보다 새로운 관계를 만들 변화에서 생깁니다."
+            )
+        }
+        val bodies = when (relationshipStatus) {
+            CompatibilityRelationshipStatus.COUPLE -> listOf(
+                listOf(meaning, "둘 사이의 애정은 함께 보내는 시간의 양보다 그 안에서 편안하게 자기 모습을 드러낼 수 있는지에 가깝습니다."),
+                listOf("한쪽은 바로 확인하고 싶고 다른 한쪽은 생각할 시간이 필요할 수 있습니다.", "이 차이가 무관심이나 집착으로 번역될 때 갈등이 길어집니다."),
+                listOf("회복 방식이 다르면 사과를 받아들이는 시점도 어긋납니다.", "결론보다 서로의 감정이 가라앉는 순서를 이해할 때 관계가 다시 부드러워집니다."),
+                listOf("오래 가는 관계는 설렘만으로 정해지지 않습니다.", "약속, 휴식, 책임을 나누는 방식이 두 사람에게 공평하게 느껴질수록 안정감이 커집니다.")
+            )
+            CompatibilityRelationshipStatus.CRUSH -> listOf(
+                listOf(meaning, "짧은 대화 뒤에도 상대가 질문을 돌려주고 다음 이야기를 남긴다면 관심의 온도가 이어지고 있다는 신호에 가깝습니다."),
+                listOf("한 번의 다정한 반응만으로는 마음의 방향을 단정하기 어렵습니다.", "연락과 만남이 상대 쪽에서도 자연스럽게 이어지는지가 더 정확한 단서가 됩니다."),
+                listOf("가까워지는 속도가 빠르면 설렘도 커지지만 상대에게는 부담으로 읽힐 수 있습니다.", "두 사람이 모두 편안하게 대화를 이어가는 범위가 현재 관계의 실제 거리입니다."),
+                listOf("마음이 이어질 가능성은 기다린 시간보다 상호적인 반응에서 확인됩니다.", "내 감정만 커지고 상대의 움직임은 멈춰 있다면 관계보다 기대가 앞서 있는 상태일 수 있습니다.")
+            )
+            CompatibilityRelationshipStatus.REUNION -> listOf(
+                listOf(meaning, "그리움에는 사랑뿐 아니라 끝내 말하지 못한 감정과 익숙함도 함께 섞여 있을 수 있습니다."),
+                listOf("관계가 멈춘 이유가 한 번의 사건인지 반복된 패턴인지에 따라 재회의 의미가 달라집니다.", "반복된 피로가 원인이었다면 감정 확인만으로는 예전 구조가 바뀌지 않습니다."),
+                listOf("상대가 대화를 열어두는지와 단순히 예의를 지키는지는 온도가 다릅니다.", "짧은 답장보다 질문과 감정이 오가는지에서 현재의 경계를 읽을 수 있습니다."),
+                listOf("다시 만남이 가능하더라도 예전 자리로 돌아가는 방식은 오래가기 어렵습니다.", "두 사람이 헤어진 원인을 다르게 다룰 수 있을 때 비로소 새로운 관계가 시작됩니다.")
+            )
+        }
+        if (sectionIndex in 0..3) {
+            return highlights[sectionIndex] to bodies[sectionIndex]
+        }
+        val extra = when (sectionId) {
+            "opportunity" -> "관계의 가능성은 한 번의 강한 반응보다 서로의 움직임이 반복해서 이어질 때 선명해집니다." to listOf(
+                "지금 눈여겨볼 기회는 대화를 계속 이어가려는 반응과 편안한 만남이 자연스럽게 반복되는지에 있습니다.",
+                "가능성은 정해진 약속이 아니라 두 사람이 함께 만드는 여지이므로 상대의 현재 상황과 경계도 함께 살펴야 합니다."
+            )
+            "avoid" -> "불안한 마음으로 답을 재촉하면 관계의 실제 온도를 보기 어려워집니다." to listOf(
+                "상대의 한두 번 반응만으로 전체 마음을 단정하거나 감정을 증명받으려는 행동은 거리를 키울 수 있습니다.",
+                "관계가 불확실할수록 사실과 기대를 구분하는 태도가 필요합니다."
+            )
+            "recommendation" -> "지금 필요한 행동은 관계를 몰아가는 것이 아니라 서로의 반응을 확인할 수 있는 크기로 다가가는 것입니다." to listOf(
+                "대화는 짧고 분명하게 시작하고, 상대가 질문과 감정을 돌려주는지 살펴보세요.",
+                "반응이 편안하게 이어질 때 다음 만남이나 중요한 대화를 제안하는 순서가 부담을 줄입니다."
+            )
+            else -> "행운의 요소는 관계의 결정을 대신하지 않지만 마음을 차분히 정돈하는 상징이 될 수 있습니다." to listOf(
+                "숫자와 색상, 방향, 시간, 요일은 가볍게 참고하고 실제 판단은 두 사람의 대화와 행동을 기준으로 보세요.",
+                "관계의 다음 장면은 정해져 있지 않으며 지금의 태도에 따라 충분히 달라질 수 있습니다."
+            )
+        }
+        return extra
+    }
+
+    private fun String.withoutJournalingAdvice(fallback: String): String {
         val cleaned = trim()
         if (cleaned.isBlank()) return fallback
-        return if (cleaned.isTaskLikeAdvice()) fallback else cleaned
-    }
-
-    private fun String.isTaskLikeAdvice(): Boolean {
-        val blocked = listOf(
-            "수첩", "메모", "기록", "적어", "체크", "체크리스트",
-            "오늘은", "오늘 할", "오늘 해야", "이번 주", "한 달 안",
-            "해야", "해보", "정하세요", "만드세요", "나누세요", "실행"
-        )
-        return blocked.any { contains(it) }
+        val blocked = listOf("수첩", "메모하세요", "기록하세요", "적어두세요", "일기를", "체크리스트", "복사하기 좋은", "상대에게 보낼")
+        val sentences = cleaned
+            .split(Regex("(?<=[.!?。])\\s+"))
+            .filter { sentence -> blocked.none(sentence::contains) }
+        return sentences.joinToString(" ").ifBlank { fallback }
     }
 
     private fun relationshipToneFallback(): String {
@@ -572,9 +780,23 @@ class GenerateCompatibilityConsultationUseCase(
         else -> "마무리와 정리의 기운이 강해 깊은 결론에 닿기 쉽지만, 감정의 무게가 커질 수 있는 흐름입니다."
     }
 
+    private data class CompatibilityNarrativePlan(
+        val coverTitle: String,
+        val coverSubtitle: String,
+        val angle: String,
+        val sections: List<CompatibilitySectionSpec>
+    )
+
+    private data class CompatibilitySectionSpec(
+        val id: String,
+        val ribbon: String,
+        val title: String,
+        val focus: String
+    )
+
     companion object {
         private const val SYSTEM_PROMPT =
-            "Write concise Korean compatibility counseling JSON. Be concrete and polite. No system-name terms, no '선생님'. JSON only."
+            "Write concise Korean compatibility counseling JSON within 2,500 Korean characters total. Vary the narrative structure by relationship status and follow the supplied section blueprint exactly. Be concrete and polite. JSON only."
         private const val OPENAI_MODEL = "gpt-5.1"
     }
 }

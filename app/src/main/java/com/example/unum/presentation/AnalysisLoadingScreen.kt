@@ -96,7 +96,7 @@ fun AnalysisLoadingScreen(formState: HomeFormState) {
             Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(13.dp)) {
                 LoadingStep("핵심 번호 계산", done = true)
                 LoadingStep("성향 패턴 분석", done = true)
-                LoadingStep("인생 흐름 매핑", done = false)
+                LoadingStep("오늘의 운세 구성", done = false)
             }
 
             Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {

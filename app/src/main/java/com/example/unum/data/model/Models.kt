@@ -78,11 +78,7 @@ data class FreeReadingResult(
     val opening: String,
     val core: String,
     val strength: String,
-    val caution: String,
-    val action: String,
-    val relationship: String,
-    val career: String,
-    val money: String
+    val caution: String
 )
 
 data class RecentSearch(
@@ -100,6 +96,10 @@ enum class PremiumTopic(val label: String) {
     ROMANCE("연애"),
     CAREER("일과 진로"),
     MONEY("돈"),
+    STUDY("학업"),
+    HEALTH("건강"),
+    BUSINESS("사업"),
+    GENERAL("종합운"),
     SELF_ESTEEM("나 자신"),
     RELATIONSHIP("인간관계")
 }

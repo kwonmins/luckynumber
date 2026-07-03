@@ -51,6 +51,21 @@ class BuildPremiumDummyConsultationUseCase {
                 riskyMonthReason = "$riskyMonth 흐름에서는 빠른 이익에 마음이 쏠리기 쉽습니다."
             )
 
+            PremiumTopic.STUDY,
+            PremiumTopic.HEALTH,
+            PremiumTopic.BUSINESS,
+            PremiumTopic.GENERAL -> buildConsultation(
+                core = "$coreKeyword 기운이 ${topic.label} 고민에서 선명하게 드러납니다. 지금은 결과를 단정하기보다 현재 반복되는 생활 장면과 선택을 함께 살필 때입니다.",
+                interpretation = "'$concernText' 안에는 좋아지고 싶은 마음과 지금의 부담이 함께 들어 있습니다. 실제 조건과 감정의 속도를 나누어 보면 우선할 지점이 더 분명해집니다.",
+                caution = "불안할수록 한 번에 큰 변화를 만들고 싶어질 수 있습니다. 확인되지 않은 기대만으로 결정을 밀어붙이지 않도록 주의해야 합니다.",
+                direction = "가장 영향이 큰 한 가지부터 현실적으로 조정하면 전체 흐름도 차분하게 달라질 수 있습니다.",
+                oneLineAdvice = "지금의 선택은 미래를 확정하는 답이 아니라, 더 나은 방향을 만드는 첫 기준입니다.",
+                bestMonth = bestMonth,
+                riskyMonth = riskyMonth,
+                bestMonthReason = monthTone(bestSelection, "준비한 내용을 실제 선택으로 옮기기 좋은 구간입니다."),
+                riskyMonthReason = "$riskyMonth 흐름에서는 조급한 판단이 부담을 키울 수 있습니다."
+            )
+
             PremiumTopic.SELF_ESTEEM -> buildConsultation(
                 core = "$coreKeyword 기운이 자기평가의 방식에서 강하게 나타납니다. 약해서 흔들리는 것이 아니라, 스스로를 보는 기준이 너무 엄격해진 상태에 가깝습니다.",
                 interpretation = "'$concernText' 안에는 더 나아지고 싶은 마음과 이미 지친 마음이 함께 있습니다. 지금은 자신을 증명하는 문제보다 나를 바라보는 말의 온도를 낮추는 것이 중요합니다.",

@@ -33,14 +33,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.unum.data.model.AuthState
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.ui.components.BookThumbnailCard
 import com.example.unum.ui.components.DailyFortuneTopicSection
 import com.example.unum.ui.components.MysticBackground
+import com.example.unum.ui.components.QuickActionCard
+import com.example.unum.ui.components.SectionHeader
 import com.example.unum.ui.components.TodayFortuneCard
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Border
@@ -52,6 +54,9 @@ import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun HomeScreen(
@@ -66,16 +71,17 @@ fun HomeScreen(
     val latestBundle = uiState.latestBundle
     val dailyFortune = viewModel.dailyFortune()
     val recentBooks = uiState.savedBooks.take(5)
+    val displayName = (uiState.authState as? AuthState.SignedIn)?.user?.displayName ?: "수리 탐험가"
 
     MysticBackground(modifier = Modifier.fillMaxSize(), animatedWaves = false) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            contentPadding = PaddingValues(top = 28.dp, bottom = 104.dp)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(top = 18.dp, bottom = 92.dp)
         ) {
-            item { RoomHeader(onOpenSettings = onOpenSettings) }
+            item { RoomHeader(displayName = displayName, onOpenSettings = onOpenSettings) }
             item {
                 TodayFortuneCard(
                     result = dailyFortune,
@@ -90,9 +96,9 @@ fun HomeScreen(
                 )
             }
             item {
-                SectionTitleBlock(
+                SectionHeader(
                     title = "분야별 운세",
-                    subtitle = "타로 카드 대신 수리학 숫자 흐름으로 해석합니다"
+                    description = "오늘의 숫자 흐름을 분야별로 짧게 확인하세요"
                 )
             }
             item {
@@ -122,35 +128,31 @@ fun HomeScreen(
 }
 
 @Composable
-private fun RoomHeader(onOpenSettings: () -> Unit) {
+private fun RoomHeader(displayName: String, onOpenSettings: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("오늘의 수리 리포트", color = TextPrimary, style = MaterialTheme.typography.displayMedium)
-                    Text("숫자는 점수가 아니라 오늘을 읽는 언어예요", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                SimpleDateFormat("yyyy년 M월 d일 EEEE", Locale.KOREAN).format(Date()),
+                color = TextMuted,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text("안녕하세요, ${displayName}님", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
         }
         Box(
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .background(Surface2)
-                .border(1.dp, Border, CircleShape)
+                .background(Color.White.copy(alpha = 0.05f))
+                .border(1.dp, Color.White.copy(alpha = 0.09f), CircleShape)
                 .clickable(onClick = onOpenSettings),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Rounded.Settings, contentDescription = null, tint = Rose, modifier = Modifier.size(20.dp))
+            Icon(Icons.Rounded.Settings, contentDescription = "설정 열기", tint = Gold, modifier = Modifier.size(20.dp))
         }
-    }
-}
-
-@Composable
-private fun SectionTitleBlock(title: String, subtitle: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        Text(title, color = TextPrimary, style = MaterialTheme.typography.titleLarge)
-        Text(subtitle, color = TextMuted, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -162,34 +164,19 @@ private fun RoomEntryRow(
 ) {
     val entries = listOf(
         RoomEntry("생년월일\n리딩", Icons.Rounded.EditCalendar, Accent, Accent.copy(alpha = 0.10f), onOpenInput),
-        RoomEntry("프리미엄\n책자", Icons.Rounded.AutoStories, Gold, Color(0xFFFFF8E7), onOpenPremium),
-        RoomEntry("보관함", Icons.Rounded.Bookmarks, Mint, Color(0xFFEAFBF4), onOpenLibrary)
+        RoomEntry("프리미엄\n책자", Icons.Rounded.AutoStories, Gold, Gold.copy(alpha = 0.09f), onOpenPremium),
+        RoomEntry("보관함", Icons.Rounded.Bookmarks, Mint, Mint.copy(alpha = 0.09f), onOpenLibrary)
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth()) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         entries.forEach { entry ->
-            RoomEntryCard(entry, Modifier.weight(1f))
-        }
-    }
-}
-
-@Composable
-private fun RoomEntryCard(entry: RoomEntry, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .height(112.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .background(entry.background)
-            .border(1.dp, Border, RoundedCornerShape(18.dp))
-            .clickable(onClick = entry.onClick)
-            .padding(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(entry.icon, contentDescription = null, tint = entry.color, modifier = Modifier.size(22.dp))
-            Text(entry.title, color = TextPrimary, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+            QuickActionCard(
+                title = entry.title,
+                icon = entry.icon,
+                tint = entry.color,
+                background = entry.background,
+                onClick = entry.onClick,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
@@ -201,11 +188,11 @@ private fun OneLineRoomNote(bundle: NumerologyResultBundle?, onOpenInput: () -> 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(14.dp))
             .background(Surface)
-            .border(1.dp, Border, RoundedCornerShape(22.dp))
+            .border(1.dp, Border, RoundedCornerShape(14.dp))
             .then(if (bundle == null) Modifier.clickable(onClick = onOpenInput) else Modifier)
-            .padding(horizontal = 22.dp, vertical = 20.dp)
+            .padding(horizontal = 16.dp, vertical = 15.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
             Text(if (bundle == null) "성향 미리보기 준비" else "성향 한 줄", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
@@ -222,11 +209,11 @@ private fun EmptyRoomCard(onOpenPremium: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
-            .background(Color(0xFFFFFBF2))
-            .border(1.dp, Gold.copy(alpha = 0.32f), RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(14.dp))
+            .background(Gold.copy(alpha = 0.08f))
+            .border(1.dp, Gold.copy(alpha = 0.32f), RoundedCornerShape(14.dp))
             .clickable(onClick = onOpenPremium)
-            .padding(horizontal = 22.dp, vertical = 20.dp)
+            .padding(horizontal = 16.dp, vertical = 15.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text("아직 저장된 운세노트가 없어요", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
@@ -247,7 +234,7 @@ private fun SavedNotesSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SectionTitleBlock(title = "저장된 운세노트", subtitle = "최근 만든 책자를 다시 펼쳐보세요")
+            SectionHeader(title = "저장된 운세노트", description = "최근 만든 책자를 다시 펼쳐보세요")
             Text(
                 "전체",
                 color = Accent,
@@ -261,9 +248,9 @@ private fun SavedNotesSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(14.dp))
                 .background(Surface)
-                .border(1.dp, Border, RoundedCornerShape(24.dp))
+                .border(1.dp, Border, RoundedCornerShape(14.dp))
                 .padding(vertical = 18.dp)
         ) {
             LazyRow(

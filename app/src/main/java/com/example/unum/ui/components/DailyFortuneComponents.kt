@@ -57,6 +57,7 @@ import com.example.unum.ui.theme.Gold
 import com.example.unum.ui.theme.Mint
 import com.example.unum.ui.theme.Rose
 import com.example.unum.ui.theme.Surface
+import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
 
@@ -75,15 +76,13 @@ fun TodayFortuneCard(
             .shadow(if (result == null) 3.dp else 10.dp, RoundedCornerShape(18.dp), clip = false)
             .clip(RoundedCornerShape(18.dp))
             .background(
-                if (result == null) {
-                    Brush.verticalGradient(listOf(Surface, Color(0xFFF8FBFF)))
-                } else {
-                    Brush.linearGradient(listOf(Accent, Color(0xFF1E40AF)))
-                }
+                Brush.linearGradient(
+                    listOf(Color(0xFF0C0E1C), Accent.copy(alpha = 0.20f), Color(0xFF080911))
+                )
             )
             .border(
                 1.dp,
-                if (result == null) Border else Color.White.copy(alpha = 0.12f),
+                if (result == null) Border else Accent.copy(alpha = 0.38f),
                 RoundedCornerShape(18.dp)
             )
             .then(if (result == null) Modifier.clickable(onClick = onOpenInput) else Modifier)
@@ -109,25 +108,25 @@ fun TodayFortuneCard(
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         "TODAY NUMBER",
-                        color = if (result == null) Accent else Color.White.copy(alpha = 0.72f),
+                        color = if (result == null) Accent else Color.White.copy(alpha = 0.58f),
                         style = MaterialTheme.typography.labelLarge
                     )
                     Text(
                         if (result == null) "입력이 필요해요" else "오늘의 핵심수",
-                        color = if (result == null) TextPrimary else Color.White,
+                        color = TextPrimary,
                         style = MaterialTheme.typography.displayLarge
                     )
                     Text(
                         result?.coreTitle ?: "매일 바뀌는 리딩 준비",
-                        color = if (result == null) TextSecondary else Color.White.copy(alpha = 0.78f),
+                        color = TextSecondary,
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
-                DailyNumberMedallion(number = result?.coreNumber, onDark = result != null)
+                DailyNumberMascot(number = result?.coreNumber)
             }
             Text(
                 summary,
-                color = if (result == null) TextSecondary else Color.White.copy(alpha = 0.86f),
+                color = TextSecondary,
                 style = MaterialTheme.typography.bodyLarge
             )
             if (result == null) {
@@ -184,16 +183,36 @@ fun DailyFortuneTopicSection(
 }
 
 @Composable
-private fun DailyNumberMedallion(number: Int?, onDark: Boolean) {
+private fun DailyNumberMascot(number: Int?) {
+    Box(modifier = Modifier.size(112.dp), contentAlignment = Alignment.BottomCenter) {
+        Image(
+            painter = painterResource(MascotArt.Home),
+            contentDescription = "오늘의 수리를 안내하는 수리",
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = 0.94f },
+            contentScale = ContentScale.Fit
+        )
+        DailyNumberMedallion(
+            number = number,
+            onDark = true,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(50.dp)
+        )
+    }
+}
+
+@Composable
+private fun DailyNumberMedallion(number: Int?, onDark: Boolean, modifier: Modifier = Modifier.size(76.dp)) {
     Box(
-        modifier = Modifier
-            .size(76.dp)
+        modifier = modifier
             .clip(CircleShape)
-            .background(if (onDark) Color.White.copy(alpha = 0.18f) else Accent.copy(alpha = 0.08f))
-            .border(1.dp, if (onDark) Color.White.copy(alpha = 0.24f) else Accent.copy(alpha = 0.22f), CircleShape),
+            .background(if (onDark) Color(0xFF0A0B1A).copy(alpha = 0.92f) else Accent.copy(alpha = 0.08f))
+            .border(1.dp, if (onDark) Gold.copy(alpha = 0.58f) else Accent.copy(alpha = 0.22f), CircleShape),
         contentAlignment = Alignment.Center
     ) {
-        Text(number?.toString() ?: "?", color = if (onDark) Color.White else Accent, style = MaterialTheme.typography.displayLarge)
+        Text(number?.toString() ?: "?", color = if (onDark) Gold else Accent, style = MaterialTheme.typography.titleLarge)
     }
 }
 
@@ -202,19 +221,19 @@ private fun DailyFortuneInputPrompt(onOpenInput: () -> Unit, modifier: Modifier 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFFFFFBF2))
+            .background(Gold.copy(alpha = 0.08f))
             .border(1.dp, Gold.copy(alpha = 0.30f), RoundedCornerShape(18.dp))
             .clickable(onClick = onOpenInput)
             .padding(18.dp)
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(R.drawable.numerology_self),
+                painter = painterResource(MascotArt.Input),
                 contentDescription = null,
                 modifier = Modifier
                     .size(72.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.72f)),
+                    .background(Surface2.copy(alpha = 0.72f)),
                 contentScale = ContentScale.Fit
             )
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -244,7 +263,7 @@ private fun DailyFortuneTopicDetail(reading: DailyTopicFortune) {
                 modifier = Modifier
                     .size(72.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.72f))
+                    .background(Surface2.copy(alpha = 0.88f))
                     .padding(5.dp),
                 contentScale = ContentScale.Fit
             )
@@ -281,7 +300,7 @@ private fun DailyFortuneTopicCard(reading: DailyTopicFortune, focused: Boolean, 
                     listOf(
                         visual.color.copy(alpha = if (focused || pressed) 0.28f else 0.20f),
                         visual.color.copy(alpha = if (focused || pressed) 0.16f else 0.11f),
-                        Color.White.copy(alpha = 0.86f)
+                        Surface.copy(alpha = 0.94f)
                     )
                 )
             )
@@ -296,7 +315,7 @@ private fun DailyFortuneTopicCard(reading: DailyTopicFortune, focused: Boolean, 
             modifier = Modifier
                 .size(58.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.72f))
+                .background(Surface2.copy(alpha = 0.92f))
                 .border(1.dp, visual.color.copy(alpha = 0.30f), CircleShape)
                 .padding(4.dp),
             contentAlignment = Alignment.Center
@@ -316,11 +335,11 @@ private fun DailyFortuneTopicCard(reading: DailyTopicFortune, focused: Boolean, 
 }
 
 private fun visualFor(topic: DailyFortuneTopic): DailyTopicVisual = when (topic) {
-    DailyFortuneTopic.LOVE -> DailyTopicVisual("LOVE", "연애", "오늘의 온도", Rose, R.drawable.numerology_love)
-    DailyFortuneTopic.WORK -> DailyTopicVisual("WORK", "일과 진로", "오늘의 방향", Accent, R.drawable.numerology_career)
-    DailyFortuneTopic.MONEY -> DailyTopicVisual("MONEY", "돈", "오늘의 관리", Mint, R.drawable.numerology_money)
-    DailyFortuneTopic.STUDY -> DailyTopicVisual("STUDY", "배움", "오늘의 집중", Gold, R.drawable.numerology_study)
-    DailyFortuneTopic.SELF -> DailyTopicVisual("SELF", "나 자신", "오늘의 중심", Color(0xFF0891B2), R.drawable.numerology_self)
+    DailyFortuneTopic.LOVE -> DailyTopicVisual("LOVE", "연애", "오늘의 온도", Rose, R.drawable.suri_reader_romance)
+    DailyFortuneTopic.WORK -> DailyTopicVisual("WORK", "일과 진로", "오늘의 방향", Accent, R.drawable.suri_anim_writer_hero)
+    DailyFortuneTopic.MONEY -> DailyTopicVisual("MONEY", "돈", "오늘의 관리", Mint, R.drawable.suri_reader_money_cutout)
+    DailyFortuneTopic.STUDY -> DailyTopicVisual("STUDY", "배움", "오늘의 집중", Gold, R.drawable.suri_anim_writer_07)
+    DailyFortuneTopic.SELF -> DailyTopicVisual("SELF", "나 자신", "오늘의 중심", Color(0xFFA78BFA), R.drawable.suri_expression_05)
 }
 
 private data class DailyTopicVisual(

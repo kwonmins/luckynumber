@@ -1,29 +1,33 @@
 package com.example.unum.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 
-private val Scheme = lightColorScheme(
+private val Scheme = darkColorScheme(
     primary = Accent,
     secondary = Mint,
     tertiary = Gold,
     background = Background,
     surface = Surface,
     surfaceVariant = Surface2,
-    onPrimary = Surface,
-    onSecondary = Surface,
-    onTertiary = Surface,
+    onPrimary = Background,
+    onSecondary = Background,
+    onTertiary = Background,
     onBackground = TextPrimary,
     onSurface = TextPrimary,
     onSurfaceVariant = TextSecondary,
-    error = Rose
+    error = Rose,
+    outline = Border,
+    outlineVariant = BorderStrong,
+    surfaceContainer = Surface,
+    surfaceContainerLow = Background,
+    surfaceContainerHighest = Surface2
 )
 
 @Composable
 fun UnumTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     MaterialTheme(

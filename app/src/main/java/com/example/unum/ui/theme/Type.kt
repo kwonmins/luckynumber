@@ -10,38 +10,38 @@ val UnumTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.ExtraBold,
-        fontSize = 28.sp,
-        lineHeight = 36.sp
+        fontSize = 30.sp,
+        lineHeight = 38.sp
     ),
     displayMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.ExtraBold,
-        fontSize = 24.sp,
-        lineHeight = 31.sp
+        fontSize = 23.sp,
+        lineHeight = 30.sp
     ),
     titleLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
+        fontSize = 21.sp,
         lineHeight = 28.sp
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Bold,
-        fontSize = 17.sp,
-        lineHeight = 24.sp
+        fontSize = 16.sp,
+        lineHeight = 23.sp
     ),
     bodyLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 26.sp
+        fontSize = 15.sp,
+        lineHeight = 23.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        lineHeight = 22.sp
+        lineHeight = 21.sp
     ),
     bodySmall = TextStyle(
         fontFamily = FontFamily.SansSerif,

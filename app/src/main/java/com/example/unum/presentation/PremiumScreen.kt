@@ -15,6 +15,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -74,11 +75,16 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.unum.R
 import com.example.unum.data.model.BookSpecs
 import com.example.unum.data.model.BookThemeId
 import com.example.unum.data.model.BookThemeSpecs
@@ -98,6 +104,7 @@ import com.example.unum.ui.components.MysticBackground
 import com.example.unum.ui.components.SecondaryButton
 import com.example.unum.ui.components.SurfaceCard
 import com.example.unum.ui.components.ToggleSegment
+import com.example.unum.ui.components.premiumTopicMascot
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.BookLine
 import com.example.unum.ui.theme.BookPaper
@@ -116,7 +123,6 @@ import kotlinx.coroutines.delay
 @Composable
 fun PremiumScreen(
     viewModel: AppViewModel,
-    onRequestPersonalConsultation: () -> Unit,
     onOpenBook: (FortuneBook) -> Unit,
     onOpenLibrary: () -> Unit,
     onOpenPayment: () -> Unit
@@ -184,22 +190,27 @@ fun PremiumScreen(
         label = "premiumBookFlow"
     ) { step ->
         when (step) {
-            PremiumFlowStep.FORM -> MysticBackground(Modifier.fillMaxSize()) {
+            PremiumFlowStep.FORM -> PremiumEntryBackground {
                 PremiumFormScreen(
                     uiState = uiState,
                     viewModel = viewModel,
-                    onOpenPayment = onOpenPayment
+                    onStart = { viewModel.preparePremiumQuestionConfirmation() }
                 )
             }
             PremiumFlowStep.CONFIRM_QUESTION -> QuestionConfirmScreen(
-                topicLabel = uiState.premiumTopic.label,
+                topicLabel = if (uiState.premiumMode == PremiumMode.COMPATIBILITY) {
+                    uiState.compatibilityForm.relationshipStatus.label
+                } else {
+                    uiState.premiumTopic.label
+                },
                 question = uiState.premiumEssentialQuestion,
-                originalConcern = uiState.premiumConcern,
+                originalConcern = if (uiState.premiumMode == PremiumMode.COMPATIBILITY) {
+                    uiState.compatibilityConcern
+                } else {
+                    uiState.premiumConcern
+                },
                 onEdit = { viewModel.setPremiumFlowStep(PremiumFlowStep.FORM) },
-                onConfirm = {
-                    viewModel.setPremiumFlowStep(PremiumFlowStep.LOADING)
-                    onRequestPersonalConsultation()
-                }
+                onConfirm = onOpenPayment
             )
             PremiumFlowStep.LOADING -> PremiumLoadingScreen(
                 isLoading = uiState.isPremiumLoading,
@@ -250,71 +261,745 @@ fun PremiumScreen(
 private fun PremiumFormScreen(
     uiState: AppUiState,
     viewModel: AppViewModel,
-    onOpenPayment: () -> Unit
+    onStart: () -> Unit
 ) {
     val isCompatibility = uiState.premiumMode == PremiumMode.COMPATIBILITY
     val partner = uiState.compatibilityForm.partner
+    var personalStep by remember { mutableStateOf(1) }
     val compatibilityReady = uiState.latestBundle != null &&
         partner.year.length == 4 &&
         partner.month.isNotBlank() &&
-        partner.day.isNotBlank()
-    val canStart = if (isCompatibility) compatibilityReady else uiState.latestBundle != null
+        partner.day.isNotBlank() &&
+        uiState.compatibilityConcern.trim().length >= 6
+    val canStart = if (isCompatibility) {
+        compatibilityReady
+    } else {
+        uiState.latestBundle != null && uiState.premiumConcern.trim().length >= 6
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(15.dp)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(
-                if (isCompatibility) "프리미엄 궁합노트 신청" else "프리미엄 운세노트 신청",
-                color = TextPrimary,
-                style = MaterialTheme.typography.titleLarge
-            )
-            Icon(Icons.Rounded.AutoStories, contentDescription = null, tint = TextMuted)
-        }
-        PremiumModeSelector(
+        PremiumEntryHeader()
+        PremiumEntryModeSelector(
             selected = uiState.premiumMode,
-            onSelected = viewModel::setPremiumMode
+            onSelected = { mode ->
+                personalStep = 1
+                viewModel.setPremiumMode(mode)
+            }
         )
 
         if (isCompatibility) {
-            CompatibilityGreetingCard()
-            CompatibilityFormSection(uiState = uiState, viewModel = viewModel)
-            Text("관계 질문", color = TextMuted, style = MaterialTheme.typography.labelLarge)
-            PremiumConcernField(
-                value = uiState.compatibilityConcern,
-                onValueChange = viewModel::updateCompatibilityConcern,
-                placeholder = "지금 이 관계에서 가장 궁금한 점을 짧게 적어주세요."
+            PremiumCompatibilityEntry(
+                uiState = uiState,
+                viewModel = viewModel,
+                canStart = canStart,
+                onStart = onStart
+            )
+        } else if (personalStep == 1) {
+            PremiumPersonalIntro(
+                uiState = uiState,
+                onTopicSelected = viewModel::selectPremiumTopic,
+                onContinue = { personalStep = 2 }
             )
         } else {
-            SuriGreetingCard()
-            Text("고민 분야 선택", color = TextMuted, style = MaterialTheme.typography.labelLarge)
-            TopicGrid(selected = uiState.premiumTopic, onSelected = viewModel::selectPremiumTopic)
-            Text("나의 상세한 고민 내용", color = TextMuted, style = MaterialTheme.typography.labelLarge)
-            PremiumConcernField(
-                value = uiState.premiumConcern,
-                onValueChange = viewModel::updatePremiumConcern
+            PremiumPersonalDetails(
+                uiState = uiState,
+                onConcernChange = viewModel::updatePremiumConcern,
+                onBack = { personalStep = 1 },
+                canStart = canStart,
+                onStart = onStart
             )
-            if (uiState.latestBundle == null) {
+        }
+
+        uiState.inputError?.let {
+            Text(it, color = Color(0xFFFDA4AF), style = MaterialTheme.typography.bodySmall)
+        }
+        Spacer(Modifier.height(12.dp))
+    }
+}
+
+private val PremiumEntryNavy = Color(0xFF030409)
+private val PremiumEntryBlue = Color(0xFF5B8AF5)
+private val PremiumEntryIndigo = Color(0xFF7B9AF8)
+private val PremiumEntryPink = Color(0xFFFF4D6D)
+private val PremiumEntryViolet = Color(0xFFA78BFA)
+private val PremiumEntryGold = Color(0xFFF0A84A)
+
+@Composable
+private fun PremiumEntryBackground(content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(PremiumEntryNavy, Color(0xFF0A0B1A), Color(0xFF060710))
+                )
+            )
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(PremiumEntryGold.copy(alpha = 0.19f), Color.Transparent),
+                    center = Offset(size.width * 0.04f, size.height * 0.02f),
+                    radius = size.width * 0.58f
+                ),
+                radius = size.width * 0.58f,
+                center = Offset(size.width * 0.04f, size.height * 0.02f)
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(PremiumEntryViolet.copy(alpha = 0.18f), Color.Transparent),
+                    center = Offset(size.width * 0.98f, size.height * 0.25f),
+                    radius = size.width * 0.46f
+                ),
+                radius = size.width * 0.46f,
+                center = Offset(size.width * 0.98f, size.height * 0.25f)
+            )
+        }
+        content()
+    }
+}
+
+@Composable
+private fun PremiumEntryHeader() {
+    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("♛", color = PremiumEntryGold, fontSize = 15.sp, fontWeight = FontWeight.Black)
+            Text(
+                "PREMIUM",
+                color = PremiumEntryGold,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 2.sp
+            )
+        }
+        Text(
+            "나만의 노트 제작",
+            color = Color.White,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black)
+        )
+    }
+}
+
+@Composable
+private fun PremiumEntryModeSelector(selected: PremiumMode, onSelected: (PremiumMode) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.07f))
+            .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(16.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        listOf(PremiumMode.PERSONAL to "🔮 운세노트", PremiumMode.COMPATIBILITY to "💑 궁합노트").forEach { (mode, label) ->
+            val isSelected = selected == mode
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (isSelected) Color.White.copy(alpha = 0.11f) else Color.Transparent)
+                    .border(
+                        1.dp,
+                        if (isSelected) Color.White.copy(alpha = 0.14f) else Color.Transparent,
+                        RoundedCornerShape(12.dp)
+                    )
+                    .clickable { onSelected(mode) }
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(
-                    "책자는 생년월일 입력값과 지금 적은 고민을 함께 읽어 만들어요. 먼저 입력 화면에서 생년월일을 저장해주세요.",
-                    color = TextMuted,
-                    style = MaterialTheme.typography.bodySmall
+                    label,
+                    color = if (isSelected) Color.White else Color.White.copy(alpha = 0.42f),
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                 )
             }
         }
-        uiState.inputError?.let { Text(it, color = Rose, style = MaterialTheme.typography.bodySmall) }
-        GradientButton(
-            text = if (isCompatibility) "궁합노트 제작하기" else "프리미엄 맞춤 비책 제작하기",
-            onClick = onOpenPayment,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = canStart
-        )
-        Spacer(Modifier.height(76.dp))
     }
+}
+
+@Composable
+private fun PremiumPersonalIntro(
+    uiState: AppUiState,
+    onTopicSelected: (PremiumTopic) -> Unit,
+    onContinue: () -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        PremiumPersonalPreview(topic = uiState.premiumTopic)
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                "어떤 고민이 있으신가요?",
+                color = Color.White.copy(alpha = 0.82f),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+            )
+            PremiumTopicGrid(selected = uiState.premiumTopic, onSelected = onTopicSelected)
+        }
+        PremiumIncludedCard()
+        if (uiState.latestBundle == null) {
+            PremiumEntryHint("생년월일 분석을 먼저 완료하면 맞춤 운세노트를 제작할 수 있어요.")
+        }
+        PremiumPrimaryButton(
+            text = "✦  맞춤 비책 제작하기",
+            onClick = onContinue,
+            colors = listOf(PremiumEntryGold, Color(0xFFD4884A)),
+            contentColor = PremiumEntryNavy
+        )
+    }
+}
+
+@Composable
+private fun PremiumPersonalPreview(topic: PremiumTopic) {
+    val topicLabel = topic.bookLabel()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(154.dp)
+            .shadow(16.dp, RoundedCornerShape(18.dp), clip = false)
+            .clip(RoundedCornerShape(18.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(PremiumEntryBlue.copy(alpha = 0.34f), PremiumEntryViolet.copy(alpha = 0.34f))
+                )
+            )
+            .border(1.dp, Color.White.copy(alpha = 0.13f), RoundedCornerShape(18.dp))
+    ) {
+        Image(
+            painter = painterResource(premiumTopicMascot(topic)),
+            contentDescription = "운세노트를 쓰는 수리",
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .width(118.dp)
+                .fillMaxHeight()
+                .padding(top = 8.dp, end = 4.dp),
+            contentScale = ContentScale.Fit
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(0.72f)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    "미리보기 · $topicLabel 리포트",
+                    color = Color(0xFF93C5FD),
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)
+                )
+                Text(
+                    "“숫자 속 흐름을 읽어,\n지금 필요한 답을 찾아드려요”",
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 22.sp
+                    )
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                listOf("에너지 분석", "타이밍", "비책 3가지").forEach { label ->
+                    Text(
+                        label,
+                        color = Color.White.copy(alpha = 0.68f),
+                        fontSize = 9.sp,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(Color.White.copy(alpha = 0.10f))
+                            .padding(horizontal = 7.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PremiumTopicGrid(selected: PremiumTopic, onSelected: (PremiumTopic) -> Unit) {
+    val topics = FeatureSpecs.premiumTopicPlans.map { it.topic }
+    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        topics.chunked(2).forEach { rowTopics ->
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                rowTopics.forEach { topic ->
+                    val isSelected = selected == topic
+                    val accent = topicAccent(topic)
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(76.dp)
+                            .clip(RoundedCornerShape(13.dp))
+                            .background(
+                                if (isSelected) accent.copy(alpha = 0.15f)
+                                else Color.White.copy(alpha = 0.055f)
+                            )
+                            .border(
+                                1.dp,
+                                if (isSelected) accent.copy(alpha = 0.62f)
+                                else Color.White.copy(alpha = 0.08f),
+                                RoundedCornerShape(13.dp)
+                            )
+                            .clickable { onSelected(topic) }
+                            .padding(horizontal = 5.dp, vertical = 9.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(topicEmoji(topic), fontSize = 20.sp)
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            topic.bookLabel(),
+                            color = if (isSelected) accent else Color.White.copy(alpha = 0.50f),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                repeat(2 - rowTopics.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+private fun topicAccent(topic: PremiumTopic): Color = when (topic) {
+    PremiumTopic.ROMANCE -> PremiumEntryPink
+    PremiumTopic.CAREER -> PremiumEntryBlue
+    PremiumTopic.MONEY -> Color(0xFF2DD4BF)
+    PremiumTopic.STUDY -> PremiumEntryViolet
+    PremiumTopic.HEALTH -> Color(0xFF2DD4BF)
+    PremiumTopic.BUSINESS -> PremiumEntryGold
+    PremiumTopic.GENERAL -> PremiumEntryViolet
+    PremiumTopic.SELF_ESTEEM -> PremiumEntryGold
+    PremiumTopic.RELATIONSHIP -> PremiumEntryPink
+}
+
+private fun topicEmoji(topic: PremiumTopic): String = when (topic) {
+    PremiumTopic.ROMANCE -> "💘"
+    PremiumTopic.CAREER -> "💼"
+    PremiumTopic.MONEY -> "💰"
+    PremiumTopic.STUDY -> "📚"
+    PremiumTopic.HEALTH -> "🌿"
+    PremiumTopic.BUSINESS -> "📈"
+    PremiumTopic.GENERAL -> "🔮"
+    PremiumTopic.SELF_ESTEEM -> "✨"
+    PremiumTopic.RELATIONSHIP -> "🤝"
+}
+
+@Composable
+private fun PremiumIncludedCard() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(PremiumEntryGold.copy(alpha = 0.09f))
+            .border(1.dp, PremiumEntryGold.copy(alpha = 0.24f), RoundedCornerShape(14.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(9.dp)
+    ) {
+        Text(
+            "이 리포트에 포함돼요",
+            color = Color.White.copy(alpha = 0.74f),
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+        )
+        listOf(
+            "수비학 기반 에너지 심층 분석 (20p+)",
+            "분야별 타이밍 캘린더",
+            "지금 당장 쓸 수 있는 비책 3가지",
+            "피해야 할 패턴 경고 카드"
+        ).forEach { item ->
+            Row(horizontalArrangement = Arrangement.spacedBy(9.dp), verticalAlignment = Alignment.Top) {
+                Text("✦", color = PremiumEntryGold, fontSize = 11.sp)
+                Text(item, color = Color.White.copy(alpha = 0.60f), style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PremiumPersonalDetails(
+    uiState: AppUiState,
+    onConcernChange: (String) -> Unit,
+    onBack: () -> Unit,
+    canStart: Boolean,
+    onStart: () -> Unit
+) {
+    var selectedTone by remember { mutableStateOf("전략적") }
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .clickable(onClick = onBack)
+                .padding(vertical = 5.dp, horizontal = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(7.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("‹", color = Color.White.copy(alpha = 0.55f), fontSize = 24.sp)
+            Text(uiState.premiumTopic.bookLabel(), color = Color.White.copy(alpha = 0.55f), style = MaterialTheme.typography.bodySmall)
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(15.dp))
+                .background(Color.White.copy(alpha = 0.06f))
+                .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(15.dp))
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text("구체적인 고민을 알려주세요", color = Color.White, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+            PremiumDarkConcernField(
+                value = uiState.premiumConcern,
+                onValueChange = onConcernChange,
+                placeholder = "예) 오래 만난 연인과 결혼을 고민 중인데, 지금이 좋은 시기인지 알고 싶어요..."
+            )
+            Text("상세할수록 더 정확한 비책이 나와요 · 6자 이상", color = Color.White.copy(alpha = 0.30f), fontSize = 10.sp)
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+            Text("리포트 톤 선택", color = Color.White.copy(alpha = 0.72f), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                listOf("⚡" to "직설적", "🌸" to "부드럽게", "🎯" to "전략적").forEach { (emoji, label) ->
+                    val selected = selectedTone == label
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(13.dp))
+                            .background(if (selected) PremiumEntryBlue.copy(alpha = 0.31f) else Color.White.copy(alpha = 0.05f))
+                            .border(
+                                1.dp,
+                                if (selected) PremiumEntryIndigo.copy(alpha = 0.72f) else Color.White.copy(alpha = 0.07f),
+                                RoundedCornerShape(13.dp)
+                            )
+                            .clickable { selectedTone = label }
+                            .padding(vertical = 11.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(emoji, fontSize = 18.sp)
+                        Text(
+                            label,
+                            color = if (selected) Color.White else Color.White.copy(alpha = 0.42f),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+        }
+        if (uiState.latestBundle == null) {
+            PremiumEntryHint("입력 화면에서 생년월일을 저장한 뒤 제작할 수 있어요.")
+        }
+        PremiumPrimaryButton(
+            text = "♛  프리미엄 비책 생성하기",
+            onClick = onStart,
+            enabled = canStart,
+            colors = listOf(PremiumEntryGold, Color(0xFFD4884A)),
+            contentColor = PremiumEntryNavy
+        )
+        PremiumTrustLine("🔒  안전하게 제작 · 평균 22페이지")
+    }
+}
+
+@Composable
+private fun PremiumCompatibilityEntry(
+    uiState: AppUiState,
+    viewModel: AppViewModel,
+    canStart: Boolean,
+    onStart: () -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(132.dp)
+                .clip(RoundedCornerShape(18.dp))
+                .background(
+                    Brush.linearGradient(
+                        listOf(PremiumEntryPink.copy(alpha = 0.27f), PremiumEntryViolet.copy(alpha = 0.30f))
+                    )
+                )
+                .border(1.dp, Color.White.copy(alpha = 0.11f), RoundedCornerShape(18.dp))
+        ) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .fillMaxWidth(0.66f)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(7.dp)
+            ) {
+                Text("두 사람의 숫자 흐름", color = Color(0xFFF9A8D4), style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                Text("마음의 거리와\n관계의 타이밍을 읽어요", color = Color.White, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, lineHeight = 21.sp))
+                Text("궁합 분석 · 관계 비책 · 타이밍", color = Color.White.copy(alpha = 0.52f), fontSize = 10.sp)
+            }
+            Image(
+                painter = painterResource(R.drawable.suri_reader_compatibility),
+                contentDescription = "궁합을 읽는 수리",
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .width(126.dp)
+                    .fillMaxHeight()
+                    .padding(top = 5.dp, end = 5.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+            Text("관계 유형", color = Color.White.copy(alpha = 0.80f), style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                CompatibilityRelationshipStatus.entries.forEach { status ->
+                    val selected = uiState.compatibilityForm.relationshipStatus == status
+                    val (emoji, label) = relationshipPresentation(status)
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(13.dp))
+                            .background(if (selected) PremiumEntryPink.copy(alpha = 0.31f) else Color.White.copy(alpha = 0.055f))
+                            .border(
+                                1.dp,
+                                if (selected) PremiumEntryPink.copy(alpha = 0.72f) else Color.White.copy(alpha = 0.08f),
+                                RoundedCornerShape(13.dp)
+                            )
+                            .clickable { viewModel.setCompatibilityRelationshipStatus(status) }
+                            .padding(vertical = 11.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(emoji, fontSize = 20.sp)
+                        Text(label, color = if (selected) Color.White else Color.White.copy(alpha = 0.45f), fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
+
+        PremiumPartnerInputCard(uiState = uiState, viewModel = viewModel)
+        Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+            Text("관계에서 가장 궁금한 점", color = Color.White.copy(alpha = 0.80f), style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+            PremiumDarkConcernField(
+                value = uiState.compatibilityConcern,
+                onValueChange = viewModel::updateCompatibilityConcern,
+                placeholder = "예) 서로 마음은 있는데 자꾸 어긋나요. 관계가 좋아질 시기를 알고 싶어요..."
+            )
+            Text("상황과 궁금한 점을 6자 이상 적어주세요.", color = Color.White.copy(alpha = 0.30f), fontSize = 10.sp)
+        }
+        if (uiState.latestBundle == null) {
+            PremiumEntryHint("먼저 내 생년월일 분석을 완료해 주세요.")
+        }
+        PremiumPrimaryButton(
+            text = "✦  궁합 리포트 제작하기",
+            onClick = onStart,
+            enabled = canStart,
+            colors = listOf(PremiumEntryPink, PremiumEntryViolet)
+        )
+        PremiumTrustLine("🔒  상대방 정보는 분석에만 안전하게 사용돼요")
+    }
+}
+
+private fun relationshipPresentation(status: CompatibilityRelationshipStatus): Pair<String, String> = when (status) {
+    CompatibilityRelationshipStatus.COUPLE -> "💑" to "연인·배우자"
+    CompatibilityRelationshipStatus.CRUSH -> "💌" to "짝사랑"
+    CompatibilityRelationshipStatus.REUNION -> "🔁" to "재회"
+}
+
+@Composable
+private fun PremiumPartnerInputCard(uiState: AppUiState, viewModel: AppViewModel) {
+    val partner = uiState.compatibilityForm.partner
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(15.dp))
+            .background(Color.White.copy(alpha = 0.06f))
+            .border(1.dp, Color.White.copy(alpha = 0.09f), RoundedCornerShape(15.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("상대방 정보", color = Color.White.copy(alpha = 0.82f), style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+            Text(
+                uiState.latestBundle?.displayInput?.let { "내 정보 ${it.year}.${it.month}.${it.day}" } ?: "내 정보 미입력",
+                color = Color.White.copy(alpha = 0.34f),
+                fontSize = 10.sp
+            )
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            listOf(GenderOption.MALE to "남성", GenderOption.FEMALE to "여성").forEach { (gender, label) ->
+                val selected = uiState.compatibilityForm.partnerGender == gender
+                PremiumCompactChoice(
+                    text = label,
+                    selected = selected,
+                    accent = PremiumEntryPink,
+                    modifier = Modifier.weight(1f),
+                    onClick = { viewModel.setCompatibilityPartnerGender(gender) }
+                )
+            }
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            listOf(CalendarType.SOLAR to "양력", CalendarType.LUNAR to "음력").forEach { (calendar, label) ->
+                PremiumCompactChoice(
+                    text = label,
+                    selected = partner.calendarType == calendar,
+                    accent = PremiumEntryViolet,
+                    modifier = Modifier.weight(1f),
+                    onClick = { viewModel.setCompatibilityPartnerCalendarType(calendar) }
+                )
+            }
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            PremiumDarkDateField(
+                value = partner.year,
+                onValueChange = viewModel::updateCompatibilityPartnerYear,
+                placeholder = "연도",
+                maxLength = 4,
+                modifier = Modifier.weight(1.5f)
+            )
+            PremiumDarkDateField(
+                value = partner.month,
+                onValueChange = viewModel::updateCompatibilityPartnerMonth,
+                placeholder = "월",
+                maxLength = 2,
+                modifier = Modifier.weight(1f)
+            )
+            PremiumDarkDateField(
+                value = partner.day,
+                onValueChange = viewModel::updateCompatibilityPartnerDay,
+                placeholder = "일",
+                maxLength = 2,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun PremiumCompactChoice(
+    text: String,
+    selected: Boolean,
+    accent: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(9.dp))
+            .background(if (selected) accent.copy(alpha = 0.78f) else Color.White.copy(alpha = 0.045f))
+            .border(1.dp, if (selected) accent else Color.White.copy(alpha = 0.09f), RoundedCornerShape(9.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 9.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text, color = if (selected) Color.White else Color.White.copy(alpha = 0.46f), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+private fun PremiumDarkDateField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    maxLength: Int,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { input -> onValueChange(input.filter(Char::isDigit).take(maxLength)) },
+        modifier = modifier,
+        singleLine = true,
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White, textAlign = TextAlign.Center),
+        placeholder = {
+            Text(placeholder, color = Color.White.copy(alpha = 0.28f), fontSize = 11.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+        },
+        shape = RoundedCornerShape(9.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = Color.Black.copy(alpha = 0.28f),
+            unfocusedContainerColor = Color.Black.copy(alpha = 0.28f),
+            focusedBorderColor = PremiumEntryPink.copy(alpha = 0.72f),
+            unfocusedBorderColor = Color.White.copy(alpha = 0.10f),
+            cursorColor = PremiumEntryPink,
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White
+        ),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+    )
+}
+
+@Composable
+private fun PremiumDarkConcernField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(116.dp),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.White, lineHeight = 21.sp),
+        placeholder = { Text(placeholder, color = Color.White.copy(alpha = 0.28f), style = MaterialTheme.typography.bodySmall, lineHeight = 19.sp) },
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = Color.Black.copy(alpha = 0.28f),
+            unfocusedContainerColor = Color.Black.copy(alpha = 0.28f),
+            focusedBorderColor = PremiumEntryBlue.copy(alpha = 0.72f),
+            unfocusedBorderColor = Color.White.copy(alpha = 0.08f),
+            cursorColor = PremiumEntryBlue,
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White
+        ),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+    )
+}
+
+@Composable
+private fun PremiumPrimaryButton(
+    text: String,
+    onClick: () -> Unit,
+    colors: List<Color>,
+    enabled: Boolean = true,
+    contentColor: Color = Color.White
+) {
+    val shape = RoundedCornerShape(13.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .shadow(if (enabled) 16.dp else 0.dp, shape, clip = false)
+            .clip(shape)
+            .background(
+                if (enabled) Brush.linearGradient(colors)
+                else Brush.linearGradient(colors.map { it.copy(alpha = 0.26f) })
+            )
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text, color = if (enabled) contentColor else contentColor.copy(alpha = 0.40f), style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black))
+    }
+}
+
+@Composable
+private fun PremiumEntryHint(text: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(PremiumEntryGold.copy(alpha = 0.08f))
+            .border(1.dp, PremiumEntryGold.copy(alpha = 0.18f), RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text("✦", color = PremiumEntryGold, fontSize = 12.sp)
+        Text(text, color = Color.White.copy(alpha = 0.56f), style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun PremiumTrustLine(text: String) {
+    Text(
+        text,
+        color = Color.White.copy(alpha = 0.30f),
+        fontSize = 10.sp,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 @Composable
@@ -774,9 +1459,9 @@ private fun QuestionConfirmScreen(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("질문 확인", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
+                Text("이 질문이 맞나요?", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
                 Text(
-                    "수리가 적어주신 내용을 한 문장으로 압축했어요. 이 질문이 맞으면 책자를 만들겠습니다.",
+                    "적어주신 고민을 AI가 명확하게 답할 수 있는 상담 질문으로 다듬었어요.",
                     color = TextSecondary,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -787,7 +1472,7 @@ private fun QuestionConfirmScreen(
                     contentPadding = 18
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(topicLabel, color = Accent, style = MaterialTheme.typography.labelLarge)
+                        Text("AI에 전달할 질문 · $topicLabel", color = Accent, style = MaterialTheme.typography.labelLarge)
                         Text(
                             question.ifBlank { originalConcern },
                             color = TextPrimary,
@@ -808,8 +1493,8 @@ private fun QuestionConfirmScreen(
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                GradientButton("네, 이 질문으로 제작하기", onConfirm, Modifier.fillMaxWidth())
-                SecondaryButton("수정하기", onEdit, Modifier.fillMaxWidth())
+                GradientButton("네, 이 질문이 맞아요", onConfirm, Modifier.fillMaxWidth())
+                SecondaryButton("고민 다시 수정하기", onEdit, Modifier.fillMaxWidth())
             }
         }
     }

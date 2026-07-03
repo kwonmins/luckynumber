@@ -69,6 +69,7 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
             if (showBottomNav) {
                 BottomNavBar(
                     currentRoute = bottomNavRoute,
+                    dark = bottomNavRoute == AppRoute.Premium.route,
                     onNavigate = { route ->
                         if (route != currentRoute) {
                             navController.navigate(route) {
@@ -117,13 +118,13 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
             composable(AppRoute.Fortune.route) {
                 ResultScreen(
                     viewModel = viewModel,
-                    onOpenInput = { navController.navigate(AppRoute.Input.route) }
+                    onOpenInput = { navController.navigate(AppRoute.Input.route) },
+                    onOpenPremium = { navController.navigate(AppRoute.Premium.route) }
                 )
             }
             composable(AppRoute.Premium.route) {
                 PremiumScreen(
                     viewModel = viewModel,
-                    onRequestPersonalConsultation = viewModel::runPremiumConsultation,
                     onOpenBook = { book ->
                         navController.navigateToBook(viewModel, book)
                     },
@@ -151,7 +152,7 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                         } else {
                             navController.popBackStack(AppRoute.Premium.route, inclusive = false)
                             when (viewModel.uiState.value.premiumMode) {
-                                com.example.unum.data.model.PremiumMode.PERSONAL -> viewModel.preparePremiumQuestionConfirmation()
+                                com.example.unum.data.model.PremiumMode.PERSONAL -> viewModel.runPremiumConsultation()
                                 com.example.unum.data.model.PremiumMode.COMPATIBILITY -> viewModel.runCompatibilityConsultation()
                             }
                         }
@@ -161,7 +162,8 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
             composable(AppRoute.Library.route) {
                 LibraryScreen(
                     viewModel = viewModel,
-                    onOpenBook = { book -> navController.navigateToBook(viewModel, book) }
+                    onOpenBook = { book -> navController.navigateToBook(viewModel, book) },
+                    onOpenPremium = { navController.navigate(AppRoute.Premium.route) }
                 )
             }
             composable(AppRoute.Settings.route) {

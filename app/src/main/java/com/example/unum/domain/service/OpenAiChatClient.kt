@@ -18,7 +18,8 @@ class OpenAiChatClient {
         model: String,
         systemPrompt: String,
         userPrompt: String,
-        failureLabel: String
+        failureLabel: String,
+        maxCompletionTokens: Int = DEFAULT_MAX_COMPLETION_TOKENS
     ): String {
         validateApiKey(apiKey)
 
@@ -31,6 +32,7 @@ class OpenAiChatClient {
                     .put(JSONObject().put("role", "user").put("content", userPrompt))
             )
             .put("response_format", JSONObject().put("type", "json_object"))
+            .put("max_completion_tokens", maxCompletionTokens)
 
         val response = postJson(
             url = CHAT_COMPLETIONS_URL,
@@ -108,6 +110,7 @@ class OpenAiChatClient {
     private companion object {
         const val CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions"
         const val CONNECT_TIMEOUT_MS = 20_000
-        const val READ_TIMEOUT_MS = 60_000
+        const val READ_TIMEOUT_MS = 180_000
+        const val DEFAULT_MAX_COMPLETION_TOKENS = 3_200
     }
 }
