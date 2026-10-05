@@ -13,7 +13,14 @@ class BuildDailyFortuneUseCase {
         val coreNumber = calculateCoreNumber(numbers, date)
         val topics = TOPIC_ORDER.map { topic ->
             val messages = DailyFortuneCatalog.topicMessages(topic)
-            val messageIndex = (date.dayOfYear + coreNumber * 3 + topic.messageSeed * 5).floorMod(messages.size)
+            val messageIndex = (
+                date.dayOfYear +
+                    coreNumber * 3 +
+                    topic.messageSeed * 5 +
+                    numbers.early * 7 +
+                    numbers.middle * 11 +
+                    numbers.late * 13
+                ).floorMod(messages.size)
             DailyTopicFortune(topic = topic, message = messages[messageIndex])
         }
 

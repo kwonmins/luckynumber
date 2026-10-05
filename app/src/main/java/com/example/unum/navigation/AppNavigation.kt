@@ -14,15 +14,15 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.presentation.AppViewModel
-import com.example.unum.presentation.HomeScreen
-import com.example.unum.presentation.InputScreen
-import com.example.unum.presentation.LibraryScreen
-import com.example.unum.presentation.NotificationOnboardingScreen
-import com.example.unum.presentation.PaymentScreen
-import com.example.unum.presentation.PremiumScreen
-import com.example.unum.presentation.ReaderScreen
-import com.example.unum.presentation.ResultScreen
-import com.example.unum.presentation.SettingsScreen
+import com.example.unum.presentation.home.HomeScreen
+import com.example.unum.presentation.input.InputScreen
+import com.example.unum.presentation.library.LibraryScreen
+import com.example.unum.presentation.onboarding.NotificationOnboardingScreen
+import com.example.unum.presentation.payment.PaymentScreen
+import com.example.unum.presentation.premium.PremiumScreen
+import com.example.unum.presentation.reader.ReaderScreen
+import com.example.unum.presentation.result.ResultScreen
+import com.example.unum.presentation.settings.SettingsScreen
 import com.example.unum.ui.components.BottomNavBar
 
 sealed class AppRoute(val route: String) {

@@ -18,7 +18,7 @@ import com.example.unum.data.model.AuthState
 import com.example.unum.data.model.UserSyncState
 import com.example.unum.navigation.UnumAppNavigation
 import com.example.unum.presentation.AppViewModel
-import com.example.unum.presentation.OnboardingScreen
+import com.example.unum.presentation.onboarding.OnboardingScreen
 import com.example.unum.ui.theme.UnumTheme
 
 class MainActivity : ComponentActivity() {

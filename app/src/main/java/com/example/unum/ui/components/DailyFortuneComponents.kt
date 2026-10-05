@@ -1,15 +1,11 @@
 package com.example.unum.ui.components
 
-import androidx.annotation.DrawableRes
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,20 +13,23 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.MenuBook
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Savings
+import androidx.compose.material.icons.rounded.SelfImprovement
+import androidx.compose.material.icons.rounded.Work
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -40,24 +39,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.unum.R
 import com.example.unum.data.model.DailyFortuneResult
 import com.example.unum.data.model.DailyFortuneTopic
 import com.example.unum.data.model.DailyTopicFortune
 import com.example.unum.ui.theme.Accent
+import com.example.unum.ui.theme.Blue
 import com.example.unum.ui.theme.Border
+import com.example.unum.ui.theme.DeepNavy
 import com.example.unum.ui.theme.Gold
 import com.example.unum.ui.theme.Mint
 import com.example.unum.ui.theme.Rose
 import com.example.unum.ui.theme.Surface
 import com.example.unum.ui.theme.Surface2
+import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
 
@@ -67,70 +65,85 @@ fun TodayFortuneCard(
     onOpenInput: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val shape = RoundedCornerShape(30.dp)
     val summary = result?.coreSummary
-        ?: "생년월일을 입력하면 오늘 날짜와 내 숫자를 함께 읽어 매일 다른 핵심수를 보여드려요."
+        ?: "생년월일을 알려주면 오늘의 날짜와 나의 숫자를 함께 읽어드려요."
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(if (result == null) 3.dp else 10.dp, RoundedCornerShape(18.dp), clip = false)
-            .clip(RoundedCornerShape(18.dp))
-            .background(
-                Brush.linearGradient(
-                    listOf(Color(0xFF0C0E1C), Accent.copy(alpha = 0.20f), Color(0xFF080911))
-                )
-            )
-            .border(
-                1.dp,
-                if (result == null) Border else Accent.copy(alpha = 0.38f),
-                RoundedCornerShape(18.dp)
-            )
+            .shadow(10.dp, shape, clip = false, spotColor = DeepNavy.copy(alpha = 0.20f))
+            .clip(shape)
+            .background(DeepNavy)
             .then(if (result == null) Modifier.clickable(onClick = onOpenInput) else Modifier)
-            .padding(18.dp)
+            .padding(22.dp)
     ) {
         Canvas(Modifier.fillMaxSize()) {
             drawCircle(
-                brush = Brush.radialGradient(
-                    listOf(Accent.copy(alpha = 0.10f), Color.Transparent),
-                    center = Offset(size.width * 0.88f, size.height * 0.18f),
-                    radius = size.minDimension * 0.42f
-                ),
-                radius = size.minDimension * 0.42f,
-                center = Offset(size.width * 0.88f, size.height * 0.18f)
+                color = Color.White.copy(alpha = 0.035f),
+                radius = size.width * 0.46f,
+                center = Offset(size.width * 0.98f, size.height * 0.02f)
+            )
+            drawCircle(
+                color = Gold.copy(alpha = 0.24f),
+                radius = size.width * 0.27f,
+                center = Offset(size.width * 0.92f, size.height * 0.08f),
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx())
             )
         }
-        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
                     Text(
-                        "TODAY NUMBER",
-                        color = if (result == null) Accent else Color.White.copy(alpha = 0.58f),
-                        style = MaterialTheme.typography.labelLarge
+                        "오늘의 수리력",
+                        color = Gold,
+                        style = MaterialTheme.typography.labelMedium
                     )
                     Text(
-                        if (result == null) "입력이 필요해요" else "오늘의 핵심수",
-                        color = TextPrimary,
-                        style = MaterialTheme.typography.displayLarge
-                    )
-                    Text(
-                        result?.coreTitle ?: "매일 바뀌는 리딩 준비",
-                        color = TextSecondary,
-                        style = MaterialTheme.typography.titleMedium
+                        result?.coreTitle ?: "오늘의 결을 준비해요",
+                        color = Color(0xFFFFFCF6),
+                        style = MaterialTheme.typography.titleLarge
                     )
                 }
-                DailyNumberMascot(number = result?.coreNumber)
+                Box(
+                    modifier = Modifier
+                        .size(88.dp)
+                        .background(Accent, CircleShape)
+                        .border(6.dp, Color.White.copy(alpha = 0.10f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = result?.coreNumber?.toString() ?: "?",
+                        color = Color(0xFFFFFCF6),
+                        style = MaterialTheme.typography.displayLarge.copy(
+                            fontWeight = FontWeight.Black
+                        )
+                    )
+                }
             }
-            Text(
-                summary,
-                color = TextSecondary,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            if (result == null) {
-                Text("생년월일 입력하기", color = Accent, style = MaterialTheme.typography.labelLarge)
+            Text(summary, color = Color.White.copy(alpha = 0.76f), style = MaterialTheme.typography.bodyLarge)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    result?.date?.toString()?.replace("-", ".") ?: "생년월일이 필요해요",
+                    color = Color.White.copy(alpha = 0.48f),
+                    style = MaterialTheme.typography.bodySmall
+                )
+                if (result == null) {
+                    Text("지금 입력하기  →", color = Gold, style = MaterialTheme.typography.labelLarge)
+                } else {
+                    Text("매일 자정에 새로 읽어요", color = Gold, style = MaterialTheme.typography.bodySmall)
+                }
             }
         }
     }
@@ -143,209 +156,120 @@ fun DailyFortuneTopicSection(
     modifier: Modifier = Modifier
 ) {
     if (result == null) {
-        DailyFortuneInputPrompt(onOpenInput = onOpenInput, modifier = modifier)
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(Surface)
+                .border(1.dp, Border, RoundedCornerShape(24.dp))
+                .clickable(onClick = onOpenInput)
+                .padding(20.dp)
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("분야별 흐름은 생년월일 입력 후 열려요", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+                Text("연애, 일, 돈, 배움, 마음의 흐름을 오늘 기준으로 짧게 정리해드려요.", color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
+                Text("생년월일 입력하기  →", color = Accent, style = MaterialTheme.typography.labelLarge)
+            }
+        }
         return
     }
 
-    val listState = rememberLazyListState()
     var selectedIndex by remember(result.date) { mutableIntStateOf(0) }
-    val focusedIndex by remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val visibleItems = layoutInfo.visibleItemsInfo
-            if (visibleItems.isEmpty()) {
-                0
-            } else {
-                val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
-                visibleItems.minBy { item ->
-                    kotlin.math.abs((item.offset + item.size / 2) - viewportCenter)
-                }.index
-            }
-        }
-    }
+    val selected = result.topics.getOrElse(selectedIndex) { result.topics.first() }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         LazyRow(
-            state = listState,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(vertical = 6.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 1.dp, vertical = 3.dp)
         ) {
             itemsIndexed(result.topics) { index, reading ->
-                DailyFortuneTopicCard(
+                TopicChip(
                     reading = reading,
-                    focused = index == focusedIndex || index == selectedIndex,
+                    selected = index == selectedIndex,
                     onClick = { selectedIndex = index }
                 )
             }
         }
-        DailyFortuneTopicDetail(reading = result.topics[selectedIndex])
+        TopicDetail(reading = selected)
     }
 }
 
 @Composable
-private fun DailyNumberMascot(number: Int?) {
-    Box(modifier = Modifier.size(112.dp), contentAlignment = Alignment.BottomCenter) {
-        Image(
-            painter = painterResource(MascotArt.Home),
-            contentDescription = "오늘의 수리를 안내하는 수리",
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = 0.94f },
-            contentScale = ContentScale.Fit
-        )
-        DailyNumberMedallion(
-            number = number,
-            onDark = true,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(50.dp)
-        )
-    }
-}
-
-@Composable
-private fun DailyNumberMedallion(number: Int?, onDark: Boolean, modifier: Modifier = Modifier.size(76.dp)) {
-    Box(
-        modifier = modifier
-            .clip(CircleShape)
-            .background(if (onDark) Color(0xFF0A0B1A).copy(alpha = 0.92f) else Accent.copy(alpha = 0.08f))
-            .border(1.dp, if (onDark) Gold.copy(alpha = 0.58f) else Accent.copy(alpha = 0.22f), CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(number?.toString() ?: "?", color = if (onDark) Gold else Accent, style = MaterialTheme.typography.titleLarge)
-    }
-}
-
-@Composable
-private fun DailyFortuneInputPrompt(onOpenInput: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
-            .background(Gold.copy(alpha = 0.08f))
-            .border(1.dp, Gold.copy(alpha = 0.30f), RoundedCornerShape(18.dp))
-            .clickable(onClick = onOpenInput)
-            .padding(18.dp)
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(MascotArt.Input),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .background(Surface2.copy(alpha = 0.72f)),
-                contentScale = ContentScale.Fit
-            )
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("분야별 오늘 운세를 보려면 생년월일이 필요해요", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
-                Text("입력 후에는 오늘 날짜를 기준으로 연애, 일, 돈, 배움, 자기관리 운세가 매일 새로 바뀍니다.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
-                Text("생년월일 입력하기", color = Gold, style = MaterialTheme.typography.labelLarge)
-            }
-        }
-    }
-}
-
-@Composable
-private fun DailyFortuneTopicDetail(reading: DailyTopicFortune) {
+private fun TopicChip(
+    reading: DailyTopicFortune,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
     val visual = visualFor(reading.topic)
-    Box(
+    val background by animateColorAsState(
+        if (selected) visual.color else Surface,
+        label = "topicChipBackground"
+    )
+    val elevation by animateDpAsState(if (selected) 5.dp else 0.dp, label = "topicChipElevation")
+
+    Row(
+        modifier = Modifier
+            .shadow(elevation, RoundedCornerShape(999.dp), clip = false)
+            .clip(RoundedCornerShape(999.dp))
+            .background(background)
+            .border(1.dp, if (selected) visual.color else Border, RoundedCornerShape(999.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(7.dp)
+    ) {
+        Icon(
+            visual.icon,
+            contentDescription = null,
+            tint = if (selected) Surface else visual.color,
+            modifier = Modifier.size(17.dp)
+        )
+        Text(
+            visual.title,
+            color = if (selected) Surface else TextSecondary,
+            style = MaterialTheme.typography.labelMedium
+        )
+    }
+}
+
+@Composable
+private fun TopicDetail(reading: DailyTopicFortune) {
+    val visual = visualFor(reading.topic)
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(visual.color.copy(alpha = 0.09f))
-            .border(1.dp, visual.color.copy(alpha = 0.22f), RoundedCornerShape(18.dp))
-            .padding(16.dp)
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(visual.imageRes),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .background(Surface2.copy(alpha = 0.88f))
-                    .padding(5.dp),
-                contentScale = ContentScale.Fit
-            )
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("${visual.title} 오늘의 운세", color = visual.color, style = MaterialTheme.typography.labelLarge)
-                Text(reading.message, color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-    }
-}
-
-@Composable
-private fun DailyFortuneTopicCard(reading: DailyTopicFortune, focused: Boolean, onClick: () -> Unit) {
-    val visual = visualFor(reading.topic)
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val lift by animateDpAsState(if (pressed) 8.dp else if (focused) 5.dp else 0.dp, label = "dailyCardLift")
-    val scale by animateFloatAsState(if (pressed) 1.04f else if (focused) 1.02f else 0.97f, label = "dailyCardScale")
-    val shadow by animateDpAsState(if (focused || pressed) 14.dp else 4.dp, label = "dailyCardShadow")
-
-    Column(
-        modifier = Modifier
-            .width(132.dp)
-            .height(160.dp)
-            .offset(y = -lift)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .shadow(shadow, RoundedCornerShape(24.dp), clip = false)
             .clip(RoundedCornerShape(24.dp))
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        visual.color.copy(alpha = if (focused || pressed) 0.28f else 0.20f),
-                        visual.color.copy(alpha = if (focused || pressed) 0.16f else 0.11f),
-                        Surface.copy(alpha = 0.94f)
-                    )
-                )
-            )
-            .border(1.dp, visual.color.copy(alpha = if (focused || pressed) 0.56f else 0.30f), RoundedCornerShape(24.dp))
-            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
-            .padding(14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+            .background(Surface)
+            .border(1.dp, Border, RoundedCornerShape(24.dp))
+            .padding(18.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.Top
     ) {
-        Text(visual.word, color = visual.color, style = MaterialTheme.typography.labelLarge)
         Box(
             modifier = Modifier
-                .size(58.dp)
-                .clip(CircleShape)
-                .background(Surface2.copy(alpha = 0.92f))
-                .border(1.dp, visual.color.copy(alpha = 0.30f), CircleShape)
-                .padding(4.dp),
+                .size(46.dp)
+                .background(visual.color.copy(alpha = 0.12f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(visual.imageRes),
-                contentDescription = "${visual.title} 운세",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
-            )
+            Icon(visual.icon, contentDescription = null, tint = visual.color, modifier = Modifier.size(22.dp))
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(visual.title, color = TextPrimary, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-            Text(visual.subtitle, color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Text("${visual.title}의 흐름", color = visual.color, style = MaterialTheme.typography.labelLarge)
+            Text(reading.message, color = TextSecondary, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
 
 private fun visualFor(topic: DailyFortuneTopic): DailyTopicVisual = when (topic) {
-    DailyFortuneTopic.LOVE -> DailyTopicVisual("LOVE", "연애", "오늘의 온도", Rose, R.drawable.suri_reader_romance)
-    DailyFortuneTopic.WORK -> DailyTopicVisual("WORK", "일과 진로", "오늘의 방향", Accent, R.drawable.suri_anim_writer_hero)
-    DailyFortuneTopic.MONEY -> DailyTopicVisual("MONEY", "돈", "오늘의 관리", Mint, R.drawable.suri_reader_money_cutout)
-    DailyFortuneTopic.STUDY -> DailyTopicVisual("STUDY", "배움", "오늘의 집중", Gold, R.drawable.suri_anim_writer_07)
-    DailyFortuneTopic.SELF -> DailyTopicVisual("SELF", "나 자신", "오늘의 중심", Color(0xFFA78BFA), R.drawable.suri_expression_05)
+    DailyFortuneTopic.LOVE -> DailyTopicVisual("연애", Rose, Icons.Rounded.Favorite)
+    DailyFortuneTopic.WORK -> DailyTopicVisual("일", Blue, Icons.Rounded.Work)
+    DailyFortuneTopic.MONEY -> DailyTopicVisual("돈", Mint, Icons.Rounded.Savings)
+    DailyFortuneTopic.STUDY -> DailyTopicVisual("배움", Gold, Icons.AutoMirrored.Rounded.MenuBook)
+    DailyFortuneTopic.SELF -> DailyTopicVisual("마음", Accent, Icons.Rounded.SelfImprovement)
 }
 
 private data class DailyTopicVisual(
-    val word: String,
     val title: String,
-    val subtitle: String,
     val color: Color,
-    @param:DrawableRes val imageRes: Int
+    val icon: ImageVector
 )

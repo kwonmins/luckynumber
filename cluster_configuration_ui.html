@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cluster Configuration</title>
+  <style>
+    :root {
+      --cluster-navy: #3f6883;
+      --cluster-button: #2785bd;
+      --cluster-table-head: #e9edef;
+      --cluster-border: #c7cdd1;
+      --cluster-label: #f3f5f6;
+      --cluster-text: #20272c;
+      --cluster-muted: #747f86;
+      --cluster-inline: #1598c9;
+      --cluster-bypass: #e34a42;
+      --cluster-ok: #38a95b;
+      --cluster-warning: #e69a23;
+      --cluster-disabled: #8b949b;
+      --cluster-fail: #d9363e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-width: 1000px;
+      background: #ffffff;
+      color: var(--cluster-text);
+      font: 12px/1.35 Arial, Helvetica, sans-serif;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .cluster-page {
+      width: calc(100% - 24px);
+      max-width: 1020px;
+      margin: 16px auto 24px;
+    }
+
+    .cluster-top-grid {
+      display: grid;
+      grid-template-columns: 480px minmax(0, 1fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .cluster-top-grid > .cluster-section {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .cluster-section {
+      border: 1px solid var(--cluster-border);
+      background: #ffffff;
+      border-radius: 2px;
+    }
+
+    .cluster-section-title {
+      height: 30px;
+      margin: -1px -1px 0;
+      padding: 6px 10px;
+      border: 1px solid #365d76;
+      border-radius: 2px 2px 0 0;
+      background: var(--cluster-navy);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: bold;
+      line-height: 16px;
+    }
+
+    .cluster-config-body {
+      display: flex;
+      min-height: 314px;
+      flex: 1;
+      flex-direction: column;
+      padding: 8px;
+    }
+
+    .cluster-config-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .cluster-config-table th,
+    .cluster-config-table td {
+      height: 34px;
+      border: 1px solid var(--cluster-border);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .cluster-config-table th {
+      width: 118px;
+      padding: 6px 10px;
+      background: var(--cluster-label);
+      color: #354149;
+      font-weight: bold;
+    }
+
+    .cluster-config-table td {
+      padding: 4px 7px;
+      background: #ffffff;
+    }
+
+    .cluster-field,
+    .cluster-select {
+      height: 25px;
+      border: 1px solid #aeb7bd;
+      border-radius: 2px;
+      background: #ffffff;
+      color: var(--cluster-text);
+      outline: none;
+    }
+
+    .cluster-field {
+      padding: 3px 7px;
+    }
+
+    .cluster-select {
+      width: 128px;
+      padding: 2px 24px 2px 6px;
+    }
+
+    .cluster-field:focus,
+    .cluster-select:focus,
+    .cluster-icon-button:focus,
+    .cluster-button:focus,
+    .cluster-delete-button:focus {
+      border-color: var(--cluster-button);
+      outline: 1px solid rgba(39, 133, 189, 0.25);
+      outline-offset: 0;
+    }
+
+    .cluster-number-field {
+      width: 82px;
+      text-align: right;
+    }
+
+    .cluster-key-row,
+    .cluster-field-row,
+    .cluster-fail-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .cluster-key-row .cluster-field {
+      width: 153px;
+    }
+
+    .cluster-icon-button {
+      position: relative;
+      width: 27px;
+      height: 25px;
+      padding: 0;
+      border: 1px solid #aeb7bd;
+      border-radius: 2px;
+      background: #f4f6f7;
+      color: #44515a;
+      cursor: pointer;
+    }
+
+    .cluster-eye-icon {
+      display: block;
+      width: 15px;
+      height: 10px;
+      margin: 0 auto;
+      border: 1px solid currentColor;
+      border-radius: 50% / 55%;
+    }
+
+    .cluster-eye-icon::after {
+      content: "";
+      display: block;
+      width: 4px;
+      height: 4px;
+      margin: 2px auto 0;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .cluster-button {
+      height: 26px;
+      padding: 0 12px;
+      border: 1px solid #1f76aa;
+      border-radius: 3px;
+      background: var(--cluster-button);
+      color: #ffffff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .cluster-button:hover {
+      background: #2279ad;
+    }
+
+    .cluster-button-secondary {
+      border-color: #9ca8af;
+      background: #f4f6f7;
+      color: #3e4a52;
+      font-weight: normal;
+    }
+
+    .cluster-button-secondary:hover {
+      background: #e9edef;
+    }
+
+    .cluster-button-small {
+      height: 25px;
+      padding: 0 10px;
+    }
+
+    .cluster-unit {
+      min-width: 18px;
+      color: var(--cluster-muted);
+    }
+
+    .cluster-help {
+      color: #89939a;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .cluster-config-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 8px;
+    }
+
+    .cluster-action-message {
+      min-height: 16px;
+      color: var(--cluster-ok);
+      font-size: 11px;
+    }
+
+    .cluster-led {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      flex: 0 0 9px;
+      border: 1px solid rgba(0, 0, 0, 0.32);
+      border-radius: 50%;
+      background: var(--cluster-disabled);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+      vertical-align: -1px;
+    }
+
+    .cluster-led-label {
+      color: var(--cluster-muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .cluster-status-body {
+      min-height: 314px;
+      padding: 9px 10px 10px;
+    }
+
+    .cluster-status-summary {
+      display: grid;
+      grid-template-columns: 1fr;
+      border: 1px solid var(--cluster-border);
+      background: #fafbfb;
+    }
+
+    .cluster-summary-item {
+      display: grid;
+      min-height: 31px;
+      grid-template-columns: 82px minmax(0, 1fr);
+      align-items: center;
+      padding: 5px 8px;
+      border-bottom: 1px solid #d8dde0;
+    }
+
+    .cluster-summary-item:last-child {
+      border-bottom: 0;
+    }
+
+    .cluster-summary-label {
+      color: #59656d;
+      font-weight: bold;
+    }
+
+    .cluster-summary-value {
+      display: inline-flex;
+      min-width: 0;
+      align-items: center;
+      gap: 6px;
+      color: #28343b;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .cluster-summary-detail {
+      color: var(--cluster-muted);
+      font-size: 10px;
+      font-weight: normal;
+    }
+
+    .cluster-diagram {
+      width: 100%;
+      max-width: 430px;
+      margin: 14px auto 0;
+    }
+
+    .cluster-tool-pair {
+      display: grid;
+      grid-template-columns: 138px 138px;
+      justify-content: center;
+      gap: 36px;
+    }
+
+    .cluster-tool-column {
+      text-align: center;
+    }
+
+    .cluster-tool-title {
+      margin-bottom: 6px;
+      color: #43515a;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .cluster-tool-chassis {
+      display: grid;
+      width: 138px;
+      height: 158px;
+      grid-template-rows: 1fr 1fr;
+      align-items: center;
+      justify-items: center;
+      gap: 18px;
+      padding: 15px 16px;
+      border: 1px solid #69747a;
+      border-radius: 2px;
+      background: #cfd4d7;
+    }
+
+    .cluster-tool-port {
+      position: relative;
+      display: block;
+      width: 104px;
+      height: 50px;
+      overflow: hidden;
+      border: 1px solid #667177;
+      border-radius: 2px;
+      background: #333b3f;
+      box-shadow:
+        inset 0 0 0 2px #1a2023,
+        inset 0 -3px 0 #242b2f,
+        0 1px 0 rgba(255, 255, 255, 0.75);
+    }
+
+    .cluster-port-cavity {
+      position: absolute;
+      top: 8px;
+      left: 14px;
+      width: 74px;
+      height: 35px;
+      border: 2px solid #111719;
+      background: #090c0e;
+      clip-path: polygon(0 0, 100% 0, 100% 76%, 87% 100%, 13% 100%, 0 76%);
+      box-shadow: inset 0 0 0 2px #20272b;
+    }
+
+    .cluster-port-cavity::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 10px;
+      width: 4px;
+      height: 8px;
+      border-radius: 1px;
+      background: #a2aaae;
+      box-shadow:
+        7px 0 #a2aaae,
+        14px 0 #a2aaae,
+        21px 0 #a2aaae,
+        28px 0 #a2aaae,
+        35px 0 #a2aaae,
+        42px 0 #a2aaae,
+        49px 0 #a2aaae;
+    }
+
+    .cluster-port-cavity::after {
+      content: "";
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      width: 24px;
+      height: 8px;
+      margin-left: -12px;
+      border-top: 1px solid #505a60;
+      background: #171d20;
+      clip-path: polygon(0 0, 100% 0, 82% 100%, 18% 100%);
+    }
+
+    .cluster-port-led {
+      position: absolute;
+      top: 3px;
+      width: 7px;
+      height: 5px;
+      border: 1px solid rgba(0, 0, 0, 0.35);
+      border-radius: 1px;
+      background: #687278;
+    }
+
+    .cluster-port-led-left {
+      left: 5px;
+    }
+
+    .cluster-port-led-right {
+      right: 5px;
+    }
+
+    .cluster-tool-status {
+      margin-top: 6px;
+      color: #36434b;
+      font-size: 11px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .cluster-peer-section {
+      margin-top: 12px;
+    }
+
+    .cluster-peer-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 42px;
+      padding: 7px 8px;
+      border-bottom: 1px solid var(--cluster-border);
+      background: #f7f8f9;
+    }
+
+    .cluster-toolbar-label {
+      margin-right: 2px;
+      color: #48545c;
+      font-weight: bold;
+    }
+
+    .cluster-ip-field {
+      width: 148px;
+    }
+
+    .cluster-refresh-button {
+      margin-left: auto;
+    }
+
+    .cluster-table-wrap {
+      overflow-x: auto;
+    }
+
+    .cluster-peer-table {
+      width: 100%;
+      min-width: 950px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .cluster-peer-table th,
+    .cluster-peer-table td {
+      border-right: 1px solid var(--cluster-border);
+      border-bottom: 1px solid var(--cluster-border);
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .cluster-peer-table th:last-child,
+    .cluster-peer-table td:last-child {
+      border-right: 0;
+    }
+
+    .cluster-peer-table thead th {
+      height: 27px;
+      padding: 4px 5px;
+      background: var(--cluster-table-head);
+      color: #354149;
+      font-size: 11px;
+      font-weight: bold;
+      line-height: 1.15;
+    }
+
+    .cluster-peer-table thead tr:first-child th {
+      border-bottom: 1px solid #b8c0c5;
+    }
+
+    .cluster-peer-table tbody td {
+      height: 42px;
+      padding: 5px 5px;
+      background: #ffffff;
+      color: #303b42;
+    }
+
+    .cluster-peer-table tbody tr:nth-child(even) td {
+      background: #fafbfb;
+    }
+
+    .cluster-col-no { width: 38px; }
+    .cluster-col-ip { width: 110px; }
+    .cluster-col-connect { width: 82px; }
+    .cluster-col-status { width: 90px; }
+    .cluster-col-host { width: 105px; }
+    .cluster-col-serial { width: 132px; }
+    .cluster-col-mac { width: 124px; }
+    .cluster-col-delete { width: 58px; }
+
+    .cluster-nowrap {
+      white-space: nowrap;
+    }
+
+    .cluster-connect-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .cluster-operating-status {
+      display: inline-flex;
+      min-width: 76px;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .cluster-state-badge {
+      display: inline-flex;
+      height: 21px;
+      min-width: 52px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 6px;
+      border: 1px solid transparent;
+      border-radius: 3px;
+      background: var(--cluster-disabled);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: bold;
+      line-height: 19px;
+      white-space: nowrap;
+    }
+
+    .cluster-fail-tag {
+      display: inline-flex;
+      height: 16px;
+      align-items: center;
+      padding: 0 3px;
+      border: 1px solid var(--cluster-fail);
+      border-radius: 2px;
+      background: #fff4f4;
+      color: var(--cluster-fail);
+      font-size: 8px;
+      font-weight: bold;
+      line-height: 14px;
+    }
+
+    .cluster-delete-button {
+      height: 23px;
+      padding: 0 7px;
+      border: 1px solid #d16469;
+      border-radius: 2px;
+      background: #ffffff;
+      color: #bd3037;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .cluster-delete-button:hover {
+      background: #fff1f1;
+    }
+
+    /* State classes: JavaScript only swaps these classes. */
+    .cluster-state-inline.cluster-state-badge {
+      background: var(--cluster-inline);
+      border-color: #0d82b0;
+    }
+
+    .cluster-state-bypass.cluster-state-badge {
+      background: var(--cluster-bypass);
+      border-color: #ca3933;
+    }
+
+    .cluster-state-unknown.cluster-state-badge,
+    .cluster-state-never.cluster-state-badge,
+    .cluster-state-disabled.cluster-state-badge {
+      background: var(--cluster-disabled);
+      border-color: #747d83;
+    }
+
+    .cluster-state-timeout.cluster-state-badge {
+      background: var(--cluster-warning);
+      border-color: #cf8415;
+    }
+
+    .cluster-state-fail-action.cluster-state-badge {
+      background: var(--cluster-fail);
+      border-color: #b9272e;
+    }
+
+    .cluster-state-inline .cluster-port-led {
+      background: var(--cluster-inline);
+      box-shadow: 0 0 3px rgba(21, 152, 201, 0.8);
+    }
+
+    .cluster-state-bypass .cluster-port-led {
+      background: var(--cluster-bypass);
+      box-shadow: 0 0 3px rgba(227, 74, 66, 0.78);
+    }
+
+    .cluster-state-synchronizing .cluster-port-led {
+      background: var(--cluster-inline);
+      box-shadow: 0 0 3px rgba(21, 152, 201, 0.76);
+    }
+
+    .cluster-state-unknown .cluster-port-led,
+    .cluster-state-never .cluster-port-led {
+      background: #7b858b;
+    }
+
+    .cluster-state-disabled .cluster-port-led {
+      background: #3f474c;
+    }
+
+    .cluster-state-timeout .cluster-port-led {
+      background: var(--cluster-warning);
+      box-shadow: 0 0 3px rgba(230, 154, 35, 0.72);
+    }
+
+    .cluster-state-fail-action .cluster-port-led {
+      background: var(--cluster-fail);
+      box-shadow: 0 0 3px rgba(217, 54, 62, 0.76);
+    }
+
+    .cluster-state-ok.cluster-led,
+    .cluster-state-synchronized.cluster-led {
+      background: var(--cluster-ok);
+    }
+
+    .cluster-state-synchronizing.cluster-led,
+    .cluster-state-inline.cluster-led {
+      background: var(--cluster-inline);
+    }
+
+    .cluster-state-timeout.cluster-led {
+      background: var(--cluster-warning);
+    }
+
+    .cluster-state-never.cluster-led,
+    .cluster-state-disabled.cluster-led,
+    .cluster-state-standby.cluster-led {
+      background: var(--cluster-disabled);
+    }
+
+    .cluster-state-fail-action.cluster-led {
+      background: var(--cluster-fail);
+      box-shadow: 0 0 5px rgba(217, 54, 62, 0.55);
+    }
+
+    @media (max-width: 1019px) {
+      .cluster-page {
+        margin-left: 12px;
+        margin-right: 12px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="cluster-page">
+    <div class="cluster-top-grid">
+      <section class="cluster-section" aria-labelledby="cluster-config-title">
+        <h1 class="cluster-section-title" id="cluster-config-title">Cluster Configuration</h1>
+        <div class="cluster-config-body">
+          <table class="cluster-config-table" aria-label="Cluster settings">
+            <tbody>
+              <tr>
+                <th scope="row"><label for="cluster-sync">Sync</label></th>
+                <td>
+                  <select class="cluster-select" id="cluster-sync">
+                    <option value="Enable">Enable</option>
+                    <option value="Disable">Disable</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row"><label for="cluster-key">Key</label></th>
+                <td>
+                  <div class="cluster-key-row">
+                    <input class="cluster-field" id="cluster-key" type="password" value="Configured" autocomplete="off">
+                    <button class="cluster-icon-button" id="cluster-key-toggle" type="button" aria-label="Show key" title="Show key">
+                      <span class="cluster-eye-icon" aria-hidden="true"></span>
+                    </button>
+                    <button class="cluster-button cluster-button-small" id="cluster-generate-key" type="button">Generate</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row"><label for="cluster-mode">Mode</label></th>
+                <td>
+                  <select class="cluster-select" id="cluster-mode">
+                    <option value="Dual">Dual</option>
+                    <option value="Single">Single</option>
+                  </select>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row"><label for="cluster-interval">Interval</label></th>
+                <td>
+                  <div class="cluster-field-row">
+                    <input class="cluster-field cluster-number-field" id="cluster-interval" type="number" min="50" max="1000" step="10" value="100">
+                    <span class="cluster-unit">ms</span>
+                    <span class="cluster-help">(50-1000)</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row"><label for="cluster-timeout">Time-out</label></th>
+                <td>
+                  <div class="cluster-field-row">
+                    <input class="cluster-field cluster-number-field" id="cluster-timeout" type="number" min="100" max="5000" step="100" value="500">
+                    <span class="cluster-unit">ms</span>
+                    <span class="cluster-help">(100-5000)</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row"><label for="cluster-fail-action">Fail-action</label></th>
+                <td>
+                  <div class="cluster-fail-row">
+                    <select class="cluster-select" id="cluster-fail-action">
+                      <option value="Bypass">Bypass</option>
+                      <option value="Inline">Inline</option>
+                      <option value="None">None</option>
+                    </select>
+                    <span class="cluster-led cluster-state-standby" id="cluster-fail-led" aria-hidden="true"></span>
+                    <span class="cluster-led-label" id="cluster-fail-led-label">Standby</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="cluster-config-actions">
+            <button class="cluster-button" id="cluster-apply" type="button">Apply</button>
+            <span class="cluster-action-message" id="cluster-action-message" role="status" aria-live="polite"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="cluster-section" aria-labelledby="cluster-status-title">
+        <h2 class="cluster-section-title" id="cluster-status-title">Cluster Synchronization Status</h2>
+        <div class="cluster-status-body">
+          <div class="cluster-status-summary" aria-label="Synchronization summary">
+            <div class="cluster-summary-item">
+              <span class="cluster-summary-label">Overall Status</span>
+              <span class="cluster-summary-value">
+                <span class="cluster-led" id="cluster-overall-led" aria-hidden="true"></span>
+                <span id="cluster-overall-text">Synchronized</span>
+              </span>
+            </div>
+            <div class="cluster-summary-item">
+              <span class="cluster-summary-label">Fail-action</span>
+              <span class="cluster-summary-value">
+                <span class="cluster-led" id="cluster-summary-fail-led" aria-hidden="true"></span>
+                <span id="cluster-summary-fail-text">Bypass</span>
+                <span class="cluster-summary-detail" id="cluster-summary-fail-state">Standby</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="cluster-diagram" aria-label="Tool1 and Tool2 port status">
+            <div class="cluster-tool-pair">
+              <div class="cluster-tool-column" id="cluster-tool-1">
+                <div class="cluster-tool-title">Tool1</div>
+                <div class="cluster-tool-chassis">
+                  <span class="cluster-tool-port" role="img" aria-label="Tool1 status light: Inline">
+                    <span class="cluster-port-cavity" aria-hidden="true"></span>
+                    <span class="cluster-port-led cluster-port-led-left" aria-hidden="true"></span>
+                    <span class="cluster-port-led cluster-port-led-right" aria-hidden="true"></span>
+                  </span>
+                  <span class="cluster-tool-port" role="img" aria-label="Tool1 status light: Inline">
+                    <span class="cluster-port-cavity" aria-hidden="true"></span>
+                    <span class="cluster-port-led cluster-port-led-left" aria-hidden="true"></span>
+                    <span class="cluster-port-led cluster-port-led-right" aria-hidden="true"></span>
+                  </span>
+                </div>
+                <div class="cluster-tool-status" id="cluster-tool-1-status">INLINE</div>
+              </div>
+
+              <div class="cluster-tool-column" id="cluster-tool-2">
+                <div class="cluster-tool-title">Tool2</div>
+                <div class="cluster-tool-chassis">
+                  <span class="cluster-tool-port" role="img" aria-label="Tool2 status light: Bypass">
+                    <span class="cluster-port-cavity" aria-hidden="true"></span>
+                    <span class="cluster-port-led cluster-port-led-left" aria-hidden="true"></span>
+                    <span class="cluster-port-led cluster-port-led-right" aria-hidden="true"></span>
+                  </span>
+                  <span class="cluster-tool-port" role="img" aria-label="Tool2 status light: Bypass">
+                    <span class="cluster-port-cavity" aria-hidden="true"></span>
+                    <span class="cluster-port-led cluster-port-led-left" aria-hidden="true"></span>
+                    <span class="cluster-port-led cluster-port-led-right" aria-hidden="true"></span>
+                  </span>
+                </div>
+                <div class="cluster-tool-status" id="cluster-tool-2-status">BYPASS</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="cluster-section cluster-peer-section" aria-labelledby="cluster-peer-title">
+      <h2 class="cluster-section-title" id="cluster-peer-title">Cluster Peer Configuration</h2>
+      <div class="cluster-peer-toolbar">
+        <label class="cluster-toolbar-label" for="cluster-peer-ip">Peer IP Address</label>
+        <input class="cluster-field cluster-ip-field" id="cluster-peer-ip" type="text" value="192.168.2.172" inputmode="decimal">
+        <button class="cluster-button cluster-button-small" id="cluster-add-peer" type="button">Add Peer</button>
+        <span class="cluster-action-message" id="cluster-peer-message" role="status" aria-live="polite"></span>
+        <button class="cluster-button cluster-button-secondary cluster-button-small cluster-refresh-button" id="cluster-refresh" type="button">Refresh</button>
+      </div>
+
+      <div class="cluster-table-wrap">
+        <table class="cluster-peer-table" aria-label="Cluster peer configuration and status">
+          <colgroup>
+            <col class="cluster-col-no">
+            <col class="cluster-col-ip">
+            <col class="cluster-col-connect">
+            <col class="cluster-col-status">
+            <col class="cluster-col-status">
+            <col class="cluster-col-host">
+            <col class="cluster-col-serial">
+            <col class="cluster-col-mac">
+            <col class="cluster-col-delete">
+          </colgroup>
+          <thead>
+            <tr>
+              <th rowspan="2" scope="col">No.</th>
+              <th rowspan="2" scope="col">IP Address</th>
+              <th rowspan="2" scope="col">Connect</th>
+              <th colspan="2" scope="colgroup">Operating / Sync Status</th>
+              <th rowspan="2" scope="col">Hostname</th>
+              <th rowspan="2" scope="col">Serial</th>
+              <th rowspan="2" scope="col">MAC</th>
+              <th rowspan="2" scope="col">Delete</th>
+            </tr>
+            <tr>
+              <th scope="col">Inline1</th>
+              <th scope="col">Inline2</th>
+            </tr>
+          </thead>
+          <tbody id="cluster-peer-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /* Replace this object with values printed by the CGI code. */
+    const clusterData = {
+      config: {
+        sync: "Enable",
+        key: "Configured",
+        mode: "Dual",
+        interval: 100,
+        timeout: 500,
+        failAction: "Bypass",
+        failActionActive: false
+      },
+      local: {
+        hostname: "IBPS-10G-A",
+        inline1: "INLINE",
+        inline2: "BYPASS"
+      },
+      peers: [
+        {
+          ip: "192.168.2.172",
+          hostname: "IBPS-10G-B",
+          connect: "OK",
+          inline1: "INLINE",
+          inline2: "BYPASS",
+          inline1FailAction: false,
+          inline2FailAction: false,
+          serial: "NM1D0R260626002",
+          mac: "4c:bc:97:05:02:03"
+        }
+      ]
+    };
+
+    const clusterStateClasses = [
+      "cluster-state-inline",
+      "cluster-state-bypass",
+      "cluster-state-ok",
+      "cluster-state-synchronized",
+      "cluster-state-synchronizing",
+      "cluster-state-timeout",
+      "cluster-state-never",
+      "cluster-state-disabled",
+      "cluster-state-unknown",
+      "cluster-state-standby",
+      "cluster-state-fail-action"
+    ];
+
+    const clusterClassByState = {
+      INLINE: "cluster-state-inline",
+      BYPASS: "cluster-state-bypass",
+      OK: "cluster-state-ok",
+      SYNCHRONIZED: "cluster-state-synchronized",
+      SYNCHRONIZING: "cluster-state-synchronizing",
+      TIMEOUT: "cluster-state-timeout",
+      LOST: "cluster-state-timeout",
+      NEVER: "cluster-state-never",
+      "NEVER CONNECTED": "cluster-state-never",
+      REBOOT: "cluster-state-never",
+      DISABLED: "cluster-state-disabled",
+      "SYNC-OFF": "cluster-state-disabled",
+      UNKNOWN: "cluster-state-unknown",
+      STANDBY: "cluster-state-standby",
+      "FAIL-ACTION": "cluster-state-fail-action"
+    };
+
+    function clusterApplyStateClass(element, state) {
+      if (!element) return;
+      element.classList.remove(...clusterStateClasses);
+      element.classList.add(clusterClassByState[String(state).toUpperCase()] || "cluster-state-unknown");
+    }
+
+    function clusterSetText(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    }
+
+    function clusterGetOverallStatus(peer) {
+      if (clusterData.config.failActionActive) return "FAIL-ACTION";
+      if (clusterData.config.sync === "Disable") return "DISABLED";
+      if (!peer || peer.connect === "NEVER" || peer.connect === "REBOOT") return "NEVER CONNECTED";
+      if (peer.connect === "TIMEOUT" || peer.connect === "LOST") return "TIMEOUT";
+      if (peer.connect === "DISABLED" || peer.connect === "SYNC-OFF") return "DISABLED";
+      return "SYNCHRONIZED";
+    }
+
+    function clusterPrettyState(state) {
+      const labels = {
+        SYNCHRONIZED: "Synchronized",
+        SYNCHRONIZING: "Synchronizing",
+        TIMEOUT: "Timeout",
+        LOST: "Lost",
+        "NEVER CONNECTED": "Never Connected",
+        NEVER: "Never",
+        REBOOT: "Reboot",
+        DISABLED: "Disabled",
+        "SYNC-OFF": "Sync Off",
+        "FAIL-ACTION": "Fail-action Active",
+        STANDBY: "Standby",
+        UNKNOWN: "Unknown"
+      };
+      return labels[state] || state;
+    }
+
+    function clusterRenderConfig() {
+      document.getElementById("cluster-sync").value = clusterData.config.sync;
+      document.getElementById("cluster-key").value = clusterData.config.key;
+      document.getElementById("cluster-mode").value = clusterData.config.mode;
+      document.getElementById("cluster-interval").value = clusterData.config.interval;
+      document.getElementById("cluster-timeout").value = clusterData.config.timeout;
+      document.getElementById("cluster-fail-action").value = clusterData.config.failAction;
+
+      const failState = clusterData.config.failActionActive ? "FAIL-ACTION" : "STANDBY";
+      clusterApplyStateClass(document.getElementById("cluster-fail-led"), failState);
+      clusterSetText("cluster-fail-led-label", clusterPrettyState(failState));
+    }
+
+    function clusterRenderTool(toolNumber, state) {
+      const tool = document.getElementById("cluster-tool-" + toolNumber);
+      const ports = tool.querySelectorAll(".cluster-tool-port");
+      const value = state || "UNKNOWN";
+
+      ports.forEach(function (port) {
+        clusterApplyStateClass(port, value);
+        port.setAttribute("aria-label", "Tool" + toolNumber + " status light: " + clusterPrettyState(value));
+      });
+      clusterSetText("cluster-tool-" + toolNumber + "-status", value);
+    }
+
+    function clusterRenderStatusPanel() {
+      const peer = clusterData.peers[0];
+      const overall = clusterGetOverallStatus(peer);
+      const failState = clusterData.config.failActionActive ? "FAIL-ACTION" : "STANDBY";
+
+      clusterApplyStateClass(document.getElementById("cluster-overall-led"), overall);
+      clusterApplyStateClass(document.getElementById("cluster-summary-fail-led"), failState);
+      clusterSetText("cluster-overall-text", clusterPrettyState(overall));
+      clusterSetText("cluster-summary-fail-text", clusterData.config.failAction);
+      clusterSetText("cluster-summary-fail-state", clusterPrettyState(failState));
+
+      clusterRenderTool(1, clusterData.local.inline1);
+      clusterRenderTool(2, clusterData.local.inline2);
+    }
+
+    function clusterCreateOperatingStatus(operatingState, failAction) {
+      const wrapper = document.createElement("span");
+      wrapper.className = "cluster-operating-status";
+
+      const badge = document.createElement("span");
+      badge.className = "cluster-state-badge";
+      badge.textContent = operatingState;
+      clusterApplyStateClass(badge, operatingState);
+      wrapper.appendChild(badge);
+
+      if (failAction) {
+        const failTag = document.createElement("span");
+        failTag.className = "cluster-fail-tag";
+        failTag.textContent = "FAIL";
+        wrapper.appendChild(failTag);
+      }
+      return wrapper;
+    }
+
+    function clusterCreateConnectState(state) {
+      const wrapper = document.createElement("span");
+      wrapper.className = "cluster-connect-state";
+
+      const led = document.createElement("span");
+      led.className = "cluster-led";
+      clusterApplyStateClass(led, state);
+
+      const label = document.createElement("span");
+      label.textContent = state;
+      wrapper.append(led, label);
+      return wrapper;
+    }
+
+    function clusterAppendCell(row, value, className) {
+      const cell = document.createElement("td");
+      if (className) cell.className = className;
+      if (value instanceof Node) cell.appendChild(value);
+      else cell.textContent = value;
+      row.appendChild(cell);
+      return cell;
+    }
+
+    function clusterRenderPeerTable() {
+      const tbody = document.getElementById("cluster-peer-tbody");
+      tbody.textContent = "";
+
+      clusterData.peers.forEach(function (peer, index) {
+        const row = document.createElement("tr");
+        clusterAppendCell(row, index + 1);
+        clusterAppendCell(row, peer.ip, "cluster-nowrap");
+        clusterAppendCell(row, clusterCreateConnectState(peer.connect));
+        clusterAppendCell(row, clusterCreateOperatingStatus(peer.inline1, peer.inline1FailAction));
+        clusterAppendCell(row, clusterCreateOperatingStatus(peer.inline2, peer.inline2FailAction));
+        clusterAppendCell(row, peer.hostname, "cluster-nowrap");
+        clusterAppendCell(row, peer.serial, "cluster-nowrap");
+        clusterAppendCell(row, peer.mac, "cluster-nowrap");
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "cluster-delete-button";
+        deleteButton.textContent = "Delete";
+        deleteButton.dataset.peerIndex = index;
+        deleteButton.addEventListener("click", clusterDeletePeer);
+        clusterAppendCell(row, deleteButton);
+        tbody.appendChild(row);
+      });
+    }
+
+    function clusterRenderAll() {
+      clusterRenderConfig();
+      clusterRenderStatusPanel();
+      clusterRenderPeerTable();
+    }
+
+    function clusterReadConfigForm() {
+      clusterData.config.sync = document.getElementById("cluster-sync").value;
+      clusterData.config.key = document.getElementById("cluster-key").value;
+      clusterData.config.mode = document.getElementById("cluster-mode").value;
+      clusterData.config.interval = Number(document.getElementById("cluster-interval").value);
+      clusterData.config.timeout = Number(document.getElementById("cluster-timeout").value);
+      clusterData.config.failAction = document.getElementById("cluster-fail-action").value;
+    }
+
+    function clusterDeletePeer(event) {
+      const index = Number(event.currentTarget.dataset.peerIndex);
+      clusterData.peers.splice(index, 1);
+      clusterRenderPeerTable();
+      document.getElementById("cluster-peer-message").textContent = "Peer removed.";
+    }
+
+    document.getElementById("cluster-key-toggle").addEventListener("click", function () {
+      const keyInput = document.getElementById("cluster-key");
+      const show = keyInput.type === "password";
+      keyInput.type = show ? "text" : "password";
+      this.setAttribute("aria-label", show ? "Hide key" : "Show key");
+      this.title = show ? "Hide key" : "Show key";
+    });
+
+    document.getElementById("cluster-generate-key").addEventListener("click", function () {
+      const bytes = new Uint8Array(12);
+      crypto.getRandomValues(bytes);
+      document.getElementById("cluster-key").value = Array.from(bytes, function (value) {
+        return value.toString(16).padStart(2, "0");
+      }).join("");
+      document.getElementById("cluster-action-message").textContent = "New key generated. Click Apply to save.";
+    });
+
+    document.getElementById("cluster-apply").addEventListener("click", function () {
+      clusterReadConfigForm();
+      clusterRenderAll();
+      document.getElementById("cluster-action-message").textContent = "Configuration applied.";
+    });
+
+    document.getElementById("cluster-add-peer").addEventListener("click", function () {
+      const input = document.getElementById("cluster-peer-ip");
+      document.getElementById("cluster-peer-message").textContent = input.value
+        ? "Peer request ready for CGI submission."
+        : "Enter a peer IP address.";
+    });
+
+    document.getElementById("cluster-refresh").addEventListener("click", function () {
+      clusterRenderAll();
+      document.getElementById("cluster-peer-message").textContent = "Status refreshed.";
+    });
+
+    /*
+      State-change examples:
+
+      clusterData.peers[0].connect = "TIMEOUT";
+      clusterData.peers[0].inline2FailAction = true;
+      clusterData.config.failActionActive = true;
+      clusterRenderAll();
+    */
+
+    clusterRenderAll();
+  </script>
+</body>
+</html>

@@ -1,9 +1,9 @@
 package com.example.unum.data.repository
 
 import android.content.Context
+import com.example.unum.data.content.NumerologyNarrativeAssembler
 import com.example.unum.data.model.DestinyProfile
 import com.example.unum.data.model.GenderOption
-import com.example.unum.data.model.LifeRecord
 import com.example.unum.data.model.NumerologyContent
 import com.example.unum.data.model.RecentSearch
 import kotlinx.coroutines.Dispatchers
@@ -32,14 +32,23 @@ class LocalAssetNumerologyRepository(
         ensureDestinyProfilesLoaded()
 
         val destiny = code[0].digitToInt()
-        val profile = destinyProfiles[destiny]
-            ?: error("운명수 프로필이 없습니다: $destiny")
+        val early = code[1].digitToInt()
+        val middle = code[2].digitToInt()
+        val late = code[3].digitToInt()
+        val profile = profileFor(destiny)
+        val earlyProfile = profileFor(early)
+        val middleProfile = profileFor(middle)
+        val lateProfile = profileFor(late)
 
         return NumerologyContent(
             destinyProfile = profile,
-            lifeRecord = buildLightLifeRecord(
+            lifeRecord = NumerologyNarrativeAssembler.build(
                 code = code,
-                profile = profile
+                gender = gender,
+                profile = profile,
+                earlyProfile = earlyProfile,
+                middleProfile = middleProfile,
+                lateProfile = lateProfile
             )
         )
     }
@@ -97,7 +106,13 @@ class LocalAssetNumerologyRepository(
                             summary = obj.getString("summary"),
                             strength = obj.getString("strength"),
                             caution = obj.getString("caution"),
-                            actionGuide = obj.getString("actionGuide")
+                            actionGuide = obj.getString("actionGuide"),
+                            earlyScene = obj.optString("earlyScene"),
+                            middleScene = obj.optString("middleScene"),
+                            lateScene = obj.optString("lateScene"),
+                            relationshipScene = obj.optString("relationshipScene"),
+                            workScene = obj.optString("workScene"),
+                            moneyScene = obj.optString("moneyScene")
                         )
                         put(profile.destiny, profile)
                     }
@@ -108,27 +123,8 @@ class LocalAssetNumerologyRepository(
         }
     }
 
-    private fun buildLightLifeRecord(
-        code: String,
-        profile: DestinyProfile
-    ): LifeRecord {
-        val destinyText = profile.summary
-        val lifeText = listOf(profile.summary, profile.strength, profile.caution)
-            .filter { it.isNotBlank() }
-            .joinToString("\n\n")
-
-        return LifeRecord(
-            code = code,
-            destiny = profile.destiny,
-            destinyProfileKey = profile.destiny,
-            lifeTitle = "운세 성향 ${profile.destiny}번 리포트",
-            destinyText = destinyText,
-            lifeText = lifeText,
-            summaryText = profile.summary,
-            keywords = profile.coreKeywords,
-            cautionKeywords = profile.cautionKeywords
-        )
-    }
+    private fun profileFor(number: Int): DestinyProfile = destinyProfiles[number]
+        ?: error("숫자 프로필이 없습니다: $number")
 
     private fun JSONArray.toStringList(): List<String> = buildList {
         for (i in 0 until length()) add(getString(i))

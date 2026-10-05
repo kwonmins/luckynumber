@@ -67,14 +67,18 @@ import com.example.unum.R
 import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.GenderOption
 import com.example.unum.ui.theme.Accent
+import com.example.unum.ui.theme.AppCanvas
 import com.example.unum.ui.theme.Background
+import com.example.unum.ui.theme.BackgroundAlt
 import com.example.unum.ui.theme.Blue
 import com.example.unum.ui.theme.Border
+import com.example.unum.ui.theme.DeepNavy
 import com.example.unum.ui.theme.Gold
 import com.example.unum.ui.theme.Mint
 import com.example.unum.ui.theme.Overlay
 import com.example.unum.ui.theme.Rose
 import com.example.unum.ui.theme.Surface
+import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.Surface3
 import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
@@ -88,35 +92,41 @@ fun MysticBackground(
     animatedWaves: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    Box(
-        modifier = modifier.background(Background)
-    ) {
+    Box(modifier = modifier.background(Background)) {
         Canvas(Modifier.fillMaxSize()) {
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(Gold.copy(alpha = 0.14f), Color.Transparent),
-                    center = Offset(size.width * 0.82f, size.height * 0.12f),
-                    radius = size.width * 0.58f
-                ),
-                radius = size.width * 0.58f,
-                center = Offset(size.width * 0.82f, size.height * 0.12f)
+            drawRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(AppCanvas, Background, BackgroundAlt.copy(alpha = 0.42f))
+                )
             )
             drawCircle(
-                brush = Brush.radialGradient(
-                    colors = listOf(Color(0xFFA78BFA).copy(alpha = 0.10f), Color.Transparent),
-                    center = Offset(size.width * 0.12f, size.height * 0.76f),
-                    radius = size.width * 0.52f
-                ),
-                radius = size.width * 0.52f,
-                center = Offset(size.width * 0.12f, size.height * 0.76f)
+                color = Accent.copy(alpha = 0.055f),
+                radius = size.width * 0.48f,
+                center = Offset(size.width * 1.02f, size.height * 0.06f)
             )
-            repeat(12) { index ->
-                val x = size.width * (((index * 37) % 101) / 100f)
-                val y = size.height * (0.08f + (((index * 61) % 83) / 100f))
+            drawCircle(
+                color = Gold.copy(alpha = 0.10f),
+                radius = size.width * 0.27f,
+                center = Offset(size.width * 0.96f, size.height * 0.08f),
+                style = Stroke(width = 1.dp.toPx())
+            )
+            repeat(18) { index ->
+                val y = (112.dp + 52.dp * index).toPx()
+                drawLine(
+                    color = Border.copy(alpha = 0.24f),
+                    start = Offset(0f, y),
+                    end = Offset(size.width, y),
+                    strokeWidth = 0.7.dp.toPx()
+                )
+            }
+            repeat(10) { index ->
                 drawCircle(
-                    color = Gold.copy(alpha = if (index % 3 == 0) 0.28f else 0.14f),
-                    radius = if (index % 3 == 0) 2.1f else 1.3f,
-                    center = Offset(x, y)
+                    color = Accent.copy(alpha = if (index % 3 == 0) 0.18f else 0.08f),
+                    radius = if (index % 3 == 0) 2.dp.toPx() else 1.dp.toPx(),
+                    center = Offset(
+                        size.width * (((index * 31) % 97) / 100f),
+                        size.height * (0.12f + (((index * 47) % 72) / 100f))
+                    )
                 )
             }
         }
@@ -134,58 +144,23 @@ private fun FortuneWaveField(modifier: Modifier = Modifier) {
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 16000, easing = LinearEasing),
+            animation = tween(durationMillis = 18000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "fortuneWavePhase"
     )
-    val glowPulse by infiniteTransition.animateFloat(
-        initialValue = 0.72f,
-        targetValue = 1.08f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 5200, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "fortuneWaveGlow"
-    )
-
     Canvas(modifier = modifier) {
-        val accent = Accent
-        val violet = Color(0xFFA855F7)
-        val blue = Color(0xFF60A5FA)
-        val gold = Gold
-
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(accent.copy(alpha = 0.18f * glowPulse), Color.Transparent),
-                center = Offset(size.width * 0.18f, size.height * 0.16f),
-                radius = size.minDimension * 0.58f
-            ),
-            radius = size.minDimension * 0.58f,
-            center = Offset(size.width * 0.18f, size.height * 0.16f)
-        )
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(violet.copy(alpha = 0.13f * glowPulse), Color.Transparent),
-                center = Offset(size.width * 0.86f, size.height * 0.38f),
-                radius = size.minDimension * 0.54f
-            ),
-            radius = size.minDimension * 0.54f,
-            center = Offset(size.width * 0.86f, size.height * 0.38f)
-        )
-
-        repeat(3) { waveIndex ->
-            val yBase = size.height * (0.18f + waveIndex * 0.20f)
-            val color = listOf(accent, blue, gold)[waveIndex]
-            val alpha = listOf(0.18f, 0.11f, 0.13f)[waveIndex]
-            val stroke = listOf(2.4.dp, 1.6.dp, 1.2.dp)[waveIndex].toPx()
+        repeat(2) { waveIndex ->
+            val yBase = size.height * (0.24f + waveIndex * 0.18f)
+            val color = listOf(Accent, Gold)[waveIndex]
+            val alpha = listOf(0.065f, 0.045f)[waveIndex]
+            val stroke = listOf(1.4.dp, 1.dp)[waveIndex].toPx()
             val points = 96
             var previous: Offset? = null
             for (i in 0..points) {
                 val x = size.width * i / points
-                val wave = sin((i / 12f + phase * 2.0f + waveIndex * 0.65f) * PI).toFloat()
-                val drift = sin((i / 22f + phase + waveIndex) * PI).toFloat()
-                val y = yBase + wave * (22.dp.toPx() + waveIndex * 6.dp.toPx()) + drift * 10.dp.toPx()
+                val wave = sin((i / 18f + phase * 2f + waveIndex * 0.7f) * PI).toFloat()
+                val y = yBase + wave * (18.dp.toPx() + waveIndex * 5.dp.toPx())
                 val current = Offset(x, y)
                 previous?.let {
                     drawLine(
@@ -199,36 +174,6 @@ private fun FortuneWaveField(modifier: Modifier = Modifier) {
                 previous = current
             }
         }
-
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.White.copy(alpha = 0.18f).toArgb()
-            textAlign = Paint.Align.CENTER
-            textSize = 15.sp.toPx()
-            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
-        }
-        val numbers = listOf("1", "3", "5", "7", "8", "9", "11", "22")
-        drawIntoCanvas { canvas ->
-            numbers.forEachIndexed { index, number ->
-                val seed = index + 1
-                val x = size.width * ((seed * 0.137f + phase * 0.20f) % 1f)
-                val y = size.height * (0.08f + ((seed * 0.173f + phase * 0.12f) % 0.82f))
-                val alpha = 0.08f + 0.14f * kotlin.math.abs(sin((phase * 2f + seed) * PI).toFloat())
-                paint.color = Color.White.copy(alpha = alpha).toArgb()
-                canvas.nativeCanvas.drawText(number, x, y, paint)
-            }
-        }
-
-        repeat(18) { index ->
-            val x = size.width * ((index * 0.071f + phase * 0.08f) % 1f)
-            val y = size.height * ((index * 0.113f + phase * 0.05f) % 1f)
-            val radius = 1.6.dp.toPx() + (index % 3) * 0.9.dp.toPx()
-            drawCircle(
-                color = Color.White.copy(alpha = 0.08f + (index % 4) * 0.025f),
-                radius = radius,
-                center = Offset(x, y),
-                style = Stroke(width = 0.8.dp.toPx())
-            )
-        }
     }
 }
 
@@ -240,15 +185,15 @@ fun SurfaceCard(
     borderColor: Color = Border,
     content: @Composable () -> Unit
 ) {
-    val cardShape = RoundedCornerShape(14.dp)
+    val cardShape = RoundedCornerShape(22.dp)
     Box(
         modifier = modifier
             .shadow(
-                elevation = 2.dp,
+                elevation = 5.dp,
                 shape = cardShape,
                 clip = false,
-                ambientColor = Color.Black.copy(alpha = 0.08f),
-                spotColor = Color.Black.copy(alpha = 0.10f)
+                ambientColor = DeepNavy.copy(alpha = 0.035f),
+                spotColor = DeepNavy.copy(alpha = 0.08f)
             )
             .clip(cardShape)
             .background(tonalColor)
@@ -344,8 +289,8 @@ fun MascotLoadingCard(
 
 @Composable
 fun ToggleSegment(selected: CalendarType, onSelected: (CalendarType) -> Unit, modifier: Modifier = Modifier) {
-    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 4, tonalColor = Surface, borderColor = Border) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 5, tonalColor = Surface2, borderColor = Border) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             TogglePill("양력", selected == CalendarType.SOLAR, Modifier.weight(1f)) { onSelected(CalendarType.SOLAR) }
             TogglePill("음력", selected == CalendarType.LUNAR, Modifier.weight(1f)) { onSelected(CalendarType.LUNAR) }
         }
@@ -361,14 +306,14 @@ private fun RowScope.TogglePill(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(if (selected) Accent else Surface)
-            .border(1.dp, if (selected) Accent else Border, RoundedCornerShape(12.dp))
+            .border(1.dp, if (selected) Accent else Color.Transparent, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = if (selected) Color.White else TextSecondary, style = MaterialTheme.typography.labelLarge)
+        Text(text, color = if (selected) Surface else TextSecondary, style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -419,20 +364,20 @@ private fun DateField(
 
 @Composable
 fun GenderSelector(selected: GenderOption, onSelected: (GenderOption) -> Unit, modifier: Modifier = Modifier) {
-    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 4, tonalColor = Surface, borderColor = Border) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    SurfaceCard(modifier = modifier.fillMaxWidth(), contentPadding = 5, tonalColor = Surface2, borderColor = Border) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             GenderOption.entries.forEach { option ->
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(16.dp))
                         .background(if (selected == option) Accent else Surface)
-                        .border(1.dp, if (selected == option) Accent else Border, RoundedCornerShape(12.dp))
+                        .border(1.dp, if (selected == option) Accent else Color.Transparent, RoundedCornerShape(16.dp))
                         .clickable { onSelected(option) }
                         .padding(vertical = 12.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(option.label, color = if (selected == option) Color.White else TextSecondary, style = MaterialTheme.typography.labelLarge)
+                    Text(option.label, color = if (selected == option) Surface else TextSecondary, style = MaterialTheme.typography.labelLarge)
                 }
             }
         }
@@ -446,13 +391,13 @@ fun GradientButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     color: Color = Accent,
-    contentColor: Color = Color.White
+    contentColor: Color = Surface
 ) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(18.dp)
     Box(
         modifier = modifier
             .shadow(
-                elevation = if (enabled) 6.dp else 0.dp,
+                elevation = if (enabled) 8.dp else 0.dp,
                 shape = shape,
                 clip = false,
                 ambientColor = color.copy(alpha = 0.16f),
@@ -466,7 +411,7 @@ fun GradientButton(
                 indication = null,
                 onClick = onClick
             )
-            .padding(vertical = 16.dp),
+            .padding(vertical = 17.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(text, color = if (enabled) contentColor else contentColor.copy(alpha = 0.42f), style = MaterialTheme.typography.labelLarge)
@@ -475,7 +420,7 @@ fun GradientButton(
 
 @Composable
 fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(18.dp)
     Box(
         modifier = modifier
             .clip(shape)
@@ -506,23 +451,23 @@ fun BottomNavBar(
     modifier: Modifier = Modifier,
     dark: Boolean = false
 ) {
-    val navShape = RoundedCornerShape(20.dp)
-    val inactiveColor = Color.White.copy(alpha = 0.34f)
+    val navShape = RoundedCornerShape(26.dp)
+    val inactiveColor = TextMuted
     NavigationBar(
         modifier = modifier
             .fillMaxWidth()
-            .height(76.dp)
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .height(82.dp)
+            .padding(horizontal = 14.dp, vertical = 8.dp)
             .shadow(
-                elevation = 18.dp,
+                elevation = 12.dp,
                 shape = navShape,
                 clip = false,
-                ambientColor = Color.Black.copy(alpha = 0.42f),
-                spotColor = Color.Black.copy(alpha = 0.54f)
+                ambientColor = DeepNavy.copy(alpha = 0.06f),
+                spotColor = DeepNavy.copy(alpha = 0.15f)
             )
             .clip(navShape)
-            .border(1.dp, Color.White.copy(alpha = 0.12f), navShape),
-        containerColor = Color(0xFF060710),
+            .border(1.dp, Border, navShape),
+        containerColor = Surface,
         tonalElevation = 0.dp
     ) {
         bottomNavItems.forEach { item ->
@@ -534,20 +479,20 @@ fun BottomNavBar(
                     Icon(
                         item.icon,
                         item.label,
-                        tint = if (selected) Gold else inactiveColor
+                        tint = if (selected) Accent else inactiveColor
                     )
                 },
                 label = {
                     Text(
                         item.label,
-                        color = if (selected) Gold else inactiveColor,
+                        color = if (selected) Accent else inactiveColor,
                         style = MaterialTheme.typography.bodySmall
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Gold,
-                    selectedTextColor = Gold,
-                    indicatorColor = Gold.copy(alpha = 0.10f),
+                    selectedIconColor = Accent,
+                    selectedTextColor = Accent,
+                    indicatorColor = Accent.copy(alpha = 0.10f),
                     unselectedIconColor = inactiveColor,
                     unselectedTextColor = inactiveColor
                 )
@@ -610,14 +555,14 @@ fun KeywordPills(items: List<String>, modifier: Modifier = Modifier) {
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(999.dp))
-                    .background(Accent.copy(alpha = 0.06f))
-                    .border(1.dp, Border, RoundedCornerShape(999.dp))
+                    .background(Surface.copy(alpha = 0.09f))
+                    .border(1.dp, Surface.copy(alpha = 0.17f), RoundedCornerShape(999.dp))
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Box(Modifier.size(6.dp).background(Accent, CircleShape))
-                Text(it, color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                Box(Modifier.size(6.dp).background(Gold, CircleShape))
+                Text(it, color = Surface.copy(alpha = 0.78f), style = MaterialTheme.typography.bodySmall)
             }
         }
     }

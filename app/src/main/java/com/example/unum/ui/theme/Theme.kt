@@ -1,10 +1,10 @@
 package com.example.unum.ui.theme
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
-private val Scheme = darkColorScheme(
+private val Scheme = lightColorScheme(
     primary = Accent,
     secondary = Mint,
     tertiary = Gold,
@@ -18,10 +18,11 @@ private val Scheme = darkColorScheme(
     onSurface = TextPrimary,
     onSurfaceVariant = TextSecondary,
     error = Rose,
+    onError = Surface,
     outline = Border,
     outlineVariant = BorderStrong,
     surfaceContainer = Surface,
-    surfaceContainerLow = Background,
+    surfaceContainerLow = AppCanvas,
     surfaceContainerHighest = Surface2
 )
 

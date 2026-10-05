@@ -54,7 +54,13 @@ data class DestinyProfile(
     val summary: String,
     val strength: String,
     val caution: String,
-    val actionGuide: String
+    val actionGuide: String,
+    val earlyScene: String = "",
+    val middleScene: String = "",
+    val lateScene: String = "",
+    val relationshipScene: String = "",
+    val workScene: String = "",
+    val moneyScene: String = ""
 )
 
 data class LifeRecord(
@@ -66,7 +72,16 @@ data class LifeRecord(
     val lifeText: String,
     val summaryText: String,
     val keywords: List<String>,
-    val cautionKeywords: List<String>
+    val cautionKeywords: List<String>,
+    val earlyText: String = "",
+    val middleText: String = "",
+    val lateText: String = "",
+    val interactionText: String = "",
+    val genderText: String = "",
+    val relationshipText: String = "",
+    val workText: String = "",
+    val moneyText: String = "",
+    val actionText: String = ""
 )
 
 data class NumerologyContent(
@@ -78,7 +93,14 @@ data class FreeReadingResult(
     val opening: String,
     val core: String,
     val strength: String,
-    val caution: String
+    val caution: String,
+    val action: String = "",
+    val early: String = "",
+    val middle: String = "",
+    val late: String = "",
+    val relationship: String = "",
+    val work: String = "",
+    val money: String = ""
 )
 
 data class RecentSearch(

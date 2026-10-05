@@ -2,8 +2,7 @@ package com.example.unum.domain.usecase
 
 import com.example.unum.data.model.BirthInput
 import com.example.unum.data.model.CalendarType
-import com.example.unum.data.model.FreeReadingResult
-import com.example.unum.data.model.NumerologyContent
+import com.example.unum.data.content.FreeReadingRecordComposer
 import com.example.unum.data.model.NumerologyResultBundle
 import com.example.unum.data.repository.NumerologyRepository
 import com.example.unum.domain.NumerologyCalculator
@@ -32,30 +31,5 @@ class BuildNumerologyResultBundleUseCase(
             displayInput = displaySolarInput,
             freeReading = freeReading
         )
-    }
-}
-
-private object FreeReadingRecordComposer {
-    fun compose(content: NumerologyContent): FreeReadingResult {
-        val profile = content.destinyProfile
-        val summarySentences = profile.summary.toSentences()
-        return FreeReadingResult(
-            opening = summarySentences.firstOrNull().orEmpty().ifBlank { profile.resultTitle },
-            core = summarySentences.drop(1).take(2).joinToString(" ").ifBlank { profile.summary },
-            strength = profile.strength.toSentences().firstOrNull().orEmpty(),
-            caution = profile.caution.toSentences().firstOrNull().orEmpty()
-        )
-    }
-
-    private fun String.toSentences(): List<String> {
-        val cleaned = this
-            .replace("\n", " ")
-            .replace(Regex("\\s+"), " ")
-            .trim()
-        if (cleaned.isBlank()) return emptyList()
-        return cleaned
-            .split(Regex("(?<=[.!?。])\\s+"))
-            .map(String::trim)
-            .filter(String::isNotBlank)
     }
 }

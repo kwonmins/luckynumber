@@ -29,7 +29,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Border
+import com.example.unum.ui.theme.DeepNavy
 import com.example.unum.ui.theme.Surface
+import com.example.unum.ui.theme.Surface2
 import com.example.unum.ui.theme.TextMuted
 import com.example.unum.ui.theme.TextPrimary
 import com.example.unum.ui.theme.TextSecondary
@@ -45,7 +47,7 @@ fun AppTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -54,12 +56,12 @@ fun AppTopBar(
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "뒤로 가기",
-                    tint = TextPrimary
+                    tint = DeepNavy
                 )
             }
         }
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(title, color = TextPrimary, style = MaterialTheme.typography.titleLarge)
+            Text(title, color = TextPrimary, style = MaterialTheme.typography.titleMedium)
             subtitle?.let {
                 Text(it, color = TextMuted, style = MaterialTheme.typography.bodySmall)
             }
@@ -78,10 +80,10 @@ fun SectionHeader(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Bottom,
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(title, color = TextPrimary, style = MaterialTheme.typography.titleMedium)
             description?.let {
                 Text(it, color = TextMuted, style = MaterialTheme.typography.bodySmall)
@@ -111,10 +113,10 @@ fun QuickActionCard(
 ) {
     Column(
         modifier = modifier
-            .background(background, RoundedCornerShape(14.dp))
-            .border(1.dp, tint.copy(alpha = 0.18f), RoundedCornerShape(14.dp))
+            .background(background, RoundedCornerShape(22.dp))
+            .border(1.dp, tint.copy(alpha = 0.20f), RoundedCornerShape(22.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 14.dp),
+            .padding(horizontal = 11.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(9.dp)
     ) {
@@ -140,17 +142,17 @@ fun ActionListCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Surface, RoundedCornerShape(14.dp))
-            .border(1.dp, Border, RoundedCornerShape(14.dp))
+            .background(Surface, RoundedCornerShape(22.dp))
+            .border(1.dp, Border, RoundedCornerShape(22.dp))
             .clickable(onClick = onClick)
-            .padding(14.dp),
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .background(tint.copy(alpha = 0.10f), CircleShape),
+                .background(tint.copy(alpha = 0.11f), RoundedCornerShape(14.dp)),
             contentAlignment = Alignment.Center
         ) {
             Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
@@ -178,9 +180,9 @@ fun ToneInfoCard(
 ) {
     Column(
         modifier = modifier
-            .background(background, RoundedCornerShape(14.dp))
-            .border(1.dp, tint.copy(alpha = 0.18f), RoundedCornerShape(14.dp))
-            .padding(14.dp),
+            .background(background, RoundedCornerShape(22.dp))
+            .border(1.dp, tint.copy(alpha = 0.20f), RoundedCornerShape(22.dp))
+            .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(7.dp)
     ) {
         Text(title, color = tint, style = MaterialTheme.typography.labelLarge)
