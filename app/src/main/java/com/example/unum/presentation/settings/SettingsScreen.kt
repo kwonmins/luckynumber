@@ -128,7 +128,7 @@ private fun MyPageProfileCard(uiState: AppUiState) {
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.linearGradient(listOf(Gold.copy(alpha = 0.22f), Color(0xFF0A0B1A), Color(0xFF060710))),
+                    Brush.linearGradient(listOf(Gold.copy(alpha = 0.22f), Surface2, Surface)),
                     RoundedCornerShape(18.dp)
                 )
                 .background(Color.Transparent)
@@ -147,16 +147,11 @@ private fun MyPageProfileCard(uiState: AppUiState) {
                                 .background(Gold.copy(alpha = 0.12f), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Image(
-                                painter = painterResource(MascotArt.Settings),
-                                contentDescription = "내 프로필을 안내하는 수리",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Fit
-                            )
+                            com.example.unum.ui.components.PastelSuri(0,Modifier.fillMaxSize())
                         }
                         Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Text(user?.displayName ?: "운세노트 사용자", color = Color.White, style = MaterialTheme.typography.titleMedium)
-                            Text(birthLabel, color = Color.White.copy(alpha = 0.74f), style = MaterialTheme.typography.bodySmall)
+                            Text(user?.displayName ?: "운세노트 사용자", color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+                            Text(birthLabel, color = TextPrimary.copy(alpha = 0.74f), style = MaterialTheme.typography.bodySmall)
                         }
                     }
                     Text(
@@ -184,8 +179,8 @@ private fun MyPageProfileCard(uiState: AppUiState) {
 @Composable
 private fun ProfileStat(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(value, color = Color.White, style = MaterialTheme.typography.titleMedium)
-        Text(label, color = Color.White.copy(alpha = 0.70f), style = MaterialTheme.typography.bodySmall)
+        Text(value, color = TextPrimary, style = MaterialTheme.typography.titleMedium)
+        Text(label, color = TextPrimary.copy(alpha = 0.70f), style = MaterialTheme.typography.bodySmall)
     }
 }
 

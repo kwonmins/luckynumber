@@ -92,7 +92,7 @@ internal fun QuestionConfirmScreen(
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text("이 질문이 맞나요?", color = TextPrimary, style = MaterialTheme.typography.titleLarge)
                 Text(
-                    "적어주신 고민을 AI가 명확하게 답할 수 있는 상담 질문으로 다듬었어요.",
+                    "궁금한 이야기를 이렇게 정리했어요.",
                     color = TextSecondary,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -103,7 +103,7 @@ internal fun QuestionConfirmScreen(
                     contentPadding = 18
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("AI에 전달할 질문 · $topicLabel", color = Accent, style = MaterialTheme.typography.labelLarge)
+                        Text("수리에게 물어볼 질문 · $topicLabel", color = Accent, style = MaterialTheme.typography.labelLarge)
                         Text(
                             question.ifBlank { originalConcern },
                             color = TextPrimary,

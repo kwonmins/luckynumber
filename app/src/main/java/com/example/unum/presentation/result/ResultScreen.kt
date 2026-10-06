@@ -134,71 +134,18 @@ fun ResultScreen(
 
 @Composable
 private fun ResultHeroCard(bundle: NumerologyResultBundle) {
-    val profile = bundle.content.destinyProfile
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(32.dp))
-            .background(DeepNavy)
-            .padding(22.dp)
-    ) {
-        Canvas(Modifier.fillMaxSize()) {
-            drawCircle(
-                color = Color.White.copy(alpha = 0.035f),
-                radius = size.width * 0.48f,
-                center = Offset(size.width * 0.94f, size.height * 0.12f)
-            )
-            drawCircle(
-                color = Gold.copy(alpha = 0.22f),
-                radius = size.width * 0.30f,
-                center = Offset(size.width * 0.98f, size.height * 0.10f),
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx())
-            )
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(7.dp)
-                ) {
-                    Text("MY CORE NUMBER", color = Gold, style = MaterialTheme.typography.labelMedium)
-                    Text(
-                        profile.title,
-                        color = Surface,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Text(
-                        profile.resultTitle,
-                        color = Surface.copy(alpha = 0.62f),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .size(116.dp)
-                        .background(Accent, CircleShape)
-                        .border(8.dp, Color.White.copy(alpha = 0.10f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        bundle.numbers.destiny.toString(),
-                        color = Surface,
-                        fontSize = 70.sp,
-                        lineHeight = 74.sp,
-                        fontWeight = FontWeight.Black
-                    )
-                }
+    val profile=bundle.content.destinyProfile
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(Surface).border(1.dp,Border,RoundedCornerShape(22.dp))) {
+        com.example.unum.ui.components.MoonGarden(Modifier.fillMaxWidth().height(110.dp))
+        Column(Modifier.padding(22.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
+            Text("나의 수리 · ${bundle.numbers.destiny}",color=Accent,style=MaterialTheme.typography.labelMedium)
+            Text(profile.resultTitle,color=DeepNavy,style=MaterialTheme.typography.titleLarge)
+            Text(bundle.freeReading?.opening ?: profile.summary,color=TextSecondary,style=MaterialTheme.typography.bodyLarge)
+            KeywordPills(profile.coreKeywords,Modifier.fillMaxWidth())
+            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                com.example.unum.ui.components.PastelSuri(8,Modifier.size(80.dp))
+                Text("지금의 흐름을 천천히 읽어보세요.",color=TextSecondary,style=MaterialTheme.typography.bodySmall)
             }
-            KeywordPills(profile.coreKeywords, Modifier.fillMaxWidth())
-            Text(
-                bundle.freeReading?.opening ?: profile.summary,
-                color = Surface.copy(alpha = 0.80f),
-                style = MaterialTheme.typography.bodyLarge
-            )
         }
     }
 }

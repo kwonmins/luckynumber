@@ -28,6 +28,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.Bookmarks
 import androidx.compose.material.icons.rounded.Home
@@ -67,6 +72,7 @@ import com.example.unum.R
 import com.example.unum.data.model.CalendarType
 import com.example.unum.data.model.GenderOption
 import com.example.unum.ui.theme.Accent
+import com.example.unum.ui.theme.AccentDark
 import com.example.unum.ui.theme.AppCanvas
 import com.example.unum.ui.theme.Background
 import com.example.unum.ui.theme.BackgroundAlt
@@ -94,41 +100,7 @@ fun MysticBackground(
 ) {
     Box(modifier = modifier.background(Background)) {
         Canvas(Modifier.fillMaxSize()) {
-            drawRect(
-                brush = Brush.verticalGradient(
-                    colors = listOf(AppCanvas, Background, BackgroundAlt.copy(alpha = 0.42f))
-                )
-            )
-            drawCircle(
-                color = Accent.copy(alpha = 0.055f),
-                radius = size.width * 0.48f,
-                center = Offset(size.width * 1.02f, size.height * 0.06f)
-            )
-            drawCircle(
-                color = Gold.copy(alpha = 0.10f),
-                radius = size.width * 0.27f,
-                center = Offset(size.width * 0.96f, size.height * 0.08f),
-                style = Stroke(width = 1.dp.toPx())
-            )
-            repeat(18) { index ->
-                val y = (112.dp + 52.dp * index).toPx()
-                drawLine(
-                    color = Border.copy(alpha = 0.24f),
-                    start = Offset(0f, y),
-                    end = Offset(size.width, y),
-                    strokeWidth = 0.7.dp.toPx()
-                )
-            }
-            repeat(10) { index ->
-                drawCircle(
-                    color = Accent.copy(alpha = if (index % 3 == 0) 0.18f else 0.08f),
-                    radius = if (index % 3 == 0) 2.dp.toPx() else 1.dp.toPx(),
-                    center = Offset(
-                        size.width * (((index * 31) % 97) / 100f),
-                        size.height * (0.12f + (((index * 47) % 72) / 100f))
-                    )
-                )
-            }
+            drawRect(Brush.verticalGradient(listOf(AppCanvas, Background, BackgroundAlt.copy(alpha = 0.28f))))
         }
         if (animatedWaves) {
             FortuneWaveField(Modifier.fillMaxSize())
@@ -185,7 +157,7 @@ fun SurfaceCard(
     borderColor: Color = Border,
     content: @Composable () -> Unit
 ) {
-    val cardShape = RoundedCornerShape(22.dp)
+    val cardShape = RoundedCornerShape(18.dp)
     Box(
         modifier = modifier
             .shadow(
@@ -249,12 +221,12 @@ fun MascotGuideCard(
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
             Box(
                 modifier = Modifier
-                    .size(34.dp)
+                    .size(64.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(Accent.copy(alpha = 0.10f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Rounded.Insights, contentDescription = null, tint = Accent, modifier = Modifier.size(18.dp))
+                PastelSuri(pose = 1, modifier = Modifier.size(64.dp))
             }
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(title, color = TextPrimary, style = MaterialTheme.typography.labelLarge)
@@ -393,7 +365,7 @@ fun GradientButton(
     color: Color = Accent,
     contentColor: Color = Surface
 ) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(28.dp)
     Box(
         modifier = modifier
             .shadow(
@@ -404,7 +376,7 @@ fun GradientButton(
                 spotColor = color.copy(alpha = 0.22f)
             )
             .clip(shape)
-            .background(if (enabled) color else color.copy(alpha = 0.32f))
+            .background(Brush.horizontalGradient(if (enabled) listOf(color, AccentDark) else listOf(Surface3, Surface3)))
             .clickable(
                 enabled = enabled,
                 interactionSource = remember { MutableInteractionSource() },
@@ -414,13 +386,13 @@ fun GradientButton(
             .padding(vertical = 17.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, color = if (enabled) contentColor else contentColor.copy(alpha = 0.42f), style = MaterialTheme.typography.labelLarge)
+        Text(text, color = if (enabled) contentColor else TextSecondary, style = MaterialTheme.typography.labelLarge)
     }
 }
 
 @Composable
 fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(28.dp)
     Box(
         modifier = modifier
             .clip(shape)
@@ -437,11 +409,11 @@ fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modi
 data class BottomNavItem(val route: String, val label: String, val icon: ImageVector)
 
 val bottomNavItems = listOf(
-    BottomNavItem("home", "오늘", Icons.Rounded.Home),
-    BottomNavItem("fortune", "오라클", Icons.Rounded.Shuffle),
-    BottomNavItem("library", "보관함", Icons.Rounded.Bookmarks),
-    BottomNavItem("premium", "노트", Icons.Rounded.AutoStories),
-    BottomNavItem("settings", "나", Icons.Rounded.Person)
+    BottomNavItem("home", "홈", Icons.Outlined.Home),
+    BottomNavItem("fortune", "운세", Icons.Outlined.Explore),
+    BottomNavItem("library", "스크랩", Icons.Outlined.BookmarkBorder),
+    BottomNavItem("premium", "프리미엄", Icons.Outlined.AutoStories),
+    BottomNavItem("settings", "마이", Icons.Outlined.Person)
 )
 
 @Composable
@@ -451,15 +423,15 @@ fun BottomNavBar(
     modifier: Modifier = Modifier,
     dark: Boolean = false
 ) {
-    val navShape = RoundedCornerShape(26.dp)
+    val navShape = RoundedCornerShape(0.dp)
     val inactiveColor = TextMuted
     NavigationBar(
         modifier = modifier
             .fillMaxWidth()
             .height(82.dp)
-            .padding(horizontal = 14.dp, vertical = 8.dp)
+            .padding(horizontal = 4.dp, vertical = 4.dp)
             .shadow(
-                elevation = 12.dp,
+                elevation = 0.dp,
                 shape = navShape,
                 clip = false,
                 ambientColor = DeepNavy.copy(alpha = 0.06f),
@@ -555,14 +527,14 @@ fun KeywordPills(items: List<String>, modifier: Modifier = Modifier) {
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(999.dp))
-                    .background(Surface.copy(alpha = 0.09f))
-                    .border(1.dp, Surface.copy(alpha = 0.17f), RoundedCornerShape(999.dp))
+                    .background(Surface2)
+                    .border(1.dp, Border, RoundedCornerShape(999.dp))
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Box(Modifier.size(6.dp).background(Gold, CircleShape))
-                Text(it, color = Surface.copy(alpha = 0.78f), style = MaterialTheme.typography.bodySmall)
+                Text(it, color = TextPrimary, style = MaterialTheme.typography.bodySmall)
             }
         }
     }

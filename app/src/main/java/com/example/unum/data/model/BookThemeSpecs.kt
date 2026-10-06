@@ -402,6 +402,25 @@ object BookThemeSpecs {
         )
     ).associateBy { it.id }
 
-    fun get(id: BookThemeId): BookThemeSpec =
-        specs[id] ?: specs.getValue(BookThemeId.CALM)
+    fun get(id: BookThemeId): BookThemeSpec {
+        val original = specs[id] ?: specs.getValue(BookThemeId.CALM)
+        val top = if (id.isCompatibility || id == BookThemeId.ROMANCE) 0xFFF5DDE2L else 0xFFE7DDEFL
+        val middle = if (id.isCompatibility || id == BookThemeId.ROMANCE) 0xFFEAC8D3L else 0xFFD0BEDDL
+        val bottom = 0xFFAA96BDL
+        val ink = 0xFF47436BL
+        val accent = 0xFF88749EL
+        return original.copy(
+            primaryColor = accent, secondaryColor = ink,
+            archiveCoverStartColor = top, archiveCoverEndColor = middle, archiveGlowColor = 0x22FFF3D8,
+            readerAccentColor = accent, readerAccentDeepColor = ink, readerNoteAccentColor = accent,
+            readerRibbonColor = accent, readerFoilColor = ink, readerStitchColor = 0xFFE6CAD0,
+            readerLeatherTopColor = top, readerLeatherMidColor = middle, readerLeatherBottomColor = bottom,
+            readerCoverTopColor = top, readerCoverMidColor = middle, readerCoverBottomColor = bottom,
+            readerTintColor = 0xFFF3EDF5, readerPageColor = 0xFFFFFCF8, readerPageTopColor = 0xFFFFF9F4,
+            readerEdgeColor = 0xFFE8DDE7, readerOverviewPaperColor = 0xFFFFFCF8,
+            pdfRibbonColor = accent.toInt(), pdfFoilColor = ink.toInt(),
+            pdfCoverTopColor = top.toInt(), pdfCoverMidColor = middle.toInt(), pdfCoverBottomColor = bottom.toInt(),
+            pdfTintColor = 0xFFF3EDF5.toInt(), pdfPageColor = 0xFFFFFCF8.toInt(), pdfPageTopColor = 0xFFFFF9F4.toInt(), pdfEdgeColor = 0xFFE8DDE7.toInt()
+        )
+    }
 }

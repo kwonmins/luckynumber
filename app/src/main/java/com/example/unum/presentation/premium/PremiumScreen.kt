@@ -98,13 +98,11 @@ fun PremiumScreen(
         label = "premiumBookFlow"
     ) { step ->
         when (step) {
-            PremiumFlowStep.FORM -> PremiumEntryBackground {
-                PremiumFormScreen(
-                    uiState = uiState,
-                    viewModel = viewModel,
-                    onStart = { viewModel.preparePremiumQuestionConfirmation() }
-                )
-            }
+            PremiumFlowStep.FORM -> PastelPremiumForm(
+                state = uiState,
+                viewModel = viewModel,
+                onStart = { viewModel.preparePremiumQuestionConfirmation() }
+            )
             PremiumFlowStep.CONFIRM_QUESTION -> QuestionConfirmScreen(
                 topicLabel = if (uiState.premiumMode == PremiumMode.COMPATIBILITY) {
                     uiState.compatibilityForm.relationshipStatus.label

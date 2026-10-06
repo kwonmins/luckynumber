@@ -1,4 +1,6 @@
 package com.example.unum.presentation.premium
+import com.example.unum.ui.theme.Accent
+import com.example.unum.ui.theme.TextMuted
 
 import com.example.unum.presentation.*
 
@@ -385,9 +387,9 @@ internal fun PremiumBookCover(book: FortuneBook?, modifier: Modifier = Modifier)
                     )
                 }
                 Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.spacedBy(13.dp), modifier = Modifier.fillMaxWidth()) {
-                    Text(book?.coverTitle ?: identity.shortName, color = Color(0xFFF8FAFC), style = MaterialTheme.typography.labelLarge)
-                    Text(book?.coverSubtitle ?: "나만의 맞춤 비책", color = Color(0xFFCBD5E1), style = MaterialTheme.typography.bodySmall)
-                    Text("운명수 ${book?.destiny ?: 7} · ${identity.shortName}", color = Color(0xFF94A3B8), style = MaterialTheme.typography.bodySmall)
+                    Text(book?.coverTitle ?: identity.shortName, color = TextPrimary, style = MaterialTheme.typography.labelLarge)
+                    Text(book?.coverSubtitle ?: "나만의 맞춤 비책", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                    Text("운명수 ${book?.destiny ?: 7} · ${identity.shortName}", color = TextMuted, style = MaterialTheme.typography.bodySmall)
                     Box(
                         modifier = Modifier
                             .size(76.dp)
@@ -406,7 +408,7 @@ internal fun PremiumBookCover(book: FortuneBook?, modifier: Modifier = Modifier)
                     .padding(end = 22.dp, bottom = 26.dp)
                     .size(46.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFB91C1C).copy(alpha = 0.94f)),
+                    .background(Accent.copy(alpha = 0.94f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text("수리", color = Color.White, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)

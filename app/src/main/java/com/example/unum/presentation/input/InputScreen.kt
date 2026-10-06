@@ -170,34 +170,11 @@ fun InputScreen(
 
 @Composable
 private fun InputEditorialHeader() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
-            .background(DeepNavy)
-            .padding(22.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("BIRTH NUMBER · 3 STEPS", color = Accent.copy(alpha = 0.92f), style = MaterialTheme.typography.labelMedium)
-        Text(
-            "태어난 날에는\n나만의 결이 있어요",
-            color = Surface,
-            style = MaterialTheme.typography.displayMedium
-        )
-        Text(
-            "세 가지 정보만 알려주면 핵심 숫자와 오늘의 흐름을 바로 읽어드릴게요.",
-            color = Surface.copy(alpha = 0.68f),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            repeat(3) { index ->
-                Box(
-                    modifier = Modifier
-                        .size(width = if (index == 0) 38.dp else 18.dp, height = 4.dp)
-                        .clip(RoundedCornerShape(99.dp))
-                        .background(if (index == 0) Accent else Color.White.copy(alpha = 0.16f))
-                )
-            }
+    Row(Modifier.fillMaxWidth().background(Surface2.copy(alpha=.6f),RoundedCornerShape(20.dp)).padding(18.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        com.example.unum.ui.components.PastelSuri(2,Modifier.size(84.dp))
+        Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            Text("당신의 이야기를 들려주세요",color=DeepNavy,style=MaterialTheme.typography.titleMedium)
+            Text("태어난 날에 담긴 작은 흐름을\n수리와 함께 읽어보세요.",color=TextSecondary,style=MaterialTheme.typography.bodyMedium)
         }
     }
 }

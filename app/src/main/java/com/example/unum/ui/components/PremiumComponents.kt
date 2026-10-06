@@ -62,6 +62,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -107,24 +108,24 @@ import com.example.unum.data.model.BookThemeId
 import com.example.unum.data.model.BookThemeSpecs
 
 private object PremiumTokens {
-    val GoldLight = Color(0xFFF7D56A)
-    val Gold = Color(0xFFD4A84B)
-    val GoldDeep = Color(0xFFA67C35)
-    val GoldFoil = Color(0xFFF0C96A)
+    val GoldLight = Color(0xFFE5C39A)
+    val Gold = Color(0xFF88749E)
+    val GoldDeep = Color(0xFF65557F)
+    val GoldFoil = Color(0xFFB69BBE)
 
-    val Ink = Color(0xFF0C0B0F)
-    val InkWarm = Color(0xFF13100F)
-    val Surface0 = Color(0xFF1A1714)
-    val Surface1 = Color(0xFF231F1B)
-    val Surface2 = Color(0xFF2C2720)
+    val Ink = Color(0xFFFFF9F4)
+    val InkWarm = Color(0xFFFFFCF8)
+    val Surface0 = Color(0xFFFFFCF8)
+    val Surface1 = Color(0xFFF3EDF5)
+    val Surface2 = Color(0xFFE9E0ED)
 
     val BorderGold = Color(0x33D4A84B)
     val BorderSubtle = Color(0x1AFFFFFF)
 
-    val TextGold = Color(0xFFD4A84B)
-    val TextCream = Color(0xFFF5EDD8)
-    val TextMuted = Color(0xFF8A7B65)
-    val TextDim = Color(0xFF5A4F3F)
+    val TextGold = Color(0xFF88749E)
+    val TextCream = Color(0xFF47436B)
+    val TextMuted = Color(0xFF767085)
+    val TextDim = Color(0xFF47436B)
 }
 
 private fun scaledTextStyle(
@@ -386,89 +387,12 @@ fun BookThumbnailCard(
     compact: Boolean = false,
     onClick: () -> Unit
 ) {
-    val accentColor = noteAccentColor(book.coverTheme)
-    val foilColor = leatherFoilColor(book.coverTheme)
-    val coverColors = leatherCoverColors(book.coverTheme)
-    val contentPadding = if (compact) 8.dp else 12.dp
-    Box(
-        modifier = modifier
-            .shadow(if (compact) 4.dp else 8.dp, RoundedCornerShape(8.dp))
-            .clip(RoundedCornerShape(8.dp))
-            .background(Brush.verticalGradient(coverColors))
-            .border(1.dp, foilColor.copy(alpha = 0.44f), RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick)
-            .padding(contentPadding)
-    ) {
-        Canvas(Modifier.fillMaxSize()) {
-            repeat(13) { index ->
-                val y = size.height * (index + 1) / 11f
-                drawLine(
-                    Color.White.copy(alpha = 0.016f),
-                    Offset(8f, y),
-                    Offset(size.width - 8f, y + if (index % 2 == 0) 4f else -3f),
-                    strokeWidth = 1f
-                )
-            }
-            val inset = 6f
-            val ornament = if (compact) 13f else 20f
-            val c = foilColor.copy(alpha = 0.72f)
-            drawLine(c, Offset(inset, inset + ornament), Offset(inset, inset), 1f)
-            drawLine(c, Offset(inset, inset), Offset(inset + ornament, inset), 1f)
-            drawLine(c, Offset(size.width - inset - ornament, inset), Offset(size.width - inset, inset), 1f)
-            drawLine(c, Offset(size.width - inset, inset), Offset(size.width - inset, inset + ornament), 1f)
-            drawLine(c, Offset(inset, size.height - inset - ornament), Offset(inset, size.height - inset), 1f)
-            drawLine(c, Offset(inset, size.height - inset), Offset(inset + ornament, size.height - inset), 1f)
-            drawLine(c, Offset(size.width - inset - ornament, size.height - inset), Offset(size.width - inset, size.height - inset), 1f)
-            drawLine(c, Offset(size.width - inset, size.height - inset - ornament), Offset(size.width - inset, size.height - inset), 1f)
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .border(1.dp, foilColor.copy(alpha = 0.25f), RoundedCornerShape(6.dp))
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .size(if (compact) 7.dp else 9.dp, if (compact) 100.dp else 168.dp)
-                .clip(RoundedCornerShape(topEnd = 6.dp, bottomEnd = 6.dp))
-                .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.25f), leatherRibbonColor(book.coverTheme), Color.Black.copy(alpha = 0.34f))))
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(end = if (compact) 8.dp else 10.dp)
-                .size(if (compact) 10.dp else 14.dp, if (compact) 34.dp else 50.dp)
-                .clip(RoundedCornerShape(bottomStart = 5.dp, bottomEnd = 5.dp))
-                .background(Brush.verticalGradient(listOf(accentColor.copy(alpha = 0.92f), leatherRibbonColor(book.coverTheme))))
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = if (compact) 11.dp else 14.dp, top = if (compact) 8.dp else 12.dp, bottom = if (compact) 4.dp else 6.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(coverKicker(book), color = foilColor, style = MaterialTheme.typography.labelSmall.copy(letterSpacing = if (compact) 0.7.sp else 1.0.sp), textAlign = TextAlign.Center, maxLines = 1)
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(if (compact) 5.dp else 8.dp)) {
-                Text(
-                    coverDisplayTitle(book),
-                    color = foilColor,
-                    style = if (compact) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                    maxLines = if (compact) 2 else 3
-                )
-                Box(
-                    modifier = Modifier
-                        .size(width = if (compact) 34.dp else 52.dp, height = 1.dp)
-                        .background(foilColor.copy(alpha = 0.68f))
-                )
-                Text(book.coverSubtitle, color = PremiumTokens.TextMuted, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center, maxLines = 1)
-            }
-            NotebookSeal(
-                text = if (book.bookType == FortuneBookType.COMPATIBILITY) book.relationshipNumber?.toString() ?: "수" else book.destiny.toString(),
-                color = foilColor,
-                size = if (compact) 30 else 42
-            )
+    Column(modifier.clip(RoundedCornerShape(18.dp)).background(Surface).border(1.dp,Border,RoundedCornerShape(18.dp)).clickable(onClick=onClick)) {
+        MoonGarden(Modifier.fillMaxWidth().height(if(compact) 56.dp else 72.dp),premium=true)
+        Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
+            Text(book.concernTopic,color=Accent,style=MaterialTheme.typography.labelSmall,maxLines=1)
+            Text(book.coverTitle,color=TextPrimary,style=MaterialTheme.typography.titleSmall,maxLines=2,overflow=TextOverflow.Ellipsis)
+            Text(book.coverSubtitle,color=TextSecondary,style=MaterialTheme.typography.bodySmall,maxLines=2,overflow=TextOverflow.Ellipsis)
         }
     }
 }
@@ -518,7 +442,7 @@ fun InteractiveBookArchiveShelf(
                 .clip(RoundedCornerShape(18.dp))
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color(0xFF111318), Color(0xFF17110E), Color(0xFF0C0B0F))
+                        listOf(Color(0xFFFFF9F4), Color(0xFFF3EDF5), Color(0xFFFFF9F4))
                     )
                 )
                 .border(1.dp, PremiumTokens.BorderGold, RoundedCornerShape(18.dp))
@@ -1178,17 +1102,7 @@ private fun SalonChapterCard(
                     .copy(fontWeight = FontWeight.Bold)
             )
 
-            Image(
-                painter = painterResource(chapterMascotRes(coverTheme, index)),
-                contentDescription = null,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .size(108.dp)
-                    .graphicsLayer {
-                        alpha = 0.96f
-                        translationY = -4.dp.toPx()
-                    }
-            )
+            PastelSuri(pose = index % 12, modifier = Modifier.size(88.dp))
 
             Box(
                 modifier = Modifier

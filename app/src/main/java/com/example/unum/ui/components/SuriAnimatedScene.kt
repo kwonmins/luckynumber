@@ -402,13 +402,10 @@ private fun SceneMascot(
             targetState = currentFrame,
             label = "suri-scene-step"
         ) { res ->
-            Image(
-                painter = painterResource(res),
-                contentDescription = contentDescription,
-                modifier = Modifier
-                    .height(198.dp)
-                    .alpha(0.98f),
-                contentScale = ContentScale.Fit
+            PastelSuri(
+                pose = if (contentDescription.contains("위로")) 8 else if (contentDescription.contains("인사")) 1 else 6,
+                modifier = Modifier.height(180.dp),
+                description = contentDescription
             )
         }
     }
