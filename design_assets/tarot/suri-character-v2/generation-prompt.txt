@@ -1,0 +1,35 @@
+Use case: stylized-concept / identity-preserve.
+Create a NEW coherent illustrated tarot sprite atlas for 수리운세, using the attached original SURI character sprite sheet as the ONLY character identity and illustration style reference. This is a character-led original tarot deck. The prior generic human tarot deck was rejected because it did not contain SURI. Every single face MUST clearly feature the exact SURI mascot acting out that card's meaning, large and central. DO NOT use human protagonists.
+Reference image role: original SURI CHARACTER MODEL SHEET. Preserve identity: a cute cream-colored round teardrop/dumpling shaped head and chubby compact body, ONE tiny rounded tuft protruding at top, NO cat or rabbit ears, dark brown circular eyes with small highlights, tiny oval brown nose and w-shaped smiling mouth, warm peach pink cheek ovals. Short rounded cream paws and tiny feet, big head relative to body. Lavender hanbok with white crossed collar and cuffs, muted mauve ribbon knot at chest, delicate pale gold botanical fabric decorations, crescent moon gold charm. Soft warm brown outlines, pastel shaded 2D storybook sprite style exactly matching reference. Suri must NOT become a human, cat, fox, bunny, bear or generic ghost. Facial expressions, poses and props change; face shape, tuft, colors, body proportions, hanbok and charm remain recognizable in ALL 22 illustrations.
+Output: one complete square PNG sprite sheet, preferably 1536x1536 pixels, STRICT 6 COLUMNS x 4 ROWS =24 tiles, fixed row-major order. Transparent gutters outside cards, opaque warm cream card interiors. Each identical portrait card centered in equal cell; no overlap, no perspective. Card front ratio 2:3 with gently rounded corners, restrained thin lavender and warm gold decorative frame. Keep illustrative backgrounds simple and quiet, SURI body occupying about 55-65% of each face. Clean readable small-screen silhouettes, meaningful props, modest celestial and numerology orbit-dot details. Cream, lavender, plum, blush peach, sage and muted gold palette matching source sprite. No elaborate medieval realistic humans. No saju, hanafuda, playing-card suits, photorealism, scary demonic scenes or skeletons.
+Typography: ONLY top-centered large clear Arabic card ID 0..21 on each front. No names, Korean text, slogans or Roman numerals. Leave a modest empty cream name strip at bottom for later app-rendered labels. Correct IDs essential.
+Exact row-major card scenes, SAME SURI character throughout:
+ROW1:
+0 Fool: SURI cheerfully setting off along a little flower path with travel bundle on stick over shoulder and small white dog, fresh dawn, curious open-mouth happy expression. Meaning new beginnings.
+1 Magician: SURI confidently raising gold star wand beside simple small table bearing a cup, coin and book, sparkles, same lavender hanbok. Meaning using one's abilities and acting.
+2 High Priestess: SURI calmly holding open crescent-marked book under moon between two light pillars, thoughtful focused eyes. Meaning intuition.
+3 Empress: SURI tenderly watering blooming garden with little watering can, flowers and growing grain, nurturing smile. Meaning growth and care.
+4 Emperor: SURI seated upright in simple sturdy chair with small gold crown placed above tuft, holding rolled plan, decisive yet cute expression. Meaning structure and responsibility.
+5 Hierophant: SURI teaching from large open book, pointing softly, two small star-shaped listeners, wise kind smile. Meaning learning and advice.
+ROW2:
+6 Lovers: TWO SURI mascots with matching original identity exchanging one warm pink heart, ribbons connect paws, affectionate blush expressions. Meaning connection and value-aligned choice.
+7 Chariot: SURI confidently steering small pastel carriage with two small horses at front, clear path and distant star. Meaning determination and direction.
+8 Strength: SURI gently petting a friendly small golden lion's mane, compassionate calm smile, no aggression. Meaning gentle courage.
+9 Hermit: SURI walking a quiet twilight path holding a glowing lantern, serene reflective expression. Meaning inward reflection.
+10 Wheel of Fortune: SURI turning a large ornate celestial wheel with orbit stars and subtly ordered dots, curious accepting smile. Meaning changing cycles.
+11 Justice: SURI holding balanced scales and a small upright sword, serious balanced expression; no human form. Meaning fairness.
+ROW3:
+12 Hanged Man: SURI safely hanging upside down by one ankle from a soft garden branch, face relaxed, hanbok secured, recognizing a new view. Meaning pause and perspective, no pain.
+13 Death: SURI gently sweeping fallen autumn leaves aside and opening a little doorway toward a sprout and sunrise, calm hopeful face. Meaning ending and renewal. NO skeleton, skull, scythe or ominous rider.
+14 Temperance: SURI carefully pouring water from one small cup into another, gentle focused smile, balanced stance. Meaning moderation and harmony.
+15 Devil: SURI noticing and undoing a LOOSE little ribbon-chain around paws beside tempting pile of sweets/coins, determined small frown, warm safe design. Meaning recognizing habits and regaining choice. NO demon or horned transformation.
+16 Tower: SURI calmly rebuilding small fallen block tower while distant lightning appears in background, surprised but resilient expression, intact and safe. Meaning re-examining foundations.
+17 Star: SURI holding sparkling gold star close and watering a small sprout by clear pool beneath big star, hopeful eyes. Meaning hope and healing.
+ROW4:
+18 Moon: SURI holding small lantern while carefully following winding moonlit path, slightly uncertain thoughtful expression. Meaning patiently checking uncertainty.
+19 Sun: SURI joyful smile with eyes closed and paws raised in sunny sunflower field, prominent warm sun. Meaning confidence and joy.
+20 Judgement: SURI blowing a little golden trumpet or ringing awakening bell, looking ahead with hopeful alert expression, sunrise. Meaning reflecting and starting afresh.
+21 World: SURI happily lifting a small glowing globe inside oval leafy wreath, celebratory smile, tiny stars at corners. Meaning completion and connection.
+22 slot (no ID): common card BACK, same dimensions and frame, lavender symmetrical reversible design of crescents, stars, numerology orbital dots, and small cream SURI FACE medallion in center clearly matching mascot's tuft and features. No text.
+23 slot (no ID): matching standalone MENU ICON, three slightly fanned miniature tarot cards with SURI FACE medallion on frontmost card; centered and clearly large in its cell, transparent surrounding. Not hanafuda.
+Critical: exactly 22 numbered SURI SCENES, one card back, one menu icon, all fully visible on a strict 6x4 atlas. No substitution of human tarot figures. The card-specific actions and props matter, not repeated identical standing poses. Recognizable original SURI on every face.

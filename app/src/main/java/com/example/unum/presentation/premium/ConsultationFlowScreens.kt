@@ -132,93 +132,21 @@ internal fun QuestionConfirmScreen(
 }
 
 @Composable
-internal fun PremiumLoadingScreen(
-    isLoading: Boolean,
-    hasBook: Boolean,
-    mode: PremiumMode,
-    onDone: () -> Unit
-) {
-    val stages = remember(mode) {
-        if (mode == PremiumMode.COMPATIBILITY) {
-            listOf(
-                "두 사람의 숫자를 비교 중",
-                "궁합수를 계산하는 중",
-                "프리미엄 궁합노트 제본 중"
-            )
-        } else {
-            listOf(
-                "수리가 숫자를 해석 중",
-                "고민의 질문을 정리 중",
-                "프리미엄 책자 제본 중"
-            )
-        }
-    }
-    var stageIndex by remember { mutableStateOf(0) }
-    LaunchedEffect(isLoading) {
-        while (isLoading) {
-            delay(1_050)
-            stageIndex = (stageIndex + 1) % stages.size
-        }
-        if (!isLoading && hasBook) {
-            stageIndex = stages.lastIndex
-        }
-    }
-    LaunchedEffect(isLoading, hasBook) {
-        if (!isLoading && hasBook) {
-            delay(2_500)
-            onDone()
-        }
-    }
+internal fun PremiumLoadingScreen(isLoading: Boolean,hasBook: Boolean,mode: PremiumMode,onDone: () -> Unit) {
+    LaunchedEffect(isLoading,hasBook) { if(!isLoading && hasBook) {delay(1800);onDone()} }
+    val transition=rememberInfiniteTransition(label="quiet-loading")
+    val phase by transition.animateFloat(0f,1f,infiniteRepeatable(tween(3000),RepeatMode.Restart),label="three-stars")
     MysticBackground(Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 48.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Spacer(Modifier.height(12.dp))
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                PaperStackAnimation()
-                ConsultingStageTicker(
-                    stage = stages[stageIndex],
-                    labels = stages,
-                    caption = if (!isLoading && hasBook) {
-                        "책자 준비가 끝났어요. 표지를 여는 중입니다."
-                    } else if (mode == PremiumMode.COMPATIBILITY) {
-                        "남자와 여자 각각의 흐름을 관계 문장과 책자 구조로 엮고 있어요."
-                    } else {
-                        "입력한 흐름을 상담 문장과 책자 구조로 엮고 있어요."
-                    }
-                )
-                Text(
-                    if (mode == PremiumMode.COMPATIBILITY) {
-                        "수리가 두 사람 사이의 숫자 흐름과\n관계 질문을 조용히 풀고 있어요"
-                    } else {
-                        "수리가 당신의 숫자 흐름과\n적어주신 사연을 조용히 풀고 있어요"
-                    },
-                    color = TextPrimary,
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    if (mode == PremiumMode.COMPATIBILITY) {
-                        "궁합수와 생활 흐름에 맞는 관계 비책을 제작 중입니다."
-                    } else {
-                        "고민 분야에 맞는 깊이 있는 비책을 제작 중입니다."
-                    },
-                    color = TextMuted,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth(0.62f)
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(999.dp)),
-                color = Accent,
-                trackColor = Surface2
-            )
+        Column(Modifier.fillMaxSize().padding(32.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
+            com.example.unum.ui.components.FortuneIllustration(com.example.unum.ui.components.FortuneArt.MOON,Modifier.size(46.dp))
+            Spacer(Modifier.height(24.dp))
+            com.example.unum.ui.components.PastelSuri(2,Modifier.size(82.dp))
+            Spacer(Modifier.height(24.dp))
+            Text("당신의 이야기를\n조금 더 깊게 들여다보고 있어요.",color=TextPrimary,style=MaterialTheme.typography.titleMedium,textAlign=TextAlign.Center)
+            Spacer(Modifier.height(20.dp))
+            Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) { repeat(3) {i ->
+                Text("✦",color=Gold.copy(alpha=0.25f+0.5f*kotlin.math.max(0f,1f-kotlin.math.abs(phase-i/3f)*3f)),style=MaterialTheme.typography.bodySmall)
+            } }
         }
     }
 }

@@ -266,6 +266,8 @@ private fun visualFor(topic: DailyFortuneTopic): DailyTopicVisual = when (topic)
     DailyFortuneTopic.MONEY -> DailyTopicVisual("돈", Mint, Icons.Rounded.Savings)
     DailyFortuneTopic.STUDY -> DailyTopicVisual("배움", Gold, Icons.AutoMirrored.Rounded.MenuBook)
     DailyFortuneTopic.SELF -> DailyTopicVisual("마음", Accent, Icons.Rounded.SelfImprovement)
+    DailyFortuneTopic.HEALTH -> DailyTopicVisual("건강", Mint, Icons.Rounded.SelfImprovement)
+    DailyFortuneTopic.LUCK -> DailyTopicVisual("행운", Gold, Icons.Rounded.Savings)
 }
 
 private data class DailyTopicVisual(

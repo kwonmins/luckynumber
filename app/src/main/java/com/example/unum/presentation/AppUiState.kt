@@ -26,6 +26,7 @@ enum class PremiumFlowStep {
 }
 
 data class AppUiState(
+    val today: java.time.LocalDate = com.example.unum.data.content.TarotCatalog.today(),
     val formState: HomeFormState = HomeFormState(),
     val latestBundle: NumerologyResultBundle? = null,
     val recentSearches: List<RecentSearch> = emptyList(),

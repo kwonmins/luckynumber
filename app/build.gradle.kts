@@ -70,6 +70,8 @@ android {
             "ADMOB_USE_REAL_ADS_IN_DEBUG",
             useRealAdsInDebug.toString()
         )
+        buildConfigField("String", "ADMOB_BANNER_AD_UNIT_ID", localProperties.getProperty("admob.banner.ad.unit.id", "").asBuildConfigString())
+        buildConfigField("String", "ADMOB_NATIVE_AD_UNIT_ID", localProperties.getProperty("admob.native.ad.unit.id", "").asBuildConfigString())
         manifestPlaceholders["kakaoRedirectScheme"] =
             "kakao${localProperties.getProperty("kakao.native.app.key", "")}"
         manifestPlaceholders["adMobApplicationId"] = admobAppId
@@ -77,9 +79,7 @@ android {
 
     buildTypes {
         debug {
-            if (!useRealAdsInDebug) {
-                manifestPlaceholders["adMobApplicationId"] = "ca-app-pub-3940256099942544~3347511713"
-            }
+            manifestPlaceholders["adMobApplicationId"] = admobAppId
         }
         release {
             isMinifyEnabled = false
@@ -124,11 +124,11 @@ dependencies {
     implementation("com.kakao.sdk:v2-user:2.23.4")
     implementation("com.google.android.gms:play-services-ads:25.3.0")
 
-    implementation("com.google.android.material:material:1.12.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")

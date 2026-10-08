@@ -36,7 +36,8 @@ class RewardedAdManager(private val activity: Activity) {
                         showOrContinue(
                             onRewarded = pending.onRewarded,
                             onLoading = pending.onLoading,
-                            onUnavailable = pending.onUnavailable
+                            onUnavailable = pending.onUnavailable,
+                            onDismissed = pending.onDismissed
                         )
                     }
                 }
@@ -58,7 +59,8 @@ class RewardedAdManager(private val activity: Activity) {
     fun showOrContinue(
         onRewarded: () -> Unit,
         onLoading: () -> Unit = {},
-        onUnavailable: (String) -> Unit = {}
+        onUnavailable: (String) -> Unit = {},
+        onDismissed: () -> Unit = {}
     ) {
         val ad = rewardedAd
         if (!AdMobConfig.ADS_ENABLED) {
@@ -66,7 +68,7 @@ class RewardedAdManager(private val activity: Activity) {
             return
         }
         if (ad == null) {
-            pendingShow = PendingShow(onRewarded, onLoading, onUnavailable)
+            pendingShow = PendingShow(onRewarded, onLoading, onUnavailable, onDismissed)
             load(onUnavailable)
             onLoading()
             return
@@ -75,6 +77,7 @@ class RewardedAdManager(private val activity: Activity) {
         rewardedAd = null
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
+                onDismissed()
                 load()
             }
 
@@ -92,7 +95,8 @@ class RewardedAdManager(private val activity: Activity) {
     private data class PendingShow(
         val onRewarded: () -> Unit,
         val onLoading: () -> Unit,
-        val onUnavailable: (String) -> Unit
+        val onUnavailable: (String) -> Unit,
+        val onDismissed: () -> Unit
     )
 
     private companion object {

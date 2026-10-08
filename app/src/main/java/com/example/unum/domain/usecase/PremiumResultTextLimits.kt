@@ -3,38 +3,29 @@ package com.example.unum.domain.usecase
 import com.example.unum.data.model.ConsultationAnswerCard
 import com.example.unum.data.model.ConsultationPage
 
-/** Keeps premium results concise even when the model returns more text than requested. */
+/** Normalizes premium text without dropping the model's explanation. */
 internal fun ConsultationAnswerCard.limitPremiumLength(): ConsultationAnswerCard {
-    val compactBody = body.joinToString(" ").limitPremiumText(120)
+    val compactBody = body.joinToString(" ").limitPremiumText(Int.MAX_VALUE)
     return copy(
-        question = question.limitPremiumText(70),
-        shortAnswer = shortAnswer.limitPremiumText(70),
+        question = question.limitPremiumText(Int.MAX_VALUE),
+        shortAnswer = shortAnswer.limitPremiumText(Int.MAX_VALUE),
         body = compactBody.takeIf { it.isNotBlank() }?.let(::listOf).orEmpty()
     )
 }
 
 internal fun List<ConsultationPage>.limitPremiumPages(): List<ConsultationPage> = map { page ->
-    val compactBody = page.body.joinToString(" ").limitPremiumText(150)
+    val compactBody = page.body.joinToString(" ").limitPremiumText(Int.MAX_VALUE)
     page.copy(
-        ribbon = page.ribbon.limitPremiumText(16),
-        title = page.title.limitPremiumText(30),
-        highlight = page.highlight.limitPremiumText(40),
+        ribbon = page.ribbon.limitPremiumText(Int.MAX_VALUE),
+        title = page.title.limitPremiumText(Int.MAX_VALUE),
+        highlight = page.highlight.limitPremiumText(Int.MAX_VALUE),
         body = compactBody.takeIf { it.isNotBlank() }?.let(::listOf).orEmpty()
     )
 }
 
 internal fun String.limitPremiumText(maxChars: Int): String {
     val normalized = trim().replace(Regex("\\s+"), " ")
-    if (normalized.length <= maxChars) return normalized
-
-    val clipped = normalized.take(maxChars)
-    val sentenceEnd = listOf('.', '!', '?', '。')
-        .maxOf { clipped.lastIndexOf(it) }
-    if (sentenceEnd >= maxChars * 2 / 3) {
-        return clipped.take(sentenceEnd + 1).trim()
-    }
-
-    val wordEnd = clipped.lastIndexOf(' ')
-    val safeEnd = wordEnd.takeIf { it >= maxChars * 2 / 3 } ?: maxChars
-    return clipped.take(safeEnd).trimEnd(' ', ',', '.', '。') + "…"
+    // Do not add an ellipsis to a premium interpretation. The reader must receive
+    // the complete explanation, including timing reasons and follow-up guidance.
+    return normalized
 }

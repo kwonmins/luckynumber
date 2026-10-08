@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#FBF7F2" />
+  <title>수리운세 · 오늘의 흐름</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%239A86B8'/%3E%3Cpath d='M21 7a10 10 0 1 0 4 18A10 10 0 0 1 21 7Z' fill='%23FFFDFC'/%3E%3Ccircle cx='24' cy='9' r='1.4' fill='%23F1C7CE'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style-modern.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="수리운세 홈"><span class="brand-mark">☾</span><span>수리운세</span></a>
+      <button class="text-button" id="loginButton">로그인</button>
+    </header>
+
+    <section class="view active" id="startView">
+      <div class="hero-stage"><div class="hero-orbit" aria-hidden="true"><span>✦</span><i>·</i><b>7</b></div><div class="suri-seal" aria-label="수리 숫자 인장"><span>∞</span></div><div class="hero-stamp">오늘의<br><strong>수리</strong><br>fortune</div></div>
+      <div class="eyebrow">DAILY NUMEROLOGY · 10.06</div>
+      <h1>숫자에 담긴,<br><em>당신의 오늘과 내일.</em></h1>
+      <p class="intro">수리가 당신의 생년월일을 바탕으로<br>오늘의 흐름을 조심스럽게 읽어드릴게요.</p>
+      <form class="date-card" id="dateForm">
+        <label for="birthdate">생년월일</label>
+        <input id="birthdate" type="date" value="1998-04-16" required />
+        <button class="primary-button" type="submit">오늘의 운세 보기 <span>→</span></button>
+        <p class="helper">회원가입 없이 무료로 확인할 수 있어요.</p>
+      </form>
+      <div class="proof-row"><span>✦ 3,200명이 오늘 확인했어요</span><span>·</span><span>회원가입 없이 무료</span></div>
+      <div class="horizon" aria-hidden="true"><span>⌁</span><i></i><b></b></div>
+    </section>
+
+    <section class="view" id="todayView">
+      <div class="page-heading"><button class="icon-button" data-back="startView" aria-label="뒤로">←</button><div><span class="eyebrow">2026년 10월 6일</span><h2>오늘의 운세</h2></div><button class="icon-button" aria-label="공유">⌯</button></div>
+      <div class="result-cover"><div class="cover-number">07</div><div class="result-seal">∞<small>SURI</small></div><div><span class="eyebrow">SURI’S READING · TODAY</span><h3>좋은 흐름이<br><em>이어지는 하루예요.</em></h3><p>2026. 10. 06 · 화요일</p></div></div>
+      <div class="score-hero"><div class="score-label">TODAY’S FLOW</div><div class="score"><strong>84</strong><span>/ 100</span></div><h3>지금은 서두르기보다 흐름을 믿어보세요.</h3><p>차분하게 움직일수록 당신의 감각이<br>더 좋은 선택을 알려줄 거예요.</p><div class="score-meter"><i></i></div><div class="meter-label"><span>오늘의 기운</span><b>아주 좋아요</b></div></div>
+      <div class="quote-section"><div class="section-kicker">오늘의 한마디</div><p>“지금 하고 있는 일을 너무 서두르지 마세요.<br>차분하게 움직일수록 좋은 결과가 따라옵니다.”</p></div>
+      <div class="section-head"><h3>분야별 운세</h3><span>카드를 눌러 더 자세히</span></div>
+      <div class="fortune-grid" id="fortuneGrid"></div><div class="suri-note"><div class="note-mark">☾</div><div><span class="eyebrow">SURI’S NOTE</span><p>오늘은 작은 연락 하나가<br><strong>새로운 흐름의 시작</strong>이 될 수 있어요.</p></div></div>
+      <div class="luck-card"><div class="section-kicker">오늘의 행운</div><div class="luck-row"><span>행운의 숫자<strong>7</strong></span><span>행운의 색<strong>Lavender</strong></span><span>행운의 시간<strong>14:00 - 16:00</strong></span></div><div class="luck-note"><span>오늘 하면 좋은 것</span><b>먼저 연락하기</b><span>오늘 피하면 좋은 것</span><b>충동적인 결정</b></div></div>
+      <div class="premium-cta"><div><span class="eyebrow">SURI PRIVATE READING</span><h3>오늘의 흐름 말고,<br>요즘 마음에 걸리는 일이 있나요?</h3><p>수리에게 한 가지 고민을 물어보세요.<br>당신의 이야기만을 위한 깊은 리딩을 준비해요.</p><button class="primary-button" id="premiumButton">내 고민 물어보기 <span>→</span></button><small>카카오 로그인 후 질문과 결과가 내 기록에 저장돼요.</small></div><div class="cta-seal">☾<small>PRIVATE<br>READING</small></div></div>
+    </section>
+
+    <section class="view" id="premiumView">
+      <div class="page-heading"><button class="icon-button" data-back="todayView">←</button><div><span class="eyebrow">ONE QUESTION</span><h2>Premium 운세</h2></div><button class="icon-button" id="recordsButton" aria-label="내 기록">♡</button></div>
+      <div class="premium-banner"><div class="banner-moon">☾<small>PRIVATE<br>READING ROOM</small></div><div class="premium-intro"><span class="eyebrow">PRIVATE READING ROOM</span><h2>지금,<br><em>무엇이 가장 궁금한가요?</em></h2><p>한 가지 질문에 집중해<br>조금 더 깊이 들여다볼게요.</p></div></div>
+      <div class="tabs"><button class="tab active" data-tab="general">일반</button><button class="tab" data-tab="love">연애</button></div>
+      <div class="category-list" id="categoryList"></div>
+      <div class="question-area hidden" id="questionArea"><div class="selected-label">재회운 <span>연애 · 재회</span></div><h3>지금 가장 궁금한 이야기를<br>들려주세요.</h3><textarea maxlength="500" id="question" placeholder="헤어진 지 3개월 됐는데,\n다시 연락해도 괜찮을까요?"></textarea><div class="counter"><span>구체적으로 적을수록 좋아요</span><b id="counter">0 / 500</b></div><div class="chips"><button>다시 만날 가능성이 있을까요?</button><button>먼저 연락해도 괜찮을까요?</button><button>상대방의 마음은 어떤가요?</button></div><button class="primary-button" id="reviewButton">질문 확인하기 <span>→</span></button></div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="loginModal" aria-hidden="true"><div class="modal"><button class="modal-close" id="closeModal">×</button><div class="modal-moon">☾</div><span class="eyebrow">PREMIUM FORTUNE</span><h2>조금 더 깊은 이야기를<br>시작해볼까요?</h2><p>내 질문과 결과를 안전하게 저장하기 위해<br>로그인이 필요해요.</p><button class="kakao-button" id="kakaoButton"><span>●</span> 카카오로 계속하기</button><small>로그인하면 앱과 웹에서 같은 운세 결과를 확인할 수 있어요.</small></div></div>
+  <script>
+    const fortunes=[['◌','총운','84','좋은 흐름'],['♡','애정운','82','마음이 가까워져요'],['◈','금전운','91','기회가 보여요'],['⌁','직장운','76','천천히 전진'],['✧','건강운','88','균형이 중요해요'],['✦','행운운','93','작은 행운']];
+    const categories={general:[['▤','학업','학업 · 진로 · 공부'],['◉','재물','금전 · 재물 · 투자'],['▧','시험','시험 · 합격 · 결과']],love:[['♡','짝사랑','상대방의 마음과 가능성'],['♢','커플','현재 관계와 앞으로의 흐름'],['❀','재회','다시 이어질 가능성']]};
+    const $=s=>document.querySelector(s); const views=document.querySelectorAll('.view');
+    function show(id){views.forEach(v=>v.classList.toggle('active',v.id===id)); window.scrollTo({top:0,behavior:'smooth'});}
+    $('#fortuneGrid').innerHTML=fortunes.map((f,i)=>`<button class="fortune-card" style="--delay:${i*40}ms"><span class="fortune-icon">${f[0]}</span><span>${f[1]}<strong>${f[2]}</strong></span><small>${f[3]}</small></button>`).join('');
+    function renderCategories(tab='general'){ $('#categoryList').innerHTML=categories[tab].map(c=>`<button class="category-card" data-category="${c[1]}"><span class="category-icon">${c[0]}</span><span><strong>${c[1]}</strong><small>${c[2]}</small></span><b>→</b></button>`).join(''); document.querySelectorAll('.category-card').forEach(b=>b.onclick=()=>{ $('#questionArea').classList.remove('hidden'); $('#questionArea .selected-label').firstChild.textContent=b.dataset.category+' '; $('#questionArea').scrollIntoView({behavior:'smooth',block:'start'}); }); }
+    renderCategories();
+    $('#dateForm').onsubmit=e=>{e.preventDefault(); const b=$('#dateForm button'); b.innerHTML='오늘의 흐름을 살펴보는 중…'; setTimeout(()=>{b.innerHTML='오늘의 운세 보기 <span>→</span>';show('todayView')},700)};
+    $('#premiumButton').onclick=()=>$('#loginModal').classList.add('open'); $('#loginButton').onclick=()=>$('#loginModal').classList.add('open'); $('#closeModal').onclick=()=>$('#loginModal').classList.remove('open'); $('#kakaoButton').onclick=()=>{window.location.href='/api/auth/kakao'};
+    document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>show(b.dataset.back)); document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');renderCategories(t.dataset.tab)});
+    $('#question').oninput=e=>$('#counter').textContent=e.target.value.length+' / 500'; document.querySelectorAll('.chips button').forEach(c=>c.onclick=()=>{$('#question').value=c.textContent;$('#counter').textContent=c.textContent.length+' / 500'});
+    $('#reviewButton').onclick=()=>alert('질문 확인 화면과 결제 플로우가 이어집니다.');
+  </script>
+</body>
+</html>

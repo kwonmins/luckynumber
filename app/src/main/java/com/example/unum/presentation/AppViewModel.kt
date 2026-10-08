@@ -42,13 +42,11 @@ import java.time.LocalDate
 class AppViewModel : ViewModel() {
     // Dependencies are composed centrally; screens coordinate UI state only.
     private val repository = AppContainer.numerologyRepository
-    private val buildNumerologyResultBundle = AppContainer.buildNumerologyResultBundleUseCase
-    private val buildDailyFortune = AppContainer.buildDailyFortuneUseCase
+    private val freeFortune by lazy { AppContainer.freeFortuneEngine }
     private val buildFortuneBook = AppContainer.buildFortuneBookUseCase
     private val buildSuriSpeechScript = AppContainer.buildSuriSpeechScriptUseCase
     private val buildPremiumDummyConsultation = AppContainer.buildPremiumDummyConsultationUseCase
-    private val generatePremiumConsultation = AppContainer.generatePremiumConsultationUseCase
-    private val generateCompatibilityConsultation = AppContainer.generateCompatibilityConsultationUseCase
+    private val aiConsultation = AppContainer.aiConsultationService
     private val premiumAccessGate = AppContainer.premiumAccessGate
     private val fortuneBookRepository = AppContainer.fortuneBookRepository
     private val readerSettingsStore = AppContainer.readerSettingsStore
@@ -59,9 +57,29 @@ class AppViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
 
-    fun dailyFortune(date: LocalDate = LocalDate.now()): DailyFortuneResult? {
+    private val discoveryRepository = AppContainer.discoveryRepository
+    private val _discovery = MutableStateFlow(discoveryRepository.cached(null))
+    val discovery: StateFlow<com.example.unum.data.repository.DiscoveryState> = _discovery.asStateFlow()
+    fun refreshDiscovery() = runDiscovery { discoveryRepository.refresh(it) }
+    fun drawTarot(theme: com.example.unum.data.content.TarotTheme) = runDiscovery { discoveryRepository.draw(it, theme) }
+    fun unlockTarot() = runDiscovery { discoveryRepository.unlock(it) }
+    fun claimAttendance() = runDiscovery { discoveryRepository.attendance(it) }
+    private fun runDiscovery(action: suspend (com.example.unum.data.model.AuthUser?) -> com.example.unum.data.repository.DiscoveryState) {
+        if(_discovery.value.busy) return
+        val user=(_uiState.value.authState as? AuthState.SignedIn)?.user
+        _discovery.update { it.copy(busy=true,message=null) }
+        viewModelScope.launch {
+            val result=runCatching { action(user) }
+            if(((_uiState.value.authState as? AuthState.SignedIn)?.user?.id) != user?.id) return@launch
+            result.onSuccess { _discovery.value=it.copy(busy=false) }.onFailure {
+                _discovery.update { s -> s.copy(busy=false,message="연결을 확인한 뒤 다시 시도해주세요. 기존 카드는 유지돼요.") }
+            }
+        }
+    }
+
+    fun dailyFortune(date: LocalDate = com.example.unum.data.content.TarotCatalog.today()): DailyFortuneResult? {
         return _uiState.value.latestBundle?.numbers?.let { numbers ->
-            buildDailyFortune(numbers, date)
+            freeFortune.daily(numbers, date)
         }
     }
 
@@ -81,6 +99,16 @@ class AppViewModel : ViewModel() {
         observeRecentSearches()
         observeAuthState()
         savedForm?.let(::restoreSavedBirthResult)
+        viewModelScope.launch {
+            while(true) {
+                delay(30_000)
+                val today=com.example.unum.data.content.TarotCatalog.today()
+                if(_uiState.value.today!=today) {
+                    _uiState.update { it.copy(today=today) }
+                    refreshDiscovery()
+                }
+            }
+        }
     }
 
     private fun observeRecentSearches() {
@@ -96,8 +124,10 @@ class AppViewModel : ViewModel() {
             authRepository.authState.collect { authState ->
                 _uiState.update { it.copy(authState = authState) }
                 val user = (authState as? AuthState.SignedIn)?.user
+                _discovery.value=discoveryRepository.cached(user)
                 if (user != null) {
                     syncSignedInUser(user.id)
+                    refreshDiscovery()
                 }
             }
         }
@@ -123,6 +153,8 @@ class AppViewModel : ViewModel() {
             authRepository.signOut()
             userDataRepository.clearLocalSession()
             fortuneBookRepository.saveBooks(emptyList())
+            repository.clearRecentSearches()
+            userPreferencesStore.clearBirthFormState()
             _uiState.value = AppUiState(
                 readerFontScale = _uiState.value.readerFontScale,
                 notificationsEnabled = _uiState.value.notificationsEnabled,
@@ -187,7 +219,7 @@ class AppViewModel : ViewModel() {
     private fun restoreSavedBirthResult(formState: HomeFormState) {
         val userBirthInput = NumerologyCalculator.toBirthInput(formState) ?: return
         viewModelScope.launch {
-            runCatching { buildNumerologyResultBundle(userBirthInput) }
+            runCatching { freeFortune.bundle(userBirthInput) }
                 .onSuccess { bundle ->
                     _uiState.update { it.copy(latestBundle = bundle) }
                 }
@@ -205,7 +237,7 @@ class AppViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, inputError = null) }
             runCatching {
-                val bundle = buildNumerologyResultBundle(userBirthInput)
+                val bundle = freeFortune.bundle(userBirthInput)
                 delay(900)
                 val genderPrefix = when (userBirthInput.gender) {
                     GenderOption.MALE -> "?⑥꽦 쨌 "
@@ -436,7 +468,7 @@ class AppViewModel : ViewModel() {
                         bundle = bundle
                     )
                 } else {
-                    generatePremiumConsultation(
+                    aiConsultation.personal(
                         apiKey = BuildConfig.OPENAI_API_KEY,
                         topic = current.premiumTopic,
                         concern = confirmedConcern,
@@ -498,16 +530,17 @@ class AppViewModel : ViewModel() {
                 )
             }
             runCatching {
-                val myBundle = current.latestBundle ?: buildNumerologyResultBundle(myInput)
-                val partnerBundle = buildNumerologyResultBundle(partnerInput)
+                val myBundle = current.latestBundle ?: freeFortune.bundle(myInput)
+                val partnerBundle = freeFortune.bundle(partnerInput)
                 val maleBundle = if (myInput.gender == GenderOption.MALE) myBundle else partnerBundle
                 val femaleBundle = if (myInput.gender == GenderOption.MALE) partnerBundle else myBundle
-                val consultation = generateCompatibilityConsultation(
+                val consultation = aiConsultation.compatibility(
                     apiKey = BuildConfig.OPENAI_API_KEY,
                     maleBundle = maleBundle,
                     femaleBundle = femaleBundle,
                     concern = confirmedConcern,
-                    relationshipStatus = current.compatibilityForm.relationshipStatus
+                    relationshipStatus = current.compatibilityForm.relationshipStatus,
+                    requesterIsPersonA = myInput.gender == GenderOption.MALE
                 )
                 Triple(maleBundle, femaleBundle, consultation)
             }.onSuccess { (maleBundle, femaleBundle, consultation) ->

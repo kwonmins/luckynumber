@@ -7,10 +7,11 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 class NumerologyNarrativeAssemblerTest {
+    private val engine=FreeFortuneEngine(java.io.File("src/main/assets/FreeFortuneContent.json").readText())
     @Test
     fun `all destiny and companion interactions use distinct behavioral scenes`() {
         val messages = (0..9).flatMap { destiny ->
-            (0..9).map { companion -> NumerologyInteractionCatalog.describe(destiny, companion) }
+            (0..9).map { companion -> engine.describe(destiny, companion) }
         }
 
         assertEquals(100, messages.size)
@@ -20,7 +21,7 @@ class NumerologyNarrativeAssemblerTest {
     @Test
     fun `same destiny produces different reading when life numbers change`() {
         val profiles = (0..9).associateWith(::profile)
-        val first = NumerologyNarrativeAssembler.build(
+        val first = engine.build(
             code = "1234",
             gender = GenderOption.NONE,
             profile = profiles.getValue(1),
@@ -28,7 +29,7 @@ class NumerologyNarrativeAssemblerTest {
             middleProfile = profiles.getValue(3),
             lateProfile = profiles.getValue(4)
         )
-        val second = NumerologyNarrativeAssembler.build(
+        val second = engine.build(
             code = "1567",
             gender = GenderOption.NONE,
             profile = profiles.getValue(1),
@@ -60,7 +61,7 @@ class NumerologyNarrativeAssemblerTest {
     }
 
     private fun build1234(profiles: Map<Int, DestinyProfile>, gender: GenderOption) =
-        NumerologyNarrativeAssembler.build(
+        engine.build(
             code = "1234",
             gender = gender,
             profile = profiles.getValue(1),

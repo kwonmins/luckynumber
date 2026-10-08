@@ -12,6 +12,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.ui.platform.LocalContext
+import com.example.unum.presentation.discovery.*
+import com.example.unum.data.content.TarotCatalog
+import com.example.unum.data.model.PremiumMode
+import java.time.LocalDate
 import com.example.unum.data.model.FortuneBook
 import com.example.unum.presentation.AppViewModel
 import com.example.unum.presentation.home.HomeScreen
@@ -30,6 +35,15 @@ sealed class AppRoute(val route: String) {
     data object Notification : AppRoute("notification")
     data object Input : AppRoute("input")
     data object Fortune : AppRoute("fortune")
+    data object Explore : AppRoute("explore")
+    data object Benefits : AppRoute("benefits")
+    data object Tarot : AppRoute("tarot")
+    data object TarotHistory : AppRoute("tarot_history")
+    data object History : AppRoute("history")
+    data object Monthly : AppRoute("monthly")
+    data object Numbers : AppRoute("numbers")
+    data object Luck : AppRoute("luck")
+    data object DatedFortune : AppRoute("day/{date}")
     data object Premium : AppRoute("premium")
     data object Payment : AppRoute("payment")
     data object Library : AppRoute("library")
@@ -45,9 +59,22 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: AppRoute.Home.route
+    val context=LocalContext.current
+    fun openDate(date: LocalDate) { navController.navigate("day/$date") {launchSingleTop=true} }
+    fun openFeature(feature: String) {
+        when(feature) {
+            "today" -> navController.navigate(AppRoute.Fortune.route)
+            "tomorrow" -> openDate(TarotCatalog.today().plusDays(1))
+            "date" -> chooseFortuneDate(context,::openDate)
+            "compatibility" -> {viewModel.resetPremiumFlow();viewModel.setPremiumMode(PremiumMode.COMPATIBILITY);navController.navigate(AppRoute.Premium.route)}
+            "tarotHistory" -> navController.navigate(AppRoute.TarotHistory.route)
+            else -> navController.navigate(feature) {launchSingleTop=true}
+        }
+    }
 
     val bottomNavRoute = when {
-        currentRoute.startsWith("reader/") -> AppRoute.Library.route
+        currentRoute.startsWith("reader/") || currentRoute == AppRoute.Library.route || currentRoute == AppRoute.History.route || currentRoute == AppRoute.TarotHistory.route -> AppRoute.Settings.route
+        currentRoute.startsWith("day/") || currentRoute in setOf(AppRoute.Fortune.route,AppRoute.Tarot.route,AppRoute.Monthly.route,AppRoute.Numbers.route,AppRoute.Luck.route) -> AppRoute.Explore.route
         currentRoute == AppRoute.Notification.route -> AppRoute.Home.route
         currentRoute == AppRoute.Input.route -> AppRoute.Home.route
         currentRoute == AppRoute.Payment.route -> AppRoute.Premium.route
@@ -58,8 +85,8 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
         currentRoute !in setOf(AppRoute.Input.route, AppRoute.Notification.route, AppRoute.Payment.route) &&
         bottomNavRoute in setOf(
             AppRoute.Home.route,
-            AppRoute.Fortune.route,
-            AppRoute.Library.route,
+            AppRoute.Explore.route,
+            AppRoute.Benefits.route,
             AppRoute.Premium.route,
             AppRoute.Settings.route
         )
@@ -102,9 +129,11 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                 HomeScreen(
                     viewModel = viewModel,
                     onOpenInput = { navController.navigate(AppRoute.Input.route) },
+                    onOpenToday = { navController.navigate(AppRoute.Fortune.route) },
                     onOpenPremium = { navController.navigate(AppRoute.Premium.route) },
                     onOpenLibrary = { navController.navigate(AppRoute.Library.route) },
                     onOpenSettings = { navController.navigate(AppRoute.Settings.route) },
+                    onOpenFeature = ::openFeature,
                     onOpenBook = { book -> navController.navigateToBook(viewModel, book) }
                 )
             }
@@ -114,6 +143,17 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                     onCalculated = { navController.navigate(AppRoute.Fortune.route) },
                     onBack = { navController.popBackStack() }
                 )
+            }
+            composable(AppRoute.Explore.route) { DiscoveryScreen(viewModel,::openFeature) }
+            composable(AppRoute.Benefits.route) { BenefitsScreen(viewModel,{openFeature("tarot")},{openFeature("tarotHistory")}) }
+            composable(AppRoute.Tarot.route) { TarotScreen(viewModel,{navController.popBackStack()},{openFeature("settings")}) }
+            composable(AppRoute.TarotHistory.route) { TarotHistoryScreen(viewModel,{navController.popBackStack()},{openFeature("tarot")}) }
+            composable(AppRoute.History.route) { HistoryScreen(viewModel,{navController.popBackStack()},::openDate,{openFeature("tarotHistory")},{openFeature("library")}) }
+            composable(AppRoute.Monthly.route) { MonthlyScreen(viewModel,{navController.popBackStack()},{openFeature("input")},::openDate) }
+            composable(AppRoute.Numbers.route) { NumerologyScreen(viewModel,{navController.popBackStack()},{openFeature("input")}) }
+            composable(AppRoute.Luck.route) { ResultScreen(viewModel,{openFeature("input")},{openFeature("premium")},onlyLuck=true) }
+            composable(AppRoute.DatedFortune.route,arguments=listOf(navArgument("date") {type=NavType.StringType})) { entry ->
+                ResultScreen(viewModel,{openFeature("input")},{openFeature("premium")},date=entry.arguments?.getString("date")?.let {runCatching {LocalDate.parse(it)}.getOrNull()} ?: TarotCatalog.today())
             }
             composable(AppRoute.Fortune.route) {
                 ResultScreen(
@@ -167,7 +207,17 @@ fun UnumAppNavigation(viewModel: AppViewModel) {
                 )
             }
             composable(AppRoute.Settings.route) {
-                SettingsScreen(viewModel = viewModel)
+                SettingsScreen(
+                    viewModel = viewModel,
+                    onOpenLibrary = {openFeature("library")},
+                    onOpenHistory = {openFeature("history")},
+                    onSignedOut = {
+                        navController.navigate(AppRoute.Home.route) {
+                            popUpTo(AppRoute.Home.route) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
             composable(
                 route = AppRoute.Reader.route,

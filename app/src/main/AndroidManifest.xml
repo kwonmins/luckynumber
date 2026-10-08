@@ -6,9 +6,9 @@
     <application
         android:name=".UnumApplication"
         android:allowBackup="true"
-        android:icon="@drawable/mascot_icon"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/mascot_icon"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Unum">
         <meta-data

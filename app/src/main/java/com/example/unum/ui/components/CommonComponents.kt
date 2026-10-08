@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Explore
+import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.rounded.AutoStories
 import androidx.compose.material.icons.rounded.Bookmarks
 import androidx.compose.material.icons.rounded.Home
@@ -410,8 +411,8 @@ data class BottomNavItem(val route: String, val label: String, val icon: ImageVe
 
 val bottomNavItems = listOf(
     BottomNavItem("home", "홈", Icons.Outlined.Home),
-    BottomNavItem("fortune", "운세", Icons.Outlined.Explore),
-    BottomNavItem("library", "스크랩", Icons.Outlined.BookmarkBorder),
+    BottomNavItem("explore", "운세", Icons.Outlined.Explore),
+    BottomNavItem("benefits", "혜택", Icons.Outlined.CardGiftcard),
     BottomNavItem("premium", "프리미엄", Icons.Outlined.AutoStories),
     BottomNavItem("settings", "마이", Icons.Outlined.Person)
 )

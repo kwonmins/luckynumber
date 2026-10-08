@@ -10,4 +10,5 @@ interface NumerologyRepository {
     fun observeRecentSearches(): Flow<List<RecentSearch>>
     suspend fun addRecentSearch(search: RecentSearch)
     suspend fun removeRecentSearch(search: RecentSearch)
+    suspend fun clearRecentSearches()
 }

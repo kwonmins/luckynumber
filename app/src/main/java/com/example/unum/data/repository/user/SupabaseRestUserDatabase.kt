@@ -147,6 +147,19 @@ class SupabaseRestUserDatabase(
         prefs.edit().clear().apply()
     }
 
+    suspend fun featureRpc(user: AuthUser, function: String, body: JSONObject = JSONObject()): JSONObject {
+        require(function in setOf("daily_tarot_status", "draw_daily_tarot", "unlock_daily_tarot", "claim_daily_attendance"))
+        ensureAppSessionFor(user.id)
+        val raw=request("POST", "/rest/v1/rpc/$function", body = body.toString()).trim()
+        return if(raw.startsWith("[")) JSONArray(raw).getJSONObject(0) else JSONObject(raw)
+    }
+
+    suspend fun tarotHistory(user: AuthUser): JSONArray {
+        ensureAppSessionFor(user.id)
+        return JSONArray(request("GET", "/rest/v1/daily_tarot",
+            query = "user_id=eq.${user.id.urlEncode()}&select=*&order=draw_date.desc&limit=90"))
+    }
+
     private suspend fun openKakaoSession(accessToken: String): RemoteSession = withContext(Dispatchers.IO) {
         val raw = request(
             method = "POST",

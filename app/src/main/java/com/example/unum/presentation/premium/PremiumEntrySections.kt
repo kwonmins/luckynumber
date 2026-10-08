@@ -47,6 +47,8 @@ import com.example.unum.data.model.PremiumMode
 import com.example.unum.data.model.PremiumTopic
 import com.example.unum.presentation.spec.FeatureSpecs
 import com.example.unum.ui.components.premiumTopicMascot
+import com.example.unum.ui.components.FortuneIllustration
+import com.example.unum.ui.components.fortuneArt
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -338,7 +340,7 @@ internal fun PremiumTopicGrid(selected: PremiumTopic, onSelected: (PremiumTopic)
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Text(topicEmoji(topic), fontSize = 20.sp)
+                        FortuneIllustration(topic.fortuneArt(), Modifier.size(26.dp))
                         Spacer(Modifier.height(4.dp))
                         Text(
                             topic.bookLabel(),
@@ -366,18 +368,6 @@ internal fun topicAccent(topic: PremiumTopic): Color = when (topic) {
     PremiumTopic.GENERAL -> PremiumEntryViolet
     PremiumTopic.SELF_ESTEEM -> PremiumEntryGold
     PremiumTopic.RELATIONSHIP -> PremiumEntryPink
-}
-
-internal fun topicEmoji(topic: PremiumTopic): String = when (topic) {
-    PremiumTopic.ROMANCE -> "💘"
-    PremiumTopic.CAREER -> "💼"
-    PremiumTopic.MONEY -> "💰"
-    PremiumTopic.STUDY -> "📚"
-    PremiumTopic.HEALTH -> "🌿"
-    PremiumTopic.BUSINESS -> "📈"
-    PremiumTopic.GENERAL -> "🔮"
-    PremiumTopic.SELF_ESTEEM -> "✨"
-    PremiumTopic.RELATIONSHIP -> "🤝"
 }
 
 @Composable

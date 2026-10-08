@@ -55,7 +55,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 @Composable
-fun SettingsScreen(viewModel: AppViewModel) {
+fun SettingsScreen(viewModel: AppViewModel, onSignedOut: () -> Unit = {}, onOpenLibrary: () -> Unit = {}, onOpenHistory: () -> Unit = {}) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val activity = LocalContext.current as? Activity
 
@@ -75,12 +75,17 @@ fun SettingsScreen(viewModel: AppViewModel) {
             }
             item { MyPageProfileCard(uiState = uiState) }
             item { MyNumbersCard(uiState = uiState) }
+            item { com.example.unum.presentation.discovery.FeatureRow("📚","나의 보관함","프리미엄 운세노트 다시 읽기",onOpenLibrary) }
+            item { com.example.unum.presentation.discovery.FeatureRow("📒","나의 기록","운세와 타로 기록 다시 읽기",onOpenHistory) }
             item {
                 AccountCard(
                     authState = uiState.authState,
                     activity = activity,
                     onKakaoLogin = viewModel::signInWithKakao,
-                    onLogout = viewModel::signOut
+                    onLogout = {
+                        viewModel.signOut()
+                        onSignedOut()
+                    }
                 )
             }
             item {
