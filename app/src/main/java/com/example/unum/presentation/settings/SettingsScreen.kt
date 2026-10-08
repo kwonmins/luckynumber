@@ -43,6 +43,7 @@ import com.example.unum.ui.components.SectionTitle
 import com.example.unum.ui.components.SettingsRow
 import com.example.unum.ui.components.SettingsSwitchRow
 import com.example.unum.ui.components.SurfaceCard
+import com.example.unum.ui.theme.Mint
 import com.example.unum.ui.theme.Accent
 import com.example.unum.ui.theme.Border
 import com.example.unum.ui.theme.Gold
@@ -202,6 +203,7 @@ private fun MyNumbersCard(uiState: AppUiState) {
                 NumberTile("핵심수", numbers?.destiny?.toString() ?: "?", Gold, Modifier.weight(1f))
                 NumberTile("초년수", numbers?.early?.toString() ?: "?", Color(0xFFA78BFA), Modifier.weight(1f))
                 NumberTile("중년수", numbers?.middle?.toString() ?: "?", Accent, Modifier.weight(1f))
+                NumberTile("말년수", numbers?.late?.toString() ?: "?", Mint, Modifier.weight(1f))
             }
         }
     }
